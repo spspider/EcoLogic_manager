@@ -1,0 +1,246 @@
+body,
+html {
+    background-color: #E9F0F0;
+}
+
+.form-control {
+    padding: 1px 0px;
+    text-align: center;
+}
+
+/*background*/
+
+.container {
+    z-index: 0;
+    position: absolute;
+    /*background: #0099ae;*/
+    /* overflow: auto;*/
+}
+
+#about_big {
+    z-index: -1;
+    font-family: Arial;
+    font-size: 25px;
+    color: rgba(0, 100, 255, 0.2);
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    padding: 0;
+    margin: 10px;
+    top: 0;
+    right: 0;
+    position: absolute;
+    display: block;
+    overflow-y: scroll;
+}
+
+/*background end*/
+/*titles start*/
+#titles {
+    z-index: -1;
+    position: absolute;
+    width: 18em;
+    height: 20em;
+    bottom: 0;
+    left: 50%;
+    margin-left: -9em;
+    font-size: 350%;
+    font-weight: bold;
+    text-align: justify;
+    overflow: hidden;
+    transform-origin: 50% 100%;
+    transform: perspective(300px) rotateX(25deg);
+    color: rgba(254, 171, 69, 0.5);
+
+}
+
+#titles:after {
+    position: absolute;
+    content: ' ';
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 60%;
+    background-image: linear-gradient(top, rgba(0, 0, 0, 1) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+#titlecontent {
+    position: absolute;
+    top: 100%;
+    animation: scroll 100s linear 4s infinite;
+}
+
+@keyframes scroll {
+    0% {
+        top: 100%;
+    }
+    100% {
+        top: -170%;
+    }
+}
+
+/*tites end*/
+.body {
+    z-index: 10;
+}
+/*
+удалить этот блок что бы сделать поле видимым
+ */
+pre {
+    /*visibility: hidden;
+    block-size: 0px;
+    margin: 0px;
+    padding: 0px;
+
+     */
+}
+
+/* Setup */
+@media only screen and (max-width: 500px) {
+    .table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {
+        padding: 0px;
+        vertical-align: middle;
+    }
+
+    ​.table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        z-index: 0;
+        padding: 0px;
+
+    }
+}
+
+.tbody, .tfoot, .thead {
+    padding: 0px;
+}
+
+td,
+th {
+    border: 0px solid #dddddd;
+    text-align: left;
+    padding: 10px;
+
+
+}
+
+code {
+    word-break: break-all;
+    white-space: normal;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+    word-break: break-all;
+}
+
+input:invalid {
+    border: 2px solid red !important;
+}
+
+input:invalid + input[type=submit] {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.col-sm-offset-2 {
+    background-color: #fff;
+    box-shadow: 0 12px 15px rgba(0, 0, 0, 0.4);
+    padding: 20px;
+}
+
+/* device */
+
+.block {
+    background-color: #fff;
+    box-shadow: 0 12px 15px rgba(0, 0, 0, 0.4);
+    padding: 20px;
+    margin: 20px;
+    float: left;
+}
+
+@media (max-width: 480px) {
+    .block {
+        margin: 20px -15px;
+    }
+}
+
+.history {
+    background-color: #fff;
+    box-shadow: 0 12px 15px rgba(0, 0, 0, 0.4);
+    padding: 10px;
+    margin: 10px 0;
+    display: block;
+}
+
+.header {
+    background-color: #fff;
+    box-shadow: 0 22px 22px -22px gray;
+    margin: 0 -15px 23px;
+    padding: 1px 50px 15px;
+    border-radius: 10px 10px 0 0;
+}
+
+.device {
+    background-color: #F5F5F5;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    margin-top: 5%;
+}
+
+h5 {
+    background-color: #4db6ac;
+    color: #fff;
+    margin-top: -40px;
+    padding: 10px 0;
+    width: 50%;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.add span {
+    background-color: #c0c7ca;
+    border-radius: 10px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4);
+    padding: 0 20px;
+}
+
+.add {
+    font-size: 40px;
+}
+
+#date {
+    text-transform: capitalize;
+}
+
+/* loader */
+
+.loader {
+    border: 15px solid #fff;
+    border-top: 15px solid #FF851B;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    animation: spin 1s linear infinite;
+    margin-left: 45%;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+ul#history {
+    text-indent: .5em;
+    border-left: .25em solid #c0c7ca;
+    margin-left: 5px;
+}
+
+#history li {
+    margin-left: -31px;
+}

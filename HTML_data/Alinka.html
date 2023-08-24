@@ -1,0 +1,56 @@
+<html>
+<body>
+<script>
+
+    document.addEventListener("DOMContentLoaded", load);
+    function load(){
+        document.getElementById("test").innerText="123123";
+        document.getElementById("test").innerHTML =resolve("1F04BT");
+    }
+    function resolve(line){
+        var array=['A', 'B', 'C', 'E', 'H', 'K', 'M', 'O', 'P', 'T', 'X', 'Y'];
+        var ok=0;
+        var i=0;
+        for (i=0;i<11;i++){
+            if (line.charAt(0)===array[i]){
+                ok++;
+
+            }
+        }
+        var c = line.substr(1,3);
+        if (!isNaN(c)) {
+    ok++;
+
+        }
+        for (i=0;i<11;i++){
+            if (line.charAt(4)===array[i]){
+                ok++;
+                console.log(line.charAt(4));
+            }
+        }
+        for (i=0;i<11;i++){
+            if (line.charAt(5)===array[i]){
+                ok++;
+            }
+        }
+
+        var letternum=0;
+        var i1=0;
+        for (i1=0;i1<line.size;i1++){
+            for (i=0;i<11;i++){
+                if (line.charAt(i1)===array[i]) {
+                    letternum++;
+                }
+            }
+        }
+        if (ok===4){
+            //return 100;
+            console.log('100');}
+        else{
+            console.log(letternum)}
+    }
+</script>
+<p id ="test">123123123</p>
+123
+</body>
+</html>

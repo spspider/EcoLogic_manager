@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <script defer type="text/javascript" src="scripts/helper_func.js?modified=20012009"></script>
+    <script sync type="text/javascript" src="scripts/condition.js"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <!--<link sync rel="stylesheet" href="bootstrap.min.css?modified=20012012">-->
+    <link sync rel="stylesheet" href="style.css?modified=20012012">
+
+</head>
+
+<body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var element = document.body,
+            style = window.getComputedStyle(element),
+            top = style.getPropertyValue('color');
+        if (top!='rgb(51, 51, 51)'){
+            var el = document.head,
+                elChild = document.createElement('link');
+            elChild.innerHTML = '<link sync rel="stylesheet" href="scripts/bootstrap.min.css?modified=20012001">';
+            el.insertBefore(elChild, el.firstChild);
+        }
+    })
+</script>
+<div class="row" style="text-align:center;">
+    <!-- <h1 style="margin:50px;">Другие настройки</h1>
+		-->
+
+
+    <!--<h2>Настройки интернет соединения:Точка доступа</h2>
+		 -->
+    <br/>
+
+
+    <div class="container">
+
+        <div id="titles">
+            <div id="titlecontent">
+                <div id="textBackground"></div>
+                <!-- <div id="about_big">
+                 <div id="textBackground"></div>
+                </div> -->
+            </div>
+        </div>
+
+<!--
+        <a class="btn btn-block btn-primary" href="\home">Управление</a>
+        <a class="btn btn-block btn-primary" href="\setup">Настройки</a>
+        -->
+
+        <br>
+        <div id="select_condition"></div>
+        <br>
+        <div id="loadedCondition"></div>
+        <pre id="input"></pre>
+        <table id='table' class='table'>
+
+
+        </table>
+        <div id="firstButton">
+            <input type='submit' class="btn btn-lg btn-primary btn-block" value='добавить условие'
+                   onclick="AddCondition(0);"/>
+        </div>
+        <br>
+        <p id="btmBtns"></p>
+
+        <div id="titles">
+            <div id="titlecontent">
+                <div id="testJSON"></div>
+            </div>
+        </div>
+        <br>
+
+        <pre id="output_test"></pre>
+        <pre id="output"></pre>
+
+    </div>
+
+    <div id="buttonid"></div>
+</div>
+
+
+</body>
+</html>

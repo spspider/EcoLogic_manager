@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <title>Other setup</title>
+
+
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <!--<link rel="stylesheet" href="bootstrap.min.css">-->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script defer type="text/javascript" src="scripts/helper_func.js?modified=20012009"></script>
+    <script type="text/javascript" src="scripts/other_setup.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="public"/>
+
+</head>
+
+<body> <!--onload="load();"-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var element = document.body,
+            style = window.getComputedStyle(element),
+            top = style.getPropertyValue('color');
+        if (top != 'rgb(51, 51, 51)') {
+            var el = document.head,
+                elChild = document.createElement('link');
+            elChild.innerHTML = '<link sync rel="stylesheet" href="scripts/bootstrap.min.css?modified=20012001">';
+            el.insertBefore(elChild, el.firstChild);
+        }
+    })
+</script>
+<div class="container">
+    <div class="row" style="text-align:center;">
+        <!-- <h1 style="margin:50px;">Другие настройки</h1>
+          -->
+        <div class="col-sm-offset-2 col-sm-8 col-md-offset-3 col-md-6">
+            <!--<h2>Настройки интернет соединения:Точка доступа</h2>
+             -->
+            <br/>
+            <form id="form" class="form-signin" method='POST' action='#'>
+                <h4>настройка IoT клиента</h4>
+                <div class="row">
+                    <div class="col-sm-6">
+                        использовать IOT
+                        <input type='checkbox' class="form-control"
+                               name='iot_enable' id="iot_enable" value="использовать IOT"/>
+                        <!--<input type='checkbox' class="form-control"
+                               name='IR_receive_output' id="IR_receive_output" value="IR сенсор"/>
+                        <input type='checkbox' class="form-control"
+                               name='IR_output_output' id="IR_output_output" value="IR led"/>-->
+
+                        сервер
+                        <input type='text' value="{{mqttServerName}}" class="form-control"
+                               placeholder='server (m20.cloudmqtt.com)' name='mqttServerName'/> пользователь
+                        <input type='text' value="{{mqttuser}}" class="form-control" placeholder='client (name)'
+                               name='mqttuser'/>
+                        интервал отправки
+                        <input type='text' value="{{mqttspacing}}" class="form-control" placeholder='60 (sec)'
+                               name='mqttspacing'/>
+                    </div>
+
+                    <div class="col-sm-6">
+                        порт
+                        <input type='text' value="{{mqttport}}" class="form-control" placeholder='port (6231)'
+                               name='mqttport'/> пароль
+                        <input type='text' value="{{mqttpass}}" class="form-control" placeholder='password (pass)'
+                               name='mqttpass'/>
+
+
+                    </div>
+                    <div class="col-sm-6">
+                        префикс:
+                        <input type='text' value="{{prefix}}" class="form-control" placeholder='/IoTmanager'
+                               name='prefix'/> ID устройства:
+                        <input type='text' value="{{deviceID}}" class="form-control" placeholder='dev01-kitchen'
+                               name='deviceID'/>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <br>
+                        <!--
+                        <input type='button' class="btn btn-lg btn-primary btn-block" value='Test'
+                               onclick="TestIOT(this);"/>
+                               -->
+
+                    </div>
+                </div>
+                <br/>
+                <p>Email:</p>
+                <div class="row">
+                    <div class="col-sm-6">
+
+                        адрес провайдера
+                        <input type='text' class="form-control" placeholder='(mail.smtp2go.com)' value='{{smtp_arr}}'
+                               name='smtp_arr'/> порт
+                        <input type='text' class="form-control" placeholder='2525' value='{{smtp_port}}'
+                               name='smtp_port'/>
+
+                    </div>
+                    <div class="col-sm-6">
+                        Email получателя
+                        <input type='text' class="form-control" placeholder='spspider@mail.ru' value='{{to_email_addr}}'
+                               name='to_email_addr'/> Email отправителя
+                        <input type='text' class="form-control" placeholder='from_email_addr'
+                               value='{{from_email_addr}}' name='from_email_addr'/>
+
+                    </div>
+                    <br/>
+                    <div class="col-sm-6">
+                        Email логин отправителя
+                        <input type='text' class="form-control" placeholder='login' value='{{emaillogin}}'
+                               name='emaillogin'/> Email пароль отправителя
+                        <input type='text' class="form-control" placeholder='password' value='{{password_email}}'
+                               name='password_email'/>
+                        <br/>
+                        <!--  <input class="btn btn-block btn-success" value="тест Email" onclick="sendEmail(this);"
+                                 type="button">-->
+                        <br/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        порт устройства:
+                        <input type='text' class="form-control" placeholder='ipport' value='{{ipport}}'
+                               name='ipport'/>
+                    </div>
+                    <div class="col-sm-6">
+                        <div>
+                            GMT+ (часовой пояс):
+                            <input type='text' id="timezone" class="form-control" placeholder='0' value='{{timezone}}'
+                                   name='timezone'/></div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div>
+                            отправлять данные о местоположении при загрузке:
+                            <input type='checkbox' class="form-control"
+                                   name='geo_enable' id="geo_enable" value="местоположение"/></div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div>
+                            пытаться переподключаться к Wifi сети:
+                            <input type='checkbox' class="form-control"
+                                   name='wifi_scan' id="wifi_scan" value="сканировать"/></div>
+                        <!--
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div>
+                                                    Сервис IR:
+                                                    <input type='checkbox' class="form-control"
+                                                           name='ir_loop' id="ir_loop" value=""/></div>
+                         -->
+
+                    </div>
+                    <div class="col-sm-6">
+                        <div>
+                            Сервис 433Mhz:
+                            <input type='checkbox' class="form-control"
+                                   name='loop_433' id="loop_433" value=""/></div>
+
+                    </div>
+                    <div class="col-sm-6">
+                        <div>
+                            IR приемник: (input 14(D5), output 15(D8))
+                            <input type='checkbox' class="form-control"
+                                   name='IR_recieve' id="IR_recieve" value=""/></div>
+
+                    </div>
+                    <div class="col-sm-6">
+                        <div>
+                            ws8211 loop:
+                            <input type='checkbox' class="form-control"
+                                   name='ws8211_loop' id="ws8211_loop" value=""/></div>
+
+                    </div>
+                    <div class="col-sm-6">
+                        <div>
+                            сохранять кнопки:
+                            <input type='checkbox' class="form-control"
+                                   name='save_stat' id="save_stat" value=""/></div>
+
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div>
+                            PWM частота:<p id="PWMfreq"></p>
+                            <input type='range' class="form-control"
+                                   name='PWM_frequency' id="PWM_frequency" value="" onchange="FreqChange()" min="1" max="400"/>
+                        </div>
+
+                    </div>
+                    <!--
+                    <br/> IP адрес:
+                    <p>{{ip}}</p>
+                    -->
+                    <br/> время на устройстве:
+                    <div class="col-sm-6">
+                        <div>
+                            <!-- <input class="form-control" type="date" id="BrowserMyDate">
+                             <input class="form-control" type="time" id="BrowserMyTime">
+                             <button class="btn btn-block btn-success" onclick="SetDate(this);" type='button'>установить с
+                                 браузера
+                             </button>
+                             -->
+                            <strong id="time">{{time}}</strong>
+                            <p id="date">{{date}}</p>
+                        </div>
+                    </div>
+                    <br>
+                    <!---->
+                </div>
+                <input type='button' class="btn btn-lg btn-primary btn-block" value='Сохранить'
+                       onclick="CatchForm();"/>
+            </form>
+
+            <div id="test"></div>
+
+            <br/>
+            <br/>
+            <pre id="input"></pre>
+            <pre id="output"></pre>
+            <p id="btmBtns"></p>
+        </div>
+    </div>
+</div>
+
+
+</body>
+
+</html>

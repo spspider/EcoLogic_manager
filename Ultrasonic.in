@@ -1,0 +1,26 @@
+
+#include <Ultrasonic.h>
+Ultrasonic ultrasonic(13, 12); // (Trig PIN,Echo PIN)(D7 Trig,D6 Echo)
+byte tarBrightness = 255;
+byte timer_range_old;
+byte range_old;
+unsigned long old_millisec;
+
+void ultrasonic_loop() {
+
+  if ((ultrasonic.Ranging(CM) != 51) && (!timer_range_old )) {
+    range_old = ultrasonic.Ranging(CM);
+    timer_range_old = 1;
+    old_millisec = millis();
+  }
+  if ((millis() > old_millisec + 100 )) {
+    if (range_old < 13) {
+      Serial.println(range_old);
+      tarBrightness = 255 - range_old * 21;
+    }
+    timer_range_old = 0;
+    old_millisec = millis();
+
+  }
+}
+

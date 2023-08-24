@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <!--<link sync rel="stylesheet" href="bootstrap.min.css?modified=20012009">-->
+
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <script defer type="text/javascript" src="scripts/helper_func.js?modified=20012009"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script defer type="text/javascript" src="scripts/IR_recieve.js"></script>
+
+    <!--<script type="text/javascript" sother_setup.jsn.js"></script>
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="public"/>
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+<body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        loadBootstrap();
+    });
+
+</script>
+<div class="container">
+
+    <div class="row" style="text-align:center;">
+        <!-- <h1 style="margin:50px;">Другие настройки</h1>
+            -->
+        <div class="col-sm-offset-2 ">
+            <!--<h2>Настройки интернет соединения:Точка доступа</h2>
+               -->
+            <!--
+           <form class="form-signin" method='POST' id="idOfForm">
+      -->
+            <h4>настройка кнопок</h4>
+            <br class="row">
+            <div id="codelist"></div>
+            <table id='table' class='table'></table>
+            <div class="row">
+                <div class="col-lg-6">
+                    <input type='submit' id="buttonTakeIR" onclick="WaitIR(this);"
+                           class="btn btn-lg btn-primary btn-block"
+                           value='взять IR'/>
+                    <table id='tablebutton' class='table'>
+                        <tr>
+                            <td>
+                                <label>полученный код:</label>
+                                <input type='checkbox'
+                                       name='Raw_code_checked' id="Raw_code_checked" value="raw" disabled ="true"/>
+                                <label for="Raw_code_checked">raw</label>
+                                <div id="savedonDeviceCodes"></div>
+                            </td>
+                            <td>
+                                <label for="IRcodуName">сохранить как:</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="text" id="IRcode" class="form-control">
+                            </td>
+                            <td>
+                                <input type="text" id="IRcodуName" class="form-control">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="text" id="bin" class="form-control">
+                            </td>
+                            <td>
+                                <button class='form-control' onclick=sendCodeBin()>отправить бинарный код</button></td>
+                            </td>
+                        </tr>
+                        <tr><td colspan="2"><button class="form-control" onclick="AddNewButton();">ок</button></td></tr>
+                    </table>
+
+
+                </div>
+
+                <div class="col-lg-6">
+
+<!--                    <button class="form-control" onclick="test();">test</button>-->
+                </div>
+            </div>
+            <button class="form-control" onclick="saveCode();">сохранить</button>
+            <div id="demo"></div>
+            <pre id="test"></pre>
+
+            <br>
+            <!--<button class="form-control" id="buttonTakeIR" onclick="WaitIR(this);">взять IR</button>-->
+            <br>
+            <div class="progress" id="progress">
+                <!--
+                 <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%">
+
+                 </div>
+                 -->
+            </div>
+
+
+            <br>
+            <p id="btmBtns"></p>
+        </div>
+        <br>
+
+    </div>
+</div>
+</div>
+</body>
+</html>

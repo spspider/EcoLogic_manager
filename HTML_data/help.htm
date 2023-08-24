@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<html>
+<title>Help</title>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <script sync type="text/javascript" src="scripts/help.js?modified=20012012"></script>
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <script defer type="text/javascript" src="scripts/helper_func.js"></script>
+    <!--<link sync rel="stylesheet" href="bootstrap.min.css?modified=20012012">-->
+    <link sync rel="stylesheet" href="style.css?modified=20012012">
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+</head>
+<body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var element = document.body,
+            style = window.getComputedStyle(element),
+            top = style.getPropertyValue('color');
+        if (top != 'rgb(51, 51, 51)') {
+            var el = document.head,
+                elChild = document.createElement('link');
+            elChild.innerHTML = '<link sync rel="stylesheet" href="scripts/bootstrap.min.css?modified=20012001">';
+            el.insertBefore(elChild, el.firstChild);
+        }
+    })
+</script>
+
+<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
+     data-ad-client="ca-pub-8612566019585323"
+     data-ad-slot="7310176592"></ins>
+<script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+<br/>
+<div class="container">
+    <div class="row" style="text-align:center;">
+        <div class="col-sm-offset-2">
+    <br><bold>MQTT топик:</bold> - тот топик, который покажет вам текущий статус. подписывайтесь именно на него.
+    <br><bold>MQTT топик управление: </bold>- топик, слушаемый устройством, высылайте сообщение в некодированном виде на этот адрес.
+        <br><bold>удаленное управление HTTP:</bold>  просто вставьте в строку вашего браузера данную строчку что бы управлять пинами непостредственно с браузера. в ответ вы получите текущее состояние
+        <p id="bodyNode"></p>
+                Управление некоторыми важными пунктами условий.
+        <p id="bodyNodeCond"></p>
+        <br>
+        Получить ИК код, введите данную строку в окно и нажмите на пульте кнопку, в ответ вы получите код кнопки.
+            <code class="w3-codespan"><p id="bodyNodeIR"></p></code>
+Вывести текущее состояние кнопок:
+            <code class="w3-codespan"><p id="bodyNodeStat"></p></code>
+    Отправить Email с устройства:
+            <code class="w3-codespan"><p id="bodyNodeEmail"></p></code>
+            Отправить IR/w433 код сохраненный в устройстве
+            <code class="w3-codespan"><p id="bodyNodeSendIRw433"></p></code>
+            Отправить IR код в формате HEX:
+            <code class="w3-codespan"><p id="bodyNodeIRHex"></p></code>
+            Отправить IR код в формате Raw:
+            <code class="w3-codespan"><p id="bodyNodeIRRaw"></p></code>
+            Текущее время:
+            <code class="w3-codespan"><p id="bodyNodeActualTime"></p></code>
+            управление LED:
+            <code class="w3-codespan"><p id="bodyNodeLed"></p></code>
+            Перезагрузить:
+            <code class="w3-codespan"><p id="bodyNodeReboot"></p></code>
+            <p id="btmBtns"></p>
+
+
+    </div>
+
+    </div>
+</div>
+</body>
+</html>

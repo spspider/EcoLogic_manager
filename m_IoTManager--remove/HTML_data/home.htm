@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <!--  <link sync rel="stylesheet" href="bootstrap.min.css?modified=20012001">-->
+   <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+
+    <link rel="stylesheet" type="text/css" href="style.css?modified=20012009">
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+
+    <!--<script type="text/javascript" src="graphs.js"></script>-->
+    <script defer type="text/javascript" src="scripts/helper_func.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
+    <script type="text/javascript" src="scripts/script_home.js?modified=20012009"></script>
+
+    <title id="title">Dev</title>
+
+    <meta name="viewport" http-equiv="Content-Type" content="width=device-width, initial-scale=1, charset=utf-8"/>
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="public"/>
+
+
+</head>
+<body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadBootstrap();
+        if (typeof Chart === 'undefined') {
+            loadjQuery("scripts/chart.min.js", function () {
+                firstload();
+            });
+        }
+
+    });
+</script>
+<div class="container">
+    <div class="row" style="text-align:center;">
+        <div class="col-sm-offset-2 col-sm-8 col-md-offset-3 col-md-6">
+            <div id="demo"></div>
+            <div id="charts"></div>
+            <div id="graph"></div>
+            <div id="test"></div>
+            <div class="row">
+                <div class="col-lg-6">
+                    частота обновления
+                    <input type="number" class='form-control' id="refresh-rate"/>
+                    <input id="run_range" class='form-control' type='range' min='500' max='60000' step='100'
+                           onchange='setReloadPeriod(this)'/>
+                </div>
+                <!--<input type="button" class='btn btn-block btn-default' id="start-button" value="Start"/>
+                <input type="button" class='btn btn-block btn-default' id="stop-button" value="Stop"/>-->
+            </div>
+            <p id="additional"></p>
+            <pre id="input"></pre>
+            <pre id="output"></pre>
+            <!--
+            <p id="demo1"></p>
+           -->
+            <p id="btmBtns"></p>
+            <!--
+            <a class="btn btn-block btn-default" href="\setup">настройки</a>-->
+            <!--<div class="ADC3 ct-square"></div>-->
+            <!--   <input class="btn btn-block btn-success" id="btn6" type="button" value="setTimeout" onclick="loadValues();" />
+             <div id="testConnection"></div>
+       -->
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>
