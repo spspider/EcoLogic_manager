@@ -899,38 +899,65 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
         Serial.println("!!!!!!!!!!!!!!!!!!!!загрузка условия заврешена");
       }
     }
+    //    else if (act_a[that_condtion_widget][that_number_cond] == 10) { /////////////////////////////передвинуть сл///////////////////////////////////////////
+    //
+    //
+    //      float payload = get_new_pin_value(that_condtion_widget);//узнаем какой уровень на пине который опрашиваем
+    //      unsigned char minTemp, maxTemp_but_now_multiplier, button_;
+    //      if (payload != 0) {
+    //        if (times[that_condtion_widget][that_number_cond] == -1) {
+    //          char * pEnd;
+    //          times[that_condtion_widget][that_number_cond] = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], &pEnd, 10), // преобразовать первую часть строки в значение 10-й СС //minTemp
+    //              bySignalPWM[that_condtion_widget][that_number_cond] = strtol(pEnd,    &pEnd, 10), // преобразовать часть строки в значение 16-й СС //maxTemp
+    //                  actOn_a[that_condtion_widget][that_number_cond] = strtol(pEnd,    &pEnd,  10); //button_
+    //          //сейчас нужно переписать формулу (1024 / (maxTemp - minTemp)); что бы освободить переменную maxTemp
+    //          bySignalPWM[that_condtion_widget][that_number_cond] = (1024 / (bySignalPWM[that_condtion_widget][that_number_cond] - times[that_condtion_widget][that_number_cond]));
+    //        }
+    //
+    //            minTemp = times[that_condtion_widget][that_number_cond];
+    //        maxTemp_but_now_multiplier =  bySignalPWM[that_condtion_widget][that_number_cond];
+    //        button_ = actOn_a[that_condtion_widget][that_number_cond];
+    //
+    //
+    //        payload = (payload - minTemp) * maxTemp_but_now_multiplier;
+    //        payload = payload < 0 ? 0 : payload;
+    //        payload = payload > 1024 ? 1024 : payload;
+    //        //      Serial.print("minTemp:"); Serial.println(minTemp);
+    //        //      Serial.print("maxTemp:"); Serial.println(maxTemp);
+    //        //      Serial.print("button_:"); Serial.println(button_);
+    //
+    //        //uint8_t id_button = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], NULL, 10);
+    //        callback_scoket(button_, payload);
+    //      }
+    //    }
     else if (act_a[that_condtion_widget][that_number_cond] == 10) { /////////////////////////////передвинуть сл///////////////////////////////////////////
 
 
       float payload = get_new_pin_value(that_condtion_widget);//узнаем какой уровень на пине который опрашиваем
-      unsigned char minTemp, maxTemp_but_now_multiplier, button_;
+      unsigned char minTemp, maxTemp, button_;
       if (payload != 0) {
         if (times[that_condtion_widget][that_number_cond] == -1) {
           char * pEnd;
-          times[that_condtion_widget][that_number_cond] = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], &pEnd, 10), // преобразовать первую часть строки в значение 10-й СС //minTemp
-              bySignalPWM[that_condtion_widget][that_number_cond] = strtol(pEnd,    &pEnd, 10), // преобразовать часть строки в значение 16-й СС //maxTemp
-                  actOn_a[that_condtion_widget][that_number_cond] = strtol(pEnd,    &pEnd,  10); //button_
+          minTemp = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], &pEnd, 10), // преобразовать первую часть строки в значение 10-й СС //minTemp
+          maxTemp = strtol(pEnd,    &pEnd, 10), // преобразовать часть строки в значение 16-й СС //maxTemp
+          button_ = strtol(pEnd,    &pEnd,  10); //button_
           //сейчас нужно переписать формулу (1024 / (maxTemp - minTemp)); что бы освободить переменную maxTemp
-          bySignalPWM[that_condtion_widget][that_number_cond] = (1024 / (bySignalPWM[that_condtion_widget][that_number_cond] - times[that_condtion_widget][that_number_cond]));
+
         }
+        //
+        //        Serial.print("minTemp:"); Serial.println(minTemp);
+        //        Serial.print("maxTemp:"); Serial.println(maxTemp);
+        //        Serial.print("button_:"); Serial.println(button_);
 
-            minTemp = times[that_condtion_widget][that_number_cond];
-        maxTemp_but_now_multiplier =  bySignalPWM[that_condtion_widget][that_number_cond];
-        button_ = actOn_a[that_condtion_widget][that_number_cond];
-
-
-        payload = (payload - minTemp) * maxTemp_but_now_multiplier;
+        payload = ((payload - minTemp * 1.0) * (1024.0)) / (maxTemp  - minTemp) * 1.0;
         payload = payload < 0 ? 0 : payload;
         payload = payload > 1024 ? 1024 : payload;
-        //      Serial.print("minTemp:"); Serial.println(minTemp);
-        //      Serial.print("maxTemp:"); Serial.println(maxTemp);
-        //      Serial.print("button_:"); Serial.println(button_);
+
 
         //uint8_t id_button = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], NULL, 10);
         callback_scoket(button_, payload);
       }
     }
-
     /*
           if (alarmRepeats == 255) { //Значит еще не установлены повторы
             alarmRepeats = typePinsrepeats_int;

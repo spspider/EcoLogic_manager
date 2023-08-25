@@ -4,7 +4,7 @@
 #define ws2811_include// активировать для ws2811
 //#define will_use_serial
 //#define pubClient
-//#define ds18b20
+#define ds18b20
 //#define ads1115
 #define emon
 //------------------------------------------------------------------------------//
