@@ -136,92 +136,86 @@ float get_new_pin_value(unsigned char i) {
 
 
 void makeAres_sim(String json) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(json);
+  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+  DeserializationError error = deserializeJson(jsonDocument, json);
+
+  if (error) {
+    Serial.print("Failed to parse JSON: ");
+    Serial.println(error.c_str());
+    server.send(400, "text/plain", "Failed to parse JSON");
+    return;
+  }
+
+  JsonObject root = jsonDocument.as<JsonObject>();
   char that_pin;
   float that_val = 0.0F;
   char control = 255;
   char that_stat = 255;
-  //char that_nID;
   String String_value = "";
+
   root.containsKey("pin") ? that_pin = root["pin"] : that_pin = 255;
   root.containsKey("stat") ? that_stat = root["stat"] : that_stat = 255;
-  //root.containsKey("read") ? that_stat = root["stat"] : that_stat = 255;
   root.containsKey("val") ? that_val = root["val"] : that_val = -1;
-  //root.containsKey("nID") ? that_nID = root["nID"] : that_nID = 255;
   root.containsKey("C") ? control = root["C"] : control = 255;
   root.containsKey("st") ? String_value = root["st"].as<String>() : String_value = "";
+
   switch (control) {
     case 255: {
-        char i = 255;
-        for (char i1 = 0; i1 < nWidgets; i1++) {
-          if (that_pin == pin[i1])
-            i = i1;
-          break;
+      char i = 255;
+      for (char i1 = 0; i1 < nWidgets; i1++) {
+        if (that_pin == pin[i1]) {
+          i = i1;
+          break; // Fix for the loop termination condition
         }
-
-        if (that_stat != 255) {
-          if  (root.containsKey("val")) {
-            stat[that_stat] = that_val;
-          } else {
-            that_val = get_new_pin_value(that_stat);//только чтение
-          }
-        }
-        if (i != 255) {
-          if ((pinmode[i] == 2) || (pinmode[i] == 1)) {//out, in
-            stat[i] = (int)that_val ^ defaultVal[i];
-            //send_IR(i);
-            digitalWrite(that_pin, stat[i]);
-          }
-          else if (pinmode[i] == 3) {//pwm
-            //unsigned int freq = PWM_frequency * 100;
-            //analogWriteFreq(freq);
-            analogWrite(that_pin, that_val);
-          }
-        }
-
-        //pubStatusFULLAJAX_String(false);
-        that_val = round(that_val * 200) / 200;
-        server.send(200, "text / json", String(that_val, DEC));
-        break;
       }
-    case 1://PLUS Control
 
+      if (that_stat != 255) {
+        if (root.containsKey("val")) {
+          stat[that_stat] = that_val;
+        } else {
+          that_val = get_new_pin_value(that_stat); //только чтение
+        }
+      }
+
+      if (i != 255) {
+        if ((pinmode[i] == 2) || (pinmode[i] == 1)) { //out, in
+          stat[i] = static_cast<int>(that_val) ^ defaultVal[i];
+          //send_IR(i);
+          digitalWrite(that_pin, stat[i]);
+        } else if (pinmode[i] == 3) { //pwm
+          //unsigned int freq = PWM_frequency * 100;
+          //analogWriteFreq(freq);
+          analogWrite(that_pin, that_val);
+        }
+      }
+
+      //pubStatusFULLAJAX_String(false);
+      that_val = round(that_val * 200) / 200;
+      server.send(200, "text / json", String(that_val, DEC));
+      break;
+    }
+    case 1: //PLUS Control
       {
         bySignalPWM[that_pin][that_stat] = that_val;
-
-
-        //PWM_json.add(bySignalPWM[that_pin][that_nID]);
-        //that_pin-это условие
-        /*
-          for (char i1 = 0; i1 < Condition; i1++) {
-          //JsonArray& C = PWM_json.createNestedArray();
-          for (char i = 0; i < NumberIDs[i1]; i++) {
-            if (bySignalPWM[i1][i] != -1) {
-              PWM_json.add(bySignalPWM[i1][i]);
-            }
-          }
-          //PWM_json.add(Condition_json);
-          }
-        */
-        //String buffer;
-        //json.printTo(buffer);
-        //Serial.println(buffer);
         server.send(200, "text / json",  saveConditiontoJson(that_pin));
         break;
       }
-    case 2: { //IR
+    case 2: //IR
+      {
         send_IR(that_stat);
         break;
       }
-    case 3: {
+    case 3:
+      {
         //irsend.sendNEC(StrToHex(String_value.c_str()), 32);
         break;
       }
-    case 4: {
-        //        irsend.sendRaw(String_value, String_value.length(), 38);
+    case 4:
+      {
+        //irsend.sendRaw(String_value, String_value.length(), 38);
         break;
       }
   }
 }
+
 

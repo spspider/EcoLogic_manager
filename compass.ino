@@ -48,16 +48,26 @@ float setZeroFuel() {
 }
 
 bool savePinSetup() {
-
   String buffer_read = readCommonFiletoJson("pin_setup");
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& json = jsonBuffer.parseObject(buffer_read);
+  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+  DeserializationError error = deserializeJson(jsonDocument, buffer_read);
+
+  if (error) {
+    Serial.print("Failed to parse JSON: ");
+    Serial.println(error.c_str());
+    return false;
+  }
+
+  JsonObject json = jsonDocument.as<JsonObject>();
   json["aDiv"] = analogDivider;
   json["aSusbt"] = analogSubtracter;
+
   String buffer;
-  json.printTo(buffer);
+  serializeJson(json, buffer);
   //Serial.println(buffer);
   saveCommonFiletoJson("pin_setup", buffer, 1);
 
+  return true;
 }
+
 

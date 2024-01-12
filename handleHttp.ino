@@ -54,30 +54,33 @@ boolean captivePortal() {
   return false;
 }
 void handleWifilist() {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& json = jsonBuffer.createObject();
+  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+  JsonObject json = jsonDocument.to<JsonObject>();
+  
   json["ssid"] = ssid;
   json["WiFilocalIP"] = toStringIp(WiFi.localIP());
   json["softAP"] = softAP_ssid;
   json["WiFisoftAPIP"] = toStringIp(WiFi.softAPIP());
 
+  JsonArray scan_array = json.createNestedArray("scan");
+  JsonArray enc_array = json.createNestedArray("enc");
+  JsonArray RSSI_array = json.createNestedArray("RSSI");
 
-  JsonArray& scan_array = json.createNestedArray("scan");
-  JsonArray& enc_array = json.createNestedArray("enc");
-  JsonArray& RSSI_array = json.createNestedArray("RSSI");
   int n = WiFi.scanNetworks();
   if (n > 0) {
     json["n"] = n;
     for (int i = 0; i < n; i++) {
       scan_array.add(WiFi.SSID(i));
-      enc_array.add(String((WiFi.encryptionType(i) == ENC_TYPE_NONE) ? +"Free" : ""));
+      enc_array.add((WiFi.encryptionType(i) == ENC_TYPE_NONE) ? "Free" : "");
       RSSI_array.add(WiFi.RSSI(i));
     }
   }
+
   String buffer;
-  json.printTo(buffer);
+  serializeJson(json, buffer);
   server.send(200, "text/json", buffer);
 }
+
 void handleWifi() {
   String Page = sendHead();
   Page += F(
@@ -147,75 +150,63 @@ void save_wifiList(String s, String p) {
   s.toCharArray(ssid, sizeof(ssid) - 1);
   p.toCharArray(password, sizeof(password) - 1);
 
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& rootjs = jsonBuffer.parseObject(WifiList);
-  JsonObject& rootjsCreate = jsonBuffer.createObject();
-
-  JsonArray& name_array = rootjsCreate.createNestedArray("name");
-  JsonArray& pass_array = rootjsCreate.createNestedArray("pass");
-
-  if (!rootjs.success()) {
-    Serial.println("parseObject() pasrse_wifiList failed");
-    //rootjsCreate["num"] = 10;
-    //rootjsCreate["last"] = 0;
-
-    name_array.add(s);
-    pass_array.add(p);
-
-    String buffer;
-    rootjsCreate.printTo(buffer);
-    //Serial.println(buffer);
-    saveCommonFiletoJson("wifilist", buffer, 1);
+  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+  DeserializationError error = deserializeJson(jsonDocument, WifiList);
+  
+  if (error) {
+    Serial.print(F("deserializeJson() failed with code "));
+    Serial.println(error.c_str());
     return;
   }
-  char num = rootjs["name"].size();
-  bool  ssid_not_found = true;
-  bool write_array = false;
-  for (unsigned char i = 0; i < num; i++) {
 
+  JsonArray name_array = jsonDocument["name"].as<JsonArray>();
+  JsonArray pass_array = jsonDocument["pass"].as<JsonArray>();
+
+  char num = name_array.size();
+  bool ssid_not_found = true;
+  bool write_array = false;
+
+  for (unsigned char i = 0; i < num; i++) {
     char nameWifi[20];
     char passWifi[20];
-    strcpy(nameWifi, rootjs["name"][i]);
-    strcpy(passWifi, rootjs["pass"][i]);
+    
+    strlcpy(nameWifi, name_array[i], sizeof(nameWifi));
+    strlcpy(passWifi, pass_array[i], sizeof(passWifi));
 
-    //name_array.add(rootjs["name"][i]);
-
-    if ((strcmp (nameWifi, ssid) == 0) && (strcmp (passWifi, password) != 0)) { //совпадают ssid но не совпадает пароль
+    if ((strcmp(nameWifi, ssid) == 0) && (strcmp(passWifi, password) != 0)) {
       Serial.println("update ssid password");
-      //need update
-      name_array.add(rootjs["name"][i]);
+      // Need update
+      name_array.add(name_array[i]);
       pass_array.add(password);
       write_array = true;
-      //break;
     } else {
-      Serial.println("write ssd as previous");
-      name_array.add(rootjs["name"][i]);
-      pass_array.add(rootjs["pass"][i]);
-    }
-    
-    if (strcmp (nameWifi, ssid) != 0) { //ни разу не совпал ssid
-      ssid_not_found = false;
+      Serial.println("write ssid as previous");
+      name_array.add(name_array[i]);
+      pass_array.add(pass_array[i]);
     }
 
+    if (strcmp(nameWifi, ssid) != 0) {
+      ssid_not_found = false;
+    }
   }
-  if (ssid_not_found ) {
-    Serial.println("add new ssd");
+
+  if (ssid_not_found) {
+    Serial.println("add new ssid");
     name_array.add(ssid);
     pass_array.add(password);
     write_array = true;
   }
+
   if (write_array) {
     String buffer;
-    rootjsCreate.printTo(buffer);
-    //Serial.println(buffer);
+    serializeJson(jsonDocument, buffer);
+    // Serial.println(buffer);
     saveCommonFiletoJson("wifilist", buffer, 1);
   }
+
   saveCredentials();
-  // }
-  //else {
-  //  saveCommonFiletoJson("wifilist", "{num : 1, last : 0, name : [" + String(s) + "], pass : [" + String(p) + "]}");
-  //}
 }
+
 
 /*
   String *read_wifiList(unsigned char index) {
@@ -234,45 +225,40 @@ void save_wifiList(String s, String p) {
   }
 */
 bool load_ssid_pass() {
-  /*
-    WiFi.disconnect();
-    if (WiFi.getMode() != WIFI_AP)
-    {
-    Serial.println("Enable Wifi STA");
-    WiFi.mode(WIFI_STA);
-    delay(1000);
-    }
-  */
   Serial.println("scan start");
-  char n = WiFi.scanNetworks();
+  int n = WiFi.scanNetworks();
   Serial.println("scan done");
-  if (char(n) > 0) {
+  
+  if (n > 0) {
     String WifiList = readCommonFiletoJson("wifilist");
 
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& rootjs = jsonBuffer.parseObject(WifiList);
-    if (!rootjs.success()) {
-      Serial.println("parseObject() save_wifiList failed");
+    DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+    DeserializationError error = deserializeJson(jsonDocument, WifiList);
+    if (error) {
+      Serial.print(F("deserializeJson() failed with code "));
+      Serial.println(error.c_str());
       return false;
     }
-    for (char i = 0; i < 10; i++) {
-      String nameWifi = rootjs["name"][i];
-      String passWifi = rootjs["pass"][i];
-      //Serial.println(nameWifi);
-      for (char in = 0; in < char(n); in++) {
-        //Serial.println(WiFi.SSID((in)));
-        if (String(WiFi.SSID(in)) == nameWifi) {
-          nameWifi.toCharArray(ssid, sizeof(ssid) - 1);
-          passWifi.toCharArray(password, sizeof(password) - 1);
+
+    for (int i = 0; i < 10; i++) {
+      String nameWifi = jsonDocument["name"][i];
+      String passWifi = jsonDocument["pass"][i];
+
+      for (int in = 0; in < n; in++) {
+        if (WiFi.SSID(in) == nameWifi) {
+          strlcpy(ssid, nameWifi.c_str(), sizeof(ssid));
+          strlcpy(password, passWifi.c_str(), sizeof(password));
           Serial.println(ssid);
           Serial.println(password);
-          break;
+          return true; // Found and set, exit the function
         }
       }
     }
   }
-  return true;
+
+  return false; // No match found
 }
+
 void handleNotFound() {
   if (captivePortal()) { // If caprive portal redirect instead of displaying the error page.
     return;

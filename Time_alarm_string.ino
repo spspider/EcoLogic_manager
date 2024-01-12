@@ -52,131 +52,108 @@ void setup_alarm() {
   Serial.println("setup_alarm() - OK");
 }
 String saveConditiontoJson(char CondWidjet) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& json = jsonBuffer.createObject();
+  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+  JsonObject json = jsonDocument.to<JsonObject>();
 
-  // char CondWidjet_ch[1];
-  //  strcpy(CondWidjet_ch,CondWidjet);
   json["ID"] = String(CondWidjet, DEC);
-  //strcpy(json["ID"], CondWidjet_ch);
-  //sprintf(json["ID"], "%d", CondWidjet);
   json["Numbers"] = String(NumberIDs[CondWidjet], DEC);
 
-  //JsonArray& tID_json = json.createNestedArray("tID");
-  JsonArray& En_json = json.createNestedArray("En");
-  JsonArray& times_json = json.createNestedArray("times");
-  //JsonArray& dates_json = json.createNestedArray("dates");
-  JsonArray& bySignal_json = json.createNestedArray("bySignal");
-  JsonArray& bySignalPWM_json = json.createNestedArray("bySignalPWM");
-  JsonArray& type_json = json.createNestedArray("type");
-  //JsonArray& timer_json = json.createNestedArray("timer");
-  //JsonArray& timerType_json = json.createNestedArray("timerType");
-  JsonArray& act_json = json.createNestedArray("act");
-  JsonArray& actBtn_json = json.createNestedArray("actBtn");
-  JsonArray& actOn_json = json.createNestedArray("actOn");
-  //JsonArray& pwmTypeAct_json = json.createNestedArray("pwmTypeAct");
+  JsonArray En_json = json.createNestedArray("En");
+  JsonArray times_json = json.createNestedArray("times");
+  JsonArray bySignal_json = json.createNestedArray("bySignal");
+  JsonArray bySignalPWM_json = json.createNestedArray("bySignalPWM");
+  JsonArray type_json = json.createNestedArray("type");
+  JsonArray act_json = json.createNestedArray("act");
+  JsonArray actBtn_json = json.createNestedArray("actBtn");
+  JsonArray actOn_json = json.createNestedArray("actOn");
 
-
-  // Serial.println("NUmbersID: " + String(NumberIDs[0], DEC));
   for (char i = 0; i < (int)NumberIDs[CondWidjet]; i++) {
-    //tID_json.add(tID_a[CondWidjet][i]);
     En_json.add(En_a[CondWidjet][i]);
     times_json.add(times[CondWidjet][i]);
     bySignal_json.add((int)bySignal[CondWidjet][i]);
-    bySignalPWM_json.add(bySignalPWM[CondWidjet][i]);//correct
-    type_json.add( type_a[CondWidjet][i]);//correct
-    //timer_json.add(timer_a[CondWidjet][i]);
-    act_json.add( act_a[CondWidjet][i]);//correct
-    //actBtn_json.add(actBtn_a[CondWidjet][i]);//correct
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    actBtn_json.add(actBtn_a_ch[CondWidjet][i]);//correct
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    actOn_json.add( actOn_a[CondWidjet][i]);//correct
-    //pwmTypeAct_json.add( pwmTypeAct[CondWidjet][i]);//correct
+    bySignalPWM_json.add(bySignalPWM[CondWidjet][i]);
+    type_json.add(type_a[CondWidjet][i]);
+    act_json.add(act_a[CondWidjet][i]);
+    actBtn_json.add(actBtn_a_ch[CondWidjet][i]);
+    actOn_json.add(actOn_a[CondWidjet][i]);
 
     alarm_is_active[CondWidjet][i] = false;
-
   }
+
   String buffer;
-  json.printTo(buffer);
-  //Serial.println(buffer);
+  serializeJson(json, buffer);
   saveCommonFiletoJson("Condition" + String(CondWidjet, DEC), buffer, 1);
   return buffer;
 }
+
 
 bool load_Current_condition(String jsonCondition) {
   //String jsonCondition = LoadCondition(thatCondition);//загружаем условия кнопки 0;
 
   //Serial.println(jsonCondition);
   if (jsonCondition != "") {
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& rootjs = jsonBuffer.parseObject(jsonCondition);
-    if (!rootjs.success()) {
+    DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+    DeserializationError error = deserializeJson(jsonDocument, jsonCondition);
+
+    if (error) {
+      Serial.println("JSON Parsing Error: " + String(error.c_str()));
+      return false;
+    }
+
+    JsonObject rootjs = jsonDocument.as<JsonObject>();
+    if (error) {
       Serial.println("PARSE FAIL!!");
       return false;
-
     }
-    char WidjetIds = rootjs["ID"];//1//номер кнопки
-    int Numbers_that = rootjs["Numbers"];//1//в одном файле кол-во таймеров
+
+    char WidjetIds = rootjs["ID"]; // 1 //номер кнопки
+    int Numbers_that = rootjs["Numbers"]; // 1 //в одном файле кол-во таймеров
     char thatCondition = WidjetIds;
     Numbers_that > Numbers ? Numbers_that = Numbers : true;
-    for (char i = 0; i < Numbers_that; i++) {//от всего колимчества таймеров
-      //unsigned char tID_that = rootjs["tID"][i];
 
-      //times,bySignal,type,bySignalPWM,
-
-
+    for (char i = 0; i < Numbers_that; i++) { //от всего колимчества таймеров
       char type_that = rootjs["type"][i];
       int timer_that = rootjs["timer"][i];
-      //unsigned char timerType_that = rootjs["timerType"][i];
       char act_that = rootjs["act"][i];
-      //String actBtn_that = rootjs["actBtn"][i];
+      strncpy(actBtn_a_ch[thatCondition][i], rootjs["actBtn"][i], sizeof(actBtn_a_ch[thatCondition][i]));
+      char actOn_that = rootjs["actOn"][i];
 
-      //
       unsigned int times_that = rootjs["times"][i];
       int bySignal_that = rootjs["bySignal"][i];
       int bySignalPWM_that = rootjs["bySignalPWM"][i];
-      //int pwmTypeAct_that = rootjs["pwmTypeAct"][i];
       bool En_that = rootjs["En"][i];
-      char actOn_that = rootjs["actOn"][i];
-      //default
+
       type_a[thatCondition][i] = 0;
-      //tID_a[thatCondition][i] = tID_that;
       type_a[thatCondition][i] = type_that;
-      //timer_a[thatCondition][i] = timer_that;
-      //timerType_a[thatCondition][i] =  timerType_that;
       act_a[thatCondition][i] = act_that;
-      //actBtn_a[thatCondition][i] = actBtn_that;
-      strncpy(actBtn_a_ch[thatCondition][i], rootjs["actBtn"][i], sizeof(actBtn_a_ch[thatCondition][i]));
       actOn_a[thatCondition][i] = actOn_that;
 
       times[thatCondition][i] = times_that;
       bySignal[thatCondition][i] = (char)bySignal_that;
       bySignalPWM[thatCondition][i] = bySignalPWM_that;
-      //pwmTypeAct[thatCondition][i] = pwmTypeAct_that;
       En_a[thatCondition][i] = En_that;
 
       alarm_is_active[thatCondition][i] = alarm_is_active[thatCondition][i] ^ true;
+
 #if defined(pubClient)
-      if (client.connected())  {
+      if (client.connected()) {
         if ((bySignal[thatCondition][i] == 2) || (bySignal[thatCondition][i] == 3)) {
           Serial.println("POSSIBLE PUBLISH bySignalPWM[c][n]:" + String(bySignalPWM[thatCondition][i], DEC));
           char pubstatus[40];
-          //char buffer[10];
-          //deviceID.toCharArray(buffer, sizeof(deviceID));
           sprintf(pubstatus, "%s/PLUS/%d/%d", deviceID, thatCondition, i);
           pubStatus(pubstatus, setStatus(bySignalPWM[thatCondition][i]));
-
         }
       }
 #endif
     }
-    NumberIDs[thatCondition] = Numbers_that;//количество в этом условии (на этой кнопке);
+
+    NumberIDs[thatCondition] = Numbers_that; //количество в этом условии (на этой кнопке);
     NumberIDs[thatCondition] > 10 ? NumberIDs[thatCondition] = 0 : true;
     //check_if_there_timer_times(thatCondition);
   }
   return true;
 }
+
 void check_if_there_timer_once(uint8_t idWidget) {//проверка установки таймера
   for (uint8_t i = 0; i < NumberIDs[idWidget]; i++) {
     if (type_a[idWidget][i] == 3) {//таймер
@@ -385,12 +362,20 @@ void loop_alarm() {
 }
 void CheckInternet(String request) {
   String respond = getHttp(request);
+
   if (respond == "fail") { //интернета нет
     Serial.println("Интернета нет");
     relayRouter();
   } else { //интернет есть
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& rootjs = jsonBuffer.parseObject(respond);
+    DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+    DeserializationError error = deserializeJson(jsonDocument, respond);
+
+    if (error) {
+      Serial.println("JSON Parsing Error: " + String(error.c_str()));
+      return;
+    }
+
+    JsonObject rootjs = jsonDocument.as<JsonObject>();
 
     //"2018-08-23T07:43";
     String currentDateTime = rootjs["currentDateTime"];
@@ -411,6 +396,7 @@ void CheckInternet(String request) {
     Serial.println("Интернет есть");
   }
 }
+
 /*
   void check_that_digital_read(int value, int idWidget, int i) {
   if (digitalRead(pin[idWidget]) == value) {
@@ -625,58 +611,12 @@ void disable_En(uint8_t that_condtion_widget, uint8_t that_number_cond) {
 
 }
 void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool opposite) {
-  //Serial.println("выполняем действие condtion:" + String(that_condtion_widget, DEC) + " number:" + String(that_number_cond, DEC) + " En:" + String(En_a[that_condtion_widget][that_number_cond], DEC) + " opp:" + String(opposite));
   if (En_a[that_condtion_widget][that_number_cond] == true) {//если он включен
-    // Serial.println("that_condition:" + String(that_condtion_widget) + " that_number_cond:" + String(that_number_cond));
     if (act_a[that_condtion_widget][that_number_cond] == 2) { ////////////////////////////"нажать кнопку"////////////////////////////////////////////
       uint8_t i = that_condtion_widget;
       uint8_t payload_is = actOn_a[that_condtion_widget][that_number_cond];
       uint8_t id_button = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], NULL, 10);
       switch_action(id_button, that_number_cond, opposite);
-      //id_button = String(actBtn_a_ch[that_condtion_widget][that_number_cond]).toInt();
-      /*
-        if (id_button != 255) {
-        if (payload_is == 2) {//выкл
-          stat[id_button] = 1 ^ opposite;
-          stat[id_button] ^= defaultVal[id_button];
-
-          digitalWrite(pin[id_button], stat[id_button]);
-          Serial.println("выкл:" + String(opposite, DEC)) ;
-        } else if (payload_is == 1) { //вкл
-          stat[id_button] = 0 ^ opposite;
-          stat[id_button] ^= defaultVal[id_button];
-
-          digitalWrite(pin[id_button], stat[id_button]);
-          Serial.println("вкл:" + String(opposite, DEC)) ;
-        }
-        else if (payload_is == 3) { //шим
-          // int pinNumber = actBtn_a[that_condtion_widget][that_number_cond].toInt();
-          stat[id_button] = pwmTypeAct[that_condtion_widget][that_number_cond];
-          analogWrite(pin[id_button], stat[id_button]);
-          //pwm value
-          Serial.println("pwm pin:" + String(pin[id_button], DEC) + "val" + String(stat[id_button], DEC)) ;
-        }
-        //для вкл или выкл
-
-        switch (pinmode[id_button]) {
-          case 2://out
-            //digitalWrite(pinNumber, newValue);
-            //Serial.println("digitalWrite:" + String(pin[id_button]) + String(newValue)) ;
-            break;
-          case 6://IR
-            Serial.println("IR") ;
-            //////////////////////сюда вставить отправку кода IR
-            //
-            break;
-        }
-        //pubStatusWS(sTopic[id_button], setStatus(stat[id_button]), true);
-        }
-        else {
-        Serial.println("кнопка не найдена") ;
-        }
-      */
-      //saveSPIFFS_jsonArray(stat);
-
     }
     else if ((act_a[that_condtion_widget][that_number_cond] == 4) && (!opposite)) { //"отправить Email"//////////////////////////////////////////////////////////
       String buffer;
@@ -693,55 +633,17 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
       Serial.println(sendEmail(buffer));
     }
     else if (act_a[that_condtion_widget][that_number_cond] == 1) { /////////////////////////////установить пин///////////////////////////////////////////
-      //int thatpin = actBtn_a[that_condtion_widget][that_number_cond].toInt();
       uint8_t thatpin ;//= atoi(actBtn_a_ch[that_condtion_widget][that_number_cond]);
-      // sscanf(actBtn_a_ch[that_condtion_widget][that_number_cond], "%d", thatpin);
-      //thatpin = atoi(actBtn_a_ch[that_condtion_widget][that_number_cond]);
-      // thatpin = (uint8_t)(String(actBtn_a_ch[that_condtion_widget][that_number_cond])).toInt();
       thatpin = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], NULL, 10);
-      //sprintf(out_string, "%d", base_string, thatpin);
       int new_value = actOn_a[that_condtion_widget][that_number_cond];
-      //int pwm = pwmTypeAct[that_condtion_widget][that_number_cond];
-      /*
-        if (pwm == -1) {
-        int index = -1;
-        for (int i = 0; i < nWidgets; i++) {
-          if (pin[i] == thatpin) {
-            index = i;
-          }
-        }
-        new_value ^= opposite;
-        if (index != -1) {
-          new_value ^= defaultVal[index];
-        }
-        digitalWrite(thatpin, new_value);
-        Serial.println("digitalWrite:" + String(thatpin, DEC) + "value:" + String(new_value, DEC)) ;
-        }
-        else {
-        if (!opposite) {
-          analogWrite(thatpin, 1023 - pwm);
-          Serial.println("analogWrite:" + String(thatpin, DEC) + "value:" + String(1023 - pwm)) ;
-        } else {
-          analogWrite(thatpin, 0);
-        }
-        }
-      */
-      //saveSPIFFS_jsonArray(stat);
+
     }
     else if (act_a[that_condtion_widget][that_number_cond] == 5) { //переключить условие/////////////////////////////////////////////////////////
       short int StatusEn[2];
-      //uint8_t *StatusEn = getDelimeters(String(actBtn_a_ch[that_condtion_widget][that_number_cond]), ":");
-      //      char* StatusEn0 = delimeter(actBtn_a_ch[that_condtion_widget][that_number_cond], ":", 0);
-      //      char* StatusEn1 = delimeter(actBtn_a_ch[that_condtion_widget][that_number_cond], ":", 1);
 
       char* pEnd;
       StatusEn[0] = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], &pEnd, 10);
       StatusEn[1] = strtol(pEnd,    NULL, 10);
-      //sscanf(StatusEn0, "%d", StatusEn[0]);
-      //sscanf(StatusEn1, "%d", StatusEn[1]);
-
-      //StatusEn[0] = String(StatusEn0).toInt();
-      // StatusEn[1] = String(StatusEn1).toInt();
       uint8_t on_off = actOn_a[that_condtion_widget][that_number_cond];
       if (type_a[that_condtion_widget][that_number_cond] == 1) { //будильник
         disable_En(StatusEn[0], StatusEn[1]);
@@ -772,14 +674,7 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
       //сохранить текущее состояние
       saveConditiontoJson(StatusEn[0]);
     }
-    /*
-      else if ((act_a[that_condtion_widget][that_number_cond] == 6) && (!opposite)) { //отключить условие
-      int *StatusEn = getDelimeters(actBtn_a[that_condtion_widget][that_number_cond], ":");
-      En_a[StatusEn[0]][StatusEn[1]] = false;
-      //check_if_there_timer_once(that_condtion_widget);
-      Serial.println("выключаем условие кнопки:" + String(StatusEn[0]) + " номер по порядку условия:" + String(StatusEn[1]));
-      }
-    */
+
     else if (act_a[that_condtion_widget][that_number_cond] == 3) { ///////////////////////////удаленная кнопка///////////////////////////////////////////////////
 
       String host = String(actBtn_a_ch[that_condtion_widget][that_number_cond]);//узнаем хост и кнопку
@@ -802,32 +697,39 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
 
     }
     else if (act_a[that_condtion_widget][that_number_cond] == 6) { ///////////////////////////mqtt запрос/////////////////////////////////////////////////
-      DynamicJsonBuffer jsonBuffer;
+      DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
       String mqtt_parse = String(actBtn_a_ch[that_condtion_widget][that_number_cond]);
       Serial.println(mqtt_parse);
-      JsonObject& root = jsonBuffer.parseObject(mqtt_parse);
-      if (!root.success()) {
+      DeserializationError error = deserializeJson(jsonDocument, mqtt_parse);
+
+      if (error) {
         Serial.println("Parsing fail mqtt");
         return;
       }
+
+      JsonObject root = jsonDocument.as<JsonObject>();
       char char_arr[10];
       int value = root["msg"];
       value ^= opposite;
       sprintf(char_arr, "%d", value);
-#if defined(pubClient)
-      Serial.println("Publish : (topic:" + root["Topic"].as<String>() + " msg:" + String(char_arr) + ")");
+
+#ifdef pubClient
+      String topic = root["Topic"].as<String>();
+      String message = String(char_arr);
+
+      Serial.println("Publish : (topic:" + topic + " msg:" + message + ")");
       if (client.connected()) {
-        if (client.publish(root["Topic"], char_arr)) {
-          Serial.println("Publish SUCCESS! (topic:" + root["Topic"].as<String>() + " msg:" + String(char_arr) + ")");
+        if (client.publish(topic.c_str(), message.c_str())) {
+          Serial.println("Publish SUCCESS! (topic:" + topic + " msg:" + message + ")");
         } else {
-          Serial.println("Publish FAIL! (topic:" + root["Topic"].as<String>() + " msg:" + String(char_arr) + ")");
+          Serial.println("Publish FAIL! (topic:" + topic + " msg:" + message + ")");
         }
-      }
-      else {
-        Serial.println("Publish FAIL!client dsiconnected");
+      } else {
+        Serial.println("Publish FAIL! client disconnected");
       }
 #endif
     }
+
     else if (act_a[that_condtion_widget][that_number_cond] == 7) { ///////////////////////////8211/////////////////////////////////////////////////
       //String openPath = "ws8211/" + String(actBtn_a_ch[that_condtion_widget][that_number_cond]);
       char openPath[11] = "ws8211/";
@@ -899,37 +801,7 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
         Serial.println("!!!!!!!!!!!!!!!!!!!!загрузка условия заврешена");
       }
     }
-    //    else if (act_a[that_condtion_widget][that_number_cond] == 10) { /////////////////////////////передвинуть сл///////////////////////////////////////////
-    //
-    //
-    //      float payload = get_new_pin_value(that_condtion_widget);//узнаем какой уровень на пине который опрашиваем
-    //      unsigned char minTemp, maxTemp_but_now_multiplier, button_;
-    //      if (payload != 0) {
-    //        if (times[that_condtion_widget][that_number_cond] == -1) {
-    //          char * pEnd;
-    //          times[that_condtion_widget][that_number_cond] = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], &pEnd, 10), // преобразовать первую часть строки в значение 10-й СС //minTemp
-    //              bySignalPWM[that_condtion_widget][that_number_cond] = strtol(pEnd,    &pEnd, 10), // преобразовать часть строки в значение 16-й СС //maxTemp
-    //                  actOn_a[that_condtion_widget][that_number_cond] = strtol(pEnd,    &pEnd,  10); //button_
-    //          //сейчас нужно переписать формулу (1024 / (maxTemp - minTemp)); что бы освободить переменную maxTemp
-    //          bySignalPWM[that_condtion_widget][that_number_cond] = (1024 / (bySignalPWM[that_condtion_widget][that_number_cond] - times[that_condtion_widget][that_number_cond]));
-    //        }
-    //
-    //            minTemp = times[that_condtion_widget][that_number_cond];
-    //        maxTemp_but_now_multiplier =  bySignalPWM[that_condtion_widget][that_number_cond];
-    //        button_ = actOn_a[that_condtion_widget][that_number_cond];
-    //
-    //
-    //        payload = (payload - minTemp) * maxTemp_but_now_multiplier;
-    //        payload = payload < 0 ? 0 : payload;
-    //        payload = payload > 1024 ? 1024 : payload;
-    //        //      Serial.print("minTemp:"); Serial.println(minTemp);
-    //        //      Serial.print("maxTemp:"); Serial.println(maxTemp);
-    //        //      Serial.print("button_:"); Serial.println(button_);
-    //
-    //        //uint8_t id_button = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], NULL, 10);
-    //        callback_scoket(button_, payload);
-    //      }
-    //    }
+
     else if (act_a[that_condtion_widget][that_number_cond] == 10) { /////////////////////////////передвинуть сл///////////////////////////////////////////
 
 
@@ -944,7 +816,6 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
           //сейчас нужно переписать формулу (1024 / (maxTemp - minTemp)); что бы освободить переменную maxTemp
 
         }
-        //
         //        Serial.print("minTemp:"); Serial.println(minTemp);
         //        Serial.print("maxTemp:"); Serial.println(maxTemp);
         //        Serial.print("button_:"); Serial.println(button_);
@@ -958,21 +829,6 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
         callback_scoket(button_, payload);
       }
     }
-    /*
-          if (alarmRepeats == 255) { //Значит еще не установлены повторы
-            alarmRepeats = typePinsrepeats_int;
-            Serial.println("alarmRepeats == 255");
-          }
-          else if (alarmRepeats == 0) {
-            Alarm.free(idA[that_condtion_widget][that_number_cond]);
-            Serial.println("Alarm.free");
-          }
-          else if (alarmRepeats > 0) {
-            idA[that_condtion_widget][that_number_cond] = Alarm.timerRepeat(typePinsTimeChoise_int + (typePinsDuration_int * 60), OnceOnly);
-            alarmRepeats--;
-            Serial.println("alarmRepeats--");
-          }
-    */
   }
 }
 void switch_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool opposite) {

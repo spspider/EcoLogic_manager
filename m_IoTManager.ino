@@ -3,6 +3,7 @@
 //----------------------------------------defines-------------------------------//
 //#define ws2811_include// активировать для ws2811
 #define will_use_serial
+#define use_telegram
 //#define pubClient
 //#define ds18b20
 //#define ads1115
@@ -211,7 +212,11 @@ bool test_action = false;
 //char internet_cycle = 255;
 
 unsigned char PWM_frequency = 1;
-
+//telegram global
+#ifdef use_telegram
+String BOTtoken = "";
+String CHAT_ID = "";
+#endif
 
 /////////////////////////////ads
 //ads1115
@@ -276,7 +281,9 @@ void setup() {
   sensors.begin();  // Start up the library
   //unsigned char deviceCount = sensors.getDeviceCount();
 #endif
-
+#ifdef use_telegram
+  setup_telegram();
+#endif
 }
 void loop() {
   captive_loop();
@@ -314,7 +321,9 @@ void loop() {
   loop_ota();
   //EncoderCalc();
   //ultrasonic_loop();
-
+#ifdef use_telegram
+  loop_telegram();
+#endif
   //loop_wg();
 }
 

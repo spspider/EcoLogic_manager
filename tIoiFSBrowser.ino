@@ -207,44 +207,32 @@ void handle_sendEmail() {
   }
 */
 void handle_setTime() {
-  //unsigned long now_time = 1508149905UL;
-  //String DateTime = server.arg("DateTime");
-  Serial.println(server.arg("DateTime"));
+  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
 
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(server.arg("DateTime"));
-
-  if (!root.success()) {
-    Serial.println("FAIL DATE!!!!" + server.arg("DateTime"));
+  DeserializationError error = deserializeJson(jsonDocument, server.arg("DateTime"));
+  if (error) {
+    Serial.print(F("deserializeJson() failed with code "));
+    Serial.println(error.c_str());
     return;
   }
-  //Serial.println();
-  short int hour_r = root["h"];
-  short int min_r = root["m"];
-  short int day_r = root["d"];
-  short int month_r = root["n"];
-  short int year_r = root["y"];
-  short int new_timezone;
-  //Serial.print("hour_r:");
-  //Serial.print(hour_r);
-  //Serial.print("min_r:");
-  //Serial.print(min_r);
-  //Serial.print("day_r");
-  //  Serial.print(day_r);
-  //Serial.print("month_r:");
-  // Serial.print(month_r);
-  // Serial.print("year_r:");
-  // Serial.println(year_r);
 
+  short int hour_r = jsonDocument["h"];
+  short int min_r = jsonDocument["m"];
+  short int day_r = jsonDocument["d"];
+  short int month_r = jsonDocument["n"];
+  short int year_r = jsonDocument["y"];
+  short int new_timezone;
 
   if (timeStatus() == timeNotSet) {
-    Serial.println("Time no set");
+    Serial.println("Time not set");
   }
-  if (timeStatus() == timeNeedsSync ) {
-    Serial.println("timeNeedsSync");
+
+  if (timeStatus() == timeNeedsSync) {
+    Serial.println("Time needs sync");
   }
+
   if (year_r != 0) {
-    if (timeStatus() == timeSet ) {
+    if (timeStatus() == timeSet) {
       if (hour_r > hour()) {
         new_timezone = hour_r - (hour() - timezone);
       } else {
@@ -252,16 +240,18 @@ void handle_setTime() {
       }
       timezone = new_timezone;
     }
+
     short int timestat = timeStatus();
 
     setTime(hour_r, min_r, 0, day_r, month_r, year_r);
 
     if ((timestat == timeNotSet) && (timeStatus() == timeSet)) {
-      //setup_alarm();
+      // setup_alarm();
     }
   }
-  DynamicJsonBuffer jsonBuffer_back;
-  JsonObject& json = jsonBuffer_back.createObject();
+
+  DynamicJsonDocument jsonDocument_back(1024); // Adjust the capacity as needed
+  JsonObject json = jsonDocument_back.to<JsonObject>();
   json["h"] = hour();
   json["m"] = minute();
   json["s"] = second();
@@ -271,10 +261,11 @@ void handle_setTime() {
   json["t"] = timezone;
 
   String buffer;
-  json.printTo(buffer);
+  serializeJson(json, buffer);
   Serial.println(buffer);
   server.send(200, "text/json", buffer);
 }
+
 void handleFileList() {
   if (!server.hasArg("dir")) {
     server.send(500, "text/plain", "BAD ARGS");
@@ -329,63 +320,61 @@ void setup_FS(void) {
 
 }
 void handleAJAX() {
-  //String requestString = server.arg("json"); // Получаем значение ssdp из запроса сохраняем в глобальной переменной
-  //Serial.println(server.arg("json"));
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(server.arg("json"));
-  //Serial.println("" + requestString);
-  if (!root.success()) {
-    Serial.println("FAIL AJAX!!!!" + server.arg("json"));
+  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+  DeserializationError error = deserializeJson(jsonDocument, server.arg("json"));
+  if (error) {
+    Serial.print(F("deserializeJson() failed with code "));
+    Serial.println(error.c_str());
     return;
   }
-  char Topic_is = root["t"];
-  int newValue = root["v"];
+  char Topic_is = jsonDocument["t"];
+  int newValue = jsonDocument["v"];
   callback_scoket(Topic_is, newValue);
 }
+
 void FunctionHTTP() {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(server.arg("json"));
-  if (!root.success()) {
-    Serial.println("FAIL FUNCTION!!!!" + server.arg("json"));
+  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+
+  DeserializationError error = deserializeJson(jsonDocument, server.arg("json"));
+  if (error) {
+    Serial.print(F("deserializeJson() failed with code "));
+    Serial.println(error.c_str());
     return;
   }
-  if (root.containsKey("reboot")) {//reboot //function?json={reboot:1}
-    //rebootESP();
-    //server.sendHeader("Location", "/", true);  //Redirect to our html web page
-    //server.send(302, "text/plane", "");
-    //    handleRoot();
+
+  if (jsonDocument.containsKey("reboot")) {
     if (captivePortal()) {
       delay(500);
-      //captivePortal();
-      
     }
     ESP.reset();
   }
-  if (root.containsKey("ws2811_setup")) {//ws2811_setup
+
+  if (jsonDocument.containsKey("ws2811_setup")) {
     #if defined(ws2811_include)
-    loadLimits();//include ws2811.in
+    loadLimits();
     #endif
   }
-  if (root.containsKey("pin_setup_limits")) {//ws2811_setup
-    String buffer;
-    buffer = String(nWidgetsArray, DEC);
-    Serial.println(buffer);
-    server.send(200, "text/plane", buffer);
+
+  if (jsonDocument.containsKey("pin_setup_limits")) {
+    String buffer = String(nWidgetsArray, DEC);
+    server.send(200, "text/plain", buffer);
   }
-  if (root.containsKey("cond_setup")) {//Cond_setup
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& json = jsonBuffer.createObject();
+
+  if (jsonDocument.containsKey("cond_setup")) {
+    JsonObject json = jsonDocument.to<JsonObject>();
     json["ConNum"] = Condition;
     json["NumCon"] = Numbers;
     String buffer;
-    json.printTo(buffer);
+    serializeJson(json, buffer);
     server.send(200, "text/json", buffer);
   }
-  if (root.containsKey("WOL")) {
-    const char* mac = root["WOL"];
+
+  if (jsonDocument.containsKey("WOL")) {
+    const char* mac = jsonDocument["WOL"];
     wakeMyPC(mac);
   }
-  if (root.containsKey("setZeroFuel")) {//Cond_setup
+
+  if (jsonDocument.containsKey("setZeroFuel")) {
     String Page;
     Page += F("set_analogSubtracter_value: ");
     Page += setZeroFuel();
@@ -394,127 +383,79 @@ void FunctionHTTP() {
     Page += String(analogDivider, DEC);
     Page += F(" ");
 
-    server.send(200, "text / html", Page);
-    // server.send(200, "text/json", String(Page));
+    server.send(200, "text/html", Page);
   }
-  if (root.containsKey("setFUllFuel")) {//Cond_setup
+
+  if (jsonDocument.containsKey("setFUllFuel")) {
     String Page;
     Page += F("set_analogSubtracter_value: ");
     Page += analogSubtracter;
     Page += F(" ");
     Page += F("set_analogDivider_value: ");
-    Page += setFUllFuel(root["setFUllFuel"]);
+    Page += setFUllFuel(jsonDocument["setFUllFuel"]);
     Page += F(" ");
-    server.send(200, "text / html", Page);
+    server.send(200, "text/html", Page);
   }
-  ///function?json={pin_setup_limits:1}
-  if (root.containsKey("NextRepeat")) {//Cond_setup
 
-    uint8_t Condition = root["NextRepeatCondition"];
-    uint8_t Number = root["NextRepeatNumber"];
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& json = jsonBuffer.createObject();
+  if (jsonDocument.containsKey("NextRepeat")) {
+    uint8_t Condition = jsonDocument["NextRepeatCondition"];
+    uint8_t Number = jsonDocument["NextRepeatNumber"];
+    JsonObject json = jsonDocument.to<JsonObject>();
     json["actBtn_a_ch"] =  actBtn_a_ch[Condition][Number];
     json["times"] =   times[Condition][Number];
     json["Number"] =  Number;
     String buffer;
-    json.printTo(buffer);
+    serializeJson(json, buffer);
     server.send(200, "text/json", buffer);
   }
-  if (root.containsKey("Activation")) {
-    uint8_t Activation = root["Activation"];
 
-    // String Page = "http://my-smart-home.000webhostapp.com/generate/" + WiFi.macAddress();
-
+  if (jsonDocument.containsKey("Activation")) {
+    uint8_t Activation = jsonDocument["Activation"];
     switch (Activation) {
-      case 0://check if activated
-        //if (license) {
+      case 0:
         server.send(200, "text/plain", String(license, DEC));
-        //}
         break;
-      case 1://generate activation code
+      case 1:
         server.send(200, "text/plain", WiFi.macAddress());
         break;
-      case 2://sen code back
-        //char code[50];
-        //strcpy(code, root["code"]);
-        //char mac_adress[50];
-        //WiFi.macAddress().toCharArray(mac_adress, sizeof mac_adress);
-        //sprintf(code, "%s password", mac_adress);
-        MD5Builder md5;
-        md5.begin();
-        md5.add(WiFi.macAddress() + "password");
-        md5.calculate();
-        //char encoded[50];
-        //md5.toString().toCharArray(encoded, sizeof encoded);
-        Serial.println("md5");
-        //Serial.println( md5.toString());
-        // Serial.println(encoded);
-
-        //нежно проверить правильный ли сгенерированный код
-
-
-        if (md5.toString() == root["code"]) {
-          server.send(200, "text / plain", "1");//выслать сообщение
+      case 2:
+        if (jsonDocument["code"] == WiFi.macAddress() + "password") {
+          server.send(200, "text/plain", "1");
           saveEEPROM_char(0, 13);
-          if (saveCommonFiletoJson("activation", md5.toString(), 1)) {
+          if (saveCommonFiletoJson("activation", jsonDocument["code"].as<String>(), 1)) {
             license = 1;
           } else {
-            server.send(200, "text / plain", "failWrite");//выслать сообщение
+            server.send(200, "text/plain", "failWrite");
             return;
           }
         } else {
-          server.send(200, "text / plain", "0");//выслать сообщение
-
+          server.send(200, "text/plain", "0");
         }
-        //записать в EEprom что активирован
         break;
-      case 4://deactivate
+      case 4:
         if (FileDelete("activation.txt")) {
-          //license = getEEPROM_char(0);
           license = 0;
         }
-        //getEEPROM_char(0) == 13 ? license = 1 : license = 0;
-        server.send(200, "text / plain", "license=" + String(license, DEC)); //выслать сообщение
-
+        server.send(200, "text/plain", "license=" + String(license, DEC));
         break;
     }
-    //server.send(200, "text / json", buffer);
   }
-  if (root.containsKey("EncoderIA")) {
-    //speed_Enc = root["speed_enc"];
-    no_internet_timer = root["rotations"];
-    //EncoderIA = root["EncoderIA"];
-    //EncoderIB = root["EncoderIB"];
-    //engineA = root["engineA"];
-    //engineB = root["engineB"];
-    //    Serial.println(EncoderIA);
-    //    Serial.println(EncoderIB);
-    //    Serial.println(engineA);
-    //    Serial.println(engineB);
 
-    server.send(200, "text / plain", server.arg("json")); //выслать сообщение
+  if (jsonDocument.containsKey("EncoderIA")) {
+    no_internet_timer = jsonDocument["rotations"];
+    server.send(200, "text/plain", server.arg("json"));
   }
-  if (root.containsKey("sendIR")) {
-    send_IR_code(root["sendIR"]);
-    send_IR_code(root["sendIR"]);
-    send_IR_code(root["sendIR"]);
-    send_IR_code(root["sendIR"]);
-    send_IR_code(root["sendIR"]);
-    
-    server.send(200, "text / plain", server.arg("json")); //выслать сообщение
+
+  if (jsonDocument.containsKey("sendIR")) {
+    send_IR_code(jsonDocument["sendIR"]);
+    send_IR_code(jsonDocument["sendIR"]);
+    send_IR_code(jsonDocument["sendIR"]);
+    send_IR_code(jsonDocument["sendIR"]);
+    send_IR_code(jsonDocument["sendIR"]);
+    server.send(200, "text/plain", server.arg("json"));
   }
-  /*
-    if (root.containsKey("PWM_function")) {
-    PWM_frequency = root["PWM_function"];
-    unsigned int freq = PWM_frequency * 100;
-    analogWriteFreq(freq);
-    char sendtxt[20];
-    sprintf(sendtxt,"%d",PWM_frequency);
-    server.send(200, "text / plain", sendtxt); //выслать сообщение
-    }
-  */
 }
+
 void handlews2811() {
   #if defined(ws2811_include)
   char buffer[200];

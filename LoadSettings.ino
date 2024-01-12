@@ -1,119 +1,89 @@
-bool loadConfig(String  jsonConfig) {
-  // Открываем файл для чтения
-  /*
-    File configFile = SPIFFS.open("/settings.txt", "r");
-    if (!configFile) {
-    // если файл не найден
-    Serial.println("Failed to open settings.txt");
-    //  Создаем файл запиав в него аные по умолчанию
-    saveConfig();
-    configFile.close();
-    }
-    // Проверяем размер файла, будем использовать файл размером меньше 1024 байта
-    size_t size = configFile.size();
-    if (size > 1024) {
-    Serial.println("Config file size is too large");
-    configFile.close();
-    }
-  */
+bool loadConfig(String jsonConfig) {
+  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+  DeserializationError error = deserializeJson(jsonDocument, jsonConfig);
 
-
-
-  // Serial.println(jsonConfig);
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(jsonConfig);
-  if (!root.success()) {
-    //Serial.println("Parsing fail");
+  if (error) {
+    Serial.println("Failed to parse JSON!");
     return false;
   }
-  /////////////////////////////
 
-  if (root.containsKey("softAP_ssid")) {
-    /*
-      String softAP_password_string = root["softAP_password"].as<String>();
-      softAP_password_string.toCharArray(softAP_password, 32);
-    */
-    //const char *buff_softAP_ssid = root["softAP_ssid"]; softAP_ssid = (char[32])buff_softAP_ssid;
-    //const char *buff_softAP_password = root["softAP_password"]; softAP_password = (char[32])buff_softAP_password;
-    //Serial.print("softAP_ssid"); Serial.println(softAP_ssid);
-    //Serial.print("softAP_password"); Serial.println(softAP_password);
+  if (jsonDocument.containsKey("softAP_ssid")) {
+    // Do something with softAP_ssid if needed
   }
 
-  if (root.containsKey("ssid")) {
-    //const char* ssid_string = root["ssid"];
-    strcpy(ssid, root["ssid"]);
-    //const char* password_string = root["password"];
-    strcpy(password, root["password"]);
+  if (jsonDocument.containsKey("ssid")) {
+    strcpy(ssid, jsonDocument["ssid"]);
+    strcpy(password, jsonDocument["password"]);
   }
 
-  if (root.containsKey("deviceID")) {
-    // String softAP_ssid_string = root["deviceID"].as<String>();
-    //const char* softAP_ssid_constChar = root["deviceID"];
-    strcpy(softAP_ssid, root["deviceID"]);
-    //Serial.print("strcpy(softAP_ssid, softAP_ssid_constChar)");
-    // Serial.print(softAP_ssid);
-    //deviceID = root["deviceID"].as<String>();
-    strcpy(deviceID, root["deviceID"]);
+  if (jsonDocument.containsKey("deviceID")) {
+    strcpy(softAP_ssid, jsonDocument["deviceID"]);
+    strcpy(deviceID, jsonDocument["deviceID"]);
   }
 
-  //mqttServerName = root["mqttServerName"].as<String>();
 #if defined(pubClient)
-
-  IOT_Manager_loop = root["iot_enable"];
+  IOT_Manager_loop = jsonDocument["iot_enable"];
   if (IOT_Manager_loop) {
     client.disconnect();
   }
 
-  strcpy(prefix, root["prefix"]);
-  strcpy(mqttServerName, root["mqttServerName"]);
-  root.containsKey("mqttport") ? mqttport = root["mqttport"] : mqttport = 1883;
-  //mqttuser = root["mqttuser"].as<String>();
-  /////////////////////
-  //const char* mqttuser_ch_con_ch = root["mqttuser"];
-  //strcpy (mqttuser_ch, mqttuser_ch_con_ch);
-  /////////////////////
-  //mqttpass = root["mqttpass"].as<String>();
-  strcpy(mqttuser, root["mqttuser"]);
-  strcpy(mqttpass, root["mqttpass"]);
-  root.containsKey("mqttspacing") ? mqttspacing = root["mqttspacing"] : mqttspacing = 60;
+  strcpy(prefix, jsonDocument["prefix"]);
+  strcpy(mqttServerName, jsonDocument["mqttServerName"]);
+  jsonDocument.containsKey("mqttport") ? mqttport = jsonDocument["mqttport"] : mqttport = 1883;
+
+  strcpy(mqttuser, jsonDocument["mqttuser"]);
+  strcpy(mqttpass, jsonDocument["mqttpass"]);
+  jsonDocument.containsKey("mqttspacing") ? mqttspacing = jsonDocument["mqttspacing"] : mqttspacing = 60;
 #endif
-  const char *buff_smtp_arr = root["smtp_arr"]; snprintf(smtp_arr, sizeof smtp_arr, "%s", buff_smtp_arr); // strncpy(smtp_arr, buff_smtp_arr, strlen(buff_smtp_arr));
+
+  const char *buff_smtp_arr = jsonDocument["smtp_arr"];
+  snprintf(smtp_arr, sizeof smtp_arr, "%s", buff_smtp_arr);
   smtp_arr[sizeof(smtp_arr) - 1] = '\0';
 
+  smtp_port = jsonDocument["smtp_port"];
+  to_email_addr = jsonDocument["to_email_addr"].as<String>();
+  from_email_addr = jsonDocument["from_email_addr"].as<String>();
+  emaillogin = jsonDocument["emaillogin"].as<String>();
+  password_email = jsonDocument["password_email"].as<String>();
 
-  smtp_port = root["smtp_port"];
-  to_email_addr = root["to_email_addr"].as<String>();
-  from_email_addr = root["from_email_addr"].as<String>();
-  emaillogin = (root["emaillogin"].as<String>());
-  password_email =  (root["password_email"].as<String>());
+  jsonDocument.containsKey("timezone") ? timezone = jsonDocument["timezone"] : timezone = 2;
+  jsonDocument.containsKey("geo_enable") ? geo_enable = jsonDocument["geo_enable"] : geo_enable = 0;
+  jsonDocument.containsKey("wifi_scan") ? wifi_scan = jsonDocument["wifi_scan"] : wifi_scan = 1;
 
-  //root.containsKey("ipport") ? ipport = root["ipport"] : ipport = 80;
-
-  root.containsKey("timezone") ? timezone = root["timezone"] : timezone = 2;
-  root.containsKey("geo_enable") ? geo_enable = root["geo_enable"] : geo_enable = 0;
-  root.containsKey("wifi_scan") ? wifi_scan = root["wifi_scan"] : wifi_scan = 1;
-  // root.containsKey("ir_loop") ? ir_loop = root["ir_loop"] : ir_loop = 0;
 #if defined(ws433)
-  root.containsKey("loop_433") ? loop_433 = root["loop_433"] : loop_433 = 0;
+  jsonDocument.containsKey("loop_433") ? loop_433 = jsonDocument["loop_433"] : loop_433 = 0;
 #endif
-  root.containsKey("ws8211_loop") ? ws8211_loop = root["ws8211_loop"] : ws8211_loop = 0;
-  root.containsKey("save_stat") ? save_stat = root["save_stat"] : save_stat = 0;
-  root.containsKey("PWM_frequency") ? PWM_frequency = root["PWM_frequency"] : PWM_frequency = 1;
-  root.containsKey("IR_recieve") ? IR_recieve = root["IR_recieve"] : IR_recieve = 0;
+
+  jsonDocument.containsKey("ws8211_loop") ? ws8211_loop = jsonDocument["ws8211_loop"] : ws8211_loop = 0;
+  jsonDocument.containsKey("save_stat") ? save_stat = jsonDocument["save_stat"] : save_stat = 0;
+  jsonDocument.containsKey("PWM_frequency") ? PWM_frequency = jsonDocument["PWM_frequency"] : PWM_frequency = 1;
   unsigned int freq = PWM_frequency * 100;
   analogWriteFreq(freq);
+  jsonDocument.containsKey("IR_recieve") ? IR_recieve = jsonDocument["IR_recieve"] : IR_recieve = 0;
+
+  // telegram
+#ifdef use_telegram
+  if (jsonDocument.containsKey("BOTtoken")) {
+    BOTtoken = jsonDocument["BOTtoken"].as<String>();
+  }
+  if (jsonDocument.containsKey("CHAT_ID")) {
+    CHAT_ID = jsonDocument["CHAT_ID"].as<String>();
+  }
+#endif
+
 #if defined(pubClient)
   setup_IOTManager();
 #endif
 
   String jsonConfig_string = readCommonFiletoJson("pin_setup");
   if (updatepinsetup(jsonConfig_string)) {
-    Serial.println("widgets Loaded");
+    Serial.println("Widgets Loaded");
   }
 
   return true;
 }
+
+
 
 void Setup_pinmode(bool stat_loaded) {
   for (char i = 0; i < char(nWidgets); i++) {
@@ -246,92 +216,110 @@ bool saveCommonFiletoJson(String pagename, String json, boolean write_add) {
 
 /////////////////////CONDITION////////////////////////////////////////////////////
 bool SaveCondition(String json) {
+  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+  DeserializationError error = deserializeJson(jsonDocument, json);
 
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& rootjs = jsonBuffer.parseObject(json);
+  if (error) {
+    Serial.println("Failed to parse JSON!");
+    return false;
+  }
 
-  unsigned int NumberID = rootjs["ID"];
+  unsigned int NumberID = jsonDocument["ID"];
+  Serial.println("NimberId:" + String(NumberID));
 
-  Serial.println("NimberId:" + NumberID);
   String NameFile = "Condition" + String(NumberID);
   saveCommonFiletoJson(NameFile, json, 1);
-  //load_Current_condition(NumberID);//сразу же загружаем в перменные это условие
+  // load_Current_condition(NumberID); // сразу же загружаем в переменные это условие
   return true;
 }
+
 //////////////////////////////////////////////////////////////////////////////
 
 bool updatepinsetup(String jsonrecieve) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& rootjs = jsonBuffer.parseObject(jsonrecieve);
-  unsigned char numberChosed = rootjs["numberChosed"];
+  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+  DeserializationError error = deserializeJson(jsonDocument, jsonrecieve);
+  
+  if (error) {
+    Serial.println("Failed to parse JSON!");
+    return false;
+  }
+
+  unsigned char numberChosed = jsonDocument["numberChosed"];
   if (numberChosed == 0) {
     Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FAIL!! numberChosed = 0");
     return false;
   }
+  
   if (numberChosed > nWidgetsArray) {
     numberChosed = nWidgetsArray;
   }
+  
   nWidgets = numberChosed;
+
 #if defined(ws433)
-  rootjs.containsKey("w433") ? w433rcv = rootjs["w433"] : w433rcv = 255;
-  rootjs.containsKey("w433send") ? w433send = rootjs["w433send"] : w433send = 255;
+  w433rcv = jsonDocument.containsKey("w433") ? jsonDocument["w433"] : 255;
+  w433send = jsonDocument.containsKey("w433send") ? jsonDocument["w433send"] : 255;
 #endif
+  
   for (uint8_t i = 0; i < numberChosed; i++) {
-    uint8_t pinmodeJS = rootjs["pinmode"][i];                 pinmode[i] = pinmodeJS;
-    unsigned char pinJS = rootjs["pin"][i];                            pin[i] = pinJS;
-    char widgetJS = rootjs["widget"][i];                     widget[i] = widgetJS;
-    unsigned int defaultValJS  = rootjs["defaultVal"][i];    defaultVal[i] = defaultValJS;
-    char IrButtonIDJS  = rootjs["IrBtnId"][i];               IrButtonID[i] = IrButtonIDJS;
+    pinmode[i] = jsonDocument["pinmode"][i];
+    pin[i] = jsonDocument["pin"][i];
+    widget[i] = jsonDocument["widget"][i];
+    defaultVal[i] = jsonDocument["defaultVal"][i];
+    IrButtonID[i] = jsonDocument["IrBtnId"][i];
     id[i] = i;
 
-    strncpy( descr[i], rootjs["descr"][i], sizeof(descr[i]) - 1);
-    //sprintf(descr[i], "%19s", rootjs["descr"][i]);//instead of strcpy( descr[i], rootjs["descr"][i]);
-    //snprintf( a, sizeof( a ), "%d", 132 );  // when a is array, not pointer
-
+    strncpy(descr[i], jsonDocument["descr"][i], sizeof(descr[i]) - 1);
   }
 
-  analogDivider = rootjs["aDiv"];
-  analogSubtracter = rootjs["aSusbt"];
-  pwm_delay_long = rootjs["PWM_interval"];
-  //  PowerCorrection = rootjs["PCorr"];
+  analogDivider = jsonDocument["aDiv"];
+  analogSubtracter = jsonDocument["aSusbt"];
+  pwm_delay_long = jsonDocument["PWM_interval"];
+
 #if defined(emon)
-  rootjs.containsKey("PCorr") ? PowerCorrection = rootjs["PCorr"] : PowerCorrection = 111.1;
+  PowerCorrection = jsonDocument.containsKey("PCorr") ? jsonDocument["PCorr"] : 111.1;
 #endif
-  rootjs.containsKey("router") ? router = rootjs["router"] : router = 255;
-  //Serial.println("ROUTER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"+String(router,DEC));
+
+  router = jsonDocument.containsKey("router") ? jsonDocument["router"] : 255;
+  
 #if defined(pubClient)
   initThingConfig();
 #endif
+  
   Setup_pinmode(load_stat());
 
   return true;
 }
+
 bool load_stat() {
   if (save_stat == false) {
     return false;
   }
-  /////////////////////////
-  DynamicJsonBuffer jsonBuffer_stat;
+
+  DynamicJsonDocument jsonDocument_stat(2048); // Adjust the capacity as needed
   String stat1 = readCommonFiletoJson("stat");
-  JsonObject& root_stat = jsonBuffer_stat.parseObject(stat1);
-  if (!root_stat.success()) {
+
+  DeserializationError error = deserializeJson(jsonDocument_stat, stat1);
+  if (error) {
     Serial.println("PARSE FAIL!!");
-    //    for (char i = 0; i < nWidgets; i++) {
-    //      stat[i] = 0;
-    //    }
+    // for (char i = 0; i < nWidgets; i++) {
+    //   stat[i] = 0;
+    // }
     return false;
   }
+
   for (char i = 0; i < nWidgets; i++) {
-    short int stat_js = root_stat["stat"][i];
+    short int stat_js = jsonDocument_stat["stat"][i];
     if (stat_js) {
       stat[i] = stat_js;
-      //callback_scoket(i, stat_js);
+      // callback_scoket(i, stat_js);
     }
-    //Serial.println(stat_js);
+    // Serial.println(stat_js);
   }
-  ////////////////////////////
+
   return true;
 }
+
 void callback_from_stat() {
   for (char i = 0; i < nWidgets; i++) {
     callback_scoket(i, stat[i]);

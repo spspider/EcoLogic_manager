@@ -197,43 +197,41 @@ char getEEPROM_char(int adress) {
   }
 */
 void save_stat_void() {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& json = jsonBuffer.createObject();
-  JsonArray& stat_json = json.createNestedArray("stat");
+  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+  JsonArray stat_json = jsonDocument.createNestedArray("stat");
+
   for (uint8_t i = 0; i < nWidgets; i++) {
     stat_json.add(stat[i]);
   }
-  /*
-    String stat1 = "{\"stat\":[";
-    for (char i = 0; i < nWidgets; i++) {
-    stat1 += String(stat[i], DEC);
-    stat1 += (i < nWidgets - 1) ? "," : "]";
-    }
-    stat1 += "}";
-  */
+
   String buffer;
-  json.printTo(buffer);
-  //Serial.println(buffer);
-  //Serial.print("nWidgets:" + String(nWidgets, DEC));
+  serializeJson(jsonDocument, buffer);
   saveCommonFiletoJson("stat", buffer, 1);
 }
+
 bool saveSPIFFS_jsonArray(int *stat_arr) {
   String buffer_read = readCommonFiletoJson("pin_setup");
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& json = jsonBuffer.parseObject(buffer_read);
-  JsonArray& defaultVal_json = json.createNestedArray("stat");
+  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+  DeserializationError error = deserializeJson(jsonDocument, buffer_read);
+  
+  if (error) {
+    Serial.print(F("deserializeJson() failed with code "));
+    Serial.println(error.c_str());
+    return false;
+  }
 
-  for (int i = 0; i < nWidgets; i++) { //i < (sizeof(myInts)/sizeof(int));
-    //Serial.println(stat_arr[i]);
+  JsonArray defaultVal_json = jsonDocument.createNestedArray("stat");
+  
+  for (int i = 0; i < nWidgets; i++) {
     defaultVal_json.add(stat_arr[i]);
   }
 
   String buffer;
-  json.printTo(buffer);
-  //Serial.println(buffer);
+  serializeJson(jsonDocument, buffer);
   saveCommonFiletoJson("pin_setup", buffer, 1);
-
+  return true;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 /*
   unsigned int getEEPROM(int id) {
