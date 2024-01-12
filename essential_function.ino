@@ -26,10 +26,16 @@ float get_new_pin_value(unsigned char i) {
     stat[i] = (int)that_stat;
     return that_stat;
   }
-  if (pinmode[i] == 6) {//dht Temp
-    if (!license)return 127;
-    that_stat = (dht.getTemperature());
-    that_stat == 0 ? that_stat = stat[i] : that_stat;
+  if (pinmode[i] == 6) { // dht Temp
+    if (!license) return 127;
+    float temperature = dht.getTemperature();
+    if (!isnan(temperature)) {
+      that_stat = temperature;
+      stat[i] = that_stat;
+    } else {
+      that_stat = stat[i]; // Use a default value or handle the NaN case accordingly
+    }
+
     return that_stat;
   }
   if (pinmode[i] == 7) {
@@ -37,12 +43,18 @@ float get_new_pin_value(unsigned char i) {
     that_stat = (float)low_pwm_off;
     return that_stat;
   }
-  if (pinmode[i] == 8) {//dht Hum
-    if (!license)return 127;
-    that_stat = (dht.getHumidity());
-    that_stat == 0 ? that_stat = stat[i] : that_stat;
+  if (pinmode[i] == 8) { // dht Humidity
+    if (!license) return 127;
+    float humidity = dht.getHumidity();
+    if (!isnan(humidity)) {
+      that_stat = humidity;
+      stat[i] = that_stat;
+    } else {
+      that_stat = stat[i]; // Use a default value or handle the NaN case accordingly
+    }
     return that_stat;
   }
+
   if (pinmode[i] == 9) {//remote
     if (!license)return 127;
     that_stat = getHttp(String(descr[i])).toFloat();
@@ -113,11 +125,11 @@ float get_new_pin_value(unsigned char i) {
     break;
   */
 
-  //that_stat = (isnan(that_stat) || isnanf (that_stat)) ? 0 : that_stat;
-  //  if ((isnan(that_stat)) || ( isinf (that_stat))) {
-  //    that_stat =  stat[i];//0
-  //    return that_stat;
-  //  }
+//  that_stat = (isnan(that_stat) || isnanf (that_stat)) ? stat[i] : that_stat;
+  if ((isnan(that_stat)) || ( isinf (that_stat))) {
+    that_stat =  stat[i];//0
+    return that_stat;
+  }
 
   return -123.12;
 }

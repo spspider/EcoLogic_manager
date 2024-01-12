@@ -94,7 +94,9 @@ bool loadConfig(String  jsonConfig) {
   root.containsKey("geo_enable") ? geo_enable = root["geo_enable"] : geo_enable = 0;
   root.containsKey("wifi_scan") ? wifi_scan = root["wifi_scan"] : wifi_scan = 1;
   // root.containsKey("ir_loop") ? ir_loop = root["ir_loop"] : ir_loop = 0;
+#if defined(ws433)
   root.containsKey("loop_433") ? loop_433 = root["loop_433"] : loop_433 = 0;
+#endif
   root.containsKey("ws8211_loop") ? ws8211_loop = root["ws8211_loop"] : ws8211_loop = 0;
   root.containsKey("save_stat") ? save_stat = root["save_stat"] : save_stat = 0;
   root.containsKey("PWM_frequency") ? PWM_frequency = root["PWM_frequency"] : PWM_frequency = 1;
@@ -120,63 +122,58 @@ void Setup_pinmode(bool stat_loaded) {
     if (pin[i] != 255) {
       callback_scoket(i, stat[i]);
       //callback_scoket(char i, int payload_is);
-      ///////
-      //      if (((pin[i] >= 6) && (pin[i] <= 9))) {
-      //        //if (((pin[i] >= 6) && (pin[i] <= 9)) || (pin[i] == 255)) {
-      //        break;
-      //      }
-      //      if (pinmode[i] == 1) {//in
-      //        defaultVal[i] == 0 ? pinMode(pin[i], INPUT_PULLUP) : pinMode(pin[i], INPUT);
-      //        stat[i] = (digitalRead(pin[i] ^ defaultVal[i]));
-      //        //Serial.println("set input:" + String(pin[i], DEC) + "i:" + i);
-      //      }
-      //      if ((pinmode[i] == 2)) { //out
-      //        pinMode(pin[i], OUTPUT);
-      //        //stat[i] =  (defaultVal[i]);
-      //        digitalWrite(pin[i],  stat[i] ); //^defaultVal[i]
-      //        //stat[i] = (defaultVal[i]);
-      //        //Serial.println("set output:" + String(pin[i], DEC) + "i:" + i + "stat:" + stat[i] + "def:" + String(defaultVal[i], DEC));
-      //      }
-      //      if ((pinmode[i] == 3) || (pinmode[i] == 7)) { //pwm,MQ7
-      //        pinMode(pin[i], OUTPUT);
-      //
-      //        analogWrite(pin[i], stat[i]); // PWM
-      //        //      setPwmFrequency(pin[i], 1024);
-      //
-      //        //analogWrite(pin[i], 286);//1.4V
-      //        //Serial.println("set pwm:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String(stat[i], DEC));
-      //      }
-      //      if (pinmode[i] == 5) {//low_pwm
-      //        pinMode(pin[i], OUTPUT);
-      //        low_pwm[i] = stat[i];
-      //        digitalWrite(pin[i], 1);//далее - выключаем
-      //        //Serial.println("set low_pwm:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String(stat[i], DEC));
-      //      }
-      //      if (pinmode[i] == 4) {//adc// analogDivider analogSubtracter
-      //        //stat[i] = (analogRead(17) * 1.0F / analogDivider) + analogSubtracter; //adc pin:A0//
-      //        stat[i] = (analogRead(17) * 1.0F - analogSubtracter) / analogDivider; //adc pin:A0//
-      //        //Serial.println("read adc:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String( stat[i], DEC));
-      //      }
-      //
-      //      if ((pinmode[i] == 6) || (pinmode[i] == 8)) { //dht temp
-      //        dht.setup(pin[i]); // data pin
-      //        Serial.println("DHT:" + String(pin[i], DEC) );
-      //      }
-      //      if (pinmode[i] == 9) {//Dimmer
-      //        //attachInterrupt(pin[i], zero_crosss_int, RISING);//When arduino Pin 2 is FALLING from HIGH to LOW, run light procedure!
-      //        //InitInterrupt(do_on_delay, freqStep);
-      //
-      //      }
-      //
-      //      if (pinmode[i] == 10) { //powerMeter
-      //        //pinMode(pin[i], OUTPUT);
-      //        #if defined(emon)
-      //        emon1.current(17, PowerCorrection);//PowerCorrection=111.1
-      //        #endif
-      //      }
-      //      if (pinmode[i] == 11) { //compass
-      //
-      //      }
+      if (pinmode[i] == 1) {//in
+        defaultVal[i] == 0 ? pinMode(pin[i], INPUT_PULLUP) : pinMode(pin[i], INPUT);
+        stat[i] = (digitalRead(pin[i] ^ defaultVal[i]));
+        //Serial.println("set input:" + String(pin[i], DEC) + "i:" + i);
+      }
+      if ((pinmode[i] == 2)) { //out
+        pinMode(pin[i], OUTPUT);
+        //stat[i] =  (defaultVal[i]);
+        digitalWrite(pin[i],  stat[i] ); //^defaultVal[i]
+        //stat[i] = (defaultVal[i]);
+        //Serial.println("set output:" + String(pin[i], DEC) + "i:" + i + "stat:" + stat[i] + "def:" + String(defaultVal[i], DEC));
+      }
+      if ((pinmode[i] == 3) || (pinmode[i] == 7)) { //pwm,MQ7
+        pinMode(pin[i], OUTPUT);
+
+        analogWrite(pin[i], stat[i]); // PWM
+        //              setPwmFrequency(pin[i], 1024);
+
+        //analogWrite(pin[i], 286);//1.4V
+        //Serial.println("set pwm:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String(stat[i], DEC));
+      }
+      if (pinmode[i] == 5) {//low_pwm
+        pinMode(pin[i], OUTPUT);
+        low_pwm[i] = stat[i];
+        digitalWrite(pin[i], 1);//далее - выключаем
+        //Serial.println("set low_pwm:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String(stat[i], DEC));
+      }
+      if (pinmode[i] == 4) {//adc// analogDivider analogSubtracter
+        //stat[i] = (analogRead(17) * 1.0F / analogDivider) + analogSubtracter; //adc pin:A0//
+        stat[i] = (analogRead(17) * 1.0F - analogSubtracter) / analogDivider; //adc pin:A0//
+        //Serial.println("read adc:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String( stat[i], DEC));
+      }
+
+      if ((pinmode[i] == 6) || (pinmode[i] == 8)) { //dht temp
+        dht.setup(pin[i]); // data pin
+        Serial.println("DHT:" + String(pin[i], DEC) );
+      }
+      if (pinmode[i] == 9) {//Dimmer
+        //attachInterrupt(pin[i], zero_crosss_int, RISING);//When arduino Pin 2 is FALLING from HIGH to LOW, run light procedure!
+        //InitInterrupt(do_on_delay, freqStep);
+
+      }
+
+      if (pinmode[i] == 10) { //powerMeter
+        //pinMode(pin[i], OUTPUT);
+#if defined(emon)
+        emon1.current(17, PowerCorrection);//PowerCorrection=111.1
+#endif
+      }
+      if (pinmode[i] == 11) { //compass
+
+      }
       if (pinmode[i] == 13) { //EncoderA
         pinMode(pin[i], INPUT);
         //attachInterrupt(digitalPinToInterrupt(pin[i]), doEncoderA, RISING);
@@ -275,8 +272,10 @@ bool updatepinsetup(String jsonrecieve) {
     numberChosed = nWidgetsArray;
   }
   nWidgets = numberChosed;
+#if defined(ws433)
   rootjs.containsKey("w433") ? w433rcv = rootjs["w433"] : w433rcv = 255;
   rootjs.containsKey("w433send") ? w433send = rootjs["w433send"] : w433send = 255;
+#endif
   for (uint8_t i = 0; i < numberChosed; i++) {
     uint8_t pinmodeJS = rootjs["pinmode"][i];                 pinmode[i] = pinmodeJS;
     unsigned char pinJS = rootjs["pin"][i];                            pin[i] = pinJS;
@@ -308,6 +307,9 @@ bool updatepinsetup(String jsonrecieve) {
   return true;
 }
 bool load_stat() {
+  if (save_stat == false) {
+    return false;
+  }
   /////////////////////////
   DynamicJsonBuffer jsonBuffer_stat;
   String stat1 = readCommonFiletoJson("stat");

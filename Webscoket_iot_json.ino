@@ -121,7 +121,9 @@ void pubStatusFULLAJAX_String(bool save_eeprom) { //отправка на сер
   String stat1 = "{\"stat\":[";
   for (char i = 0; i < nWidgets; i++) {
     float that_stat = get_new_pin_value(i);
-    stat1 += String(that_stat, 2);
+    stat1 += "\"";
+    stat1 +=  String(that_stat, 2);
+    stat1 += "\"";
     stat1 += (i < nWidgets - 1) ? "," : "]";
   }
   stat1 += "}";

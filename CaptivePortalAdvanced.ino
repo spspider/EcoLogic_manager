@@ -63,10 +63,6 @@ void captive_setup() {
 
   server_init();
   Captive_server_init();
-
-  /* Setup web pages: root, wifi config pages, SO captive portal detectors and not found. */
-  //loadCredentials(); // Load WLAN credentials from network
-
   if ( load_ssid_pass()) {
     connect = strlen(ssid) > 0; // Request WLAN connect if there is a SSID
     if (connect) {
@@ -79,13 +75,7 @@ void captive_setup() {
     try_MQTT_access = false;
     connect_as_AccessPoint();
   }
-  /////////////////////
-
-
-
-
   server.begin();
-  //MDNS.addService("http", "tcp", 80);
 }
 
 void connectWifi(char ssid_that[32], char password_that[32]) {
@@ -133,20 +123,6 @@ void try_connect_free() {
       if (WiFi.encryptionType(i) == ENC_TYPE_NONE)  {//если эта сеть доступна
         FreeWIFIid[number] = i;
         number++;
-        /*
-          for (int i1 = 0; i1 < 5; i1++) {//пробегаемся по черному списку сетей
-          if (WiFi.SSID(i) != scannedFREEWIFI_False[i1]) {//ее нет в списке
-            Serial.println("!!FREE WIFI CONNECT!!!" + WiFi.SSID(i));
-            WiFi.SSID(i).toCharArray(ssid, sizeof(ssid) - 1);
-            strncpy( password, "\0", sizeof(password) - 1);
-            connect = false;
-            lastConnectTry = millis();
-            connectWifi(ssid, password);
-            freeWIFIConnected = true;
-          }
-          Serial.println("!!BLACKLIST!!!:" + scannedFREEWIFI_False[i1]);
-          }
-        */
       }
     }
     if (number > 0) {
@@ -168,7 +144,6 @@ void relayRouter() {
   //сперва нужно послать http запрос на наличие интернета
   if (router != 255) {//если подключение через реле может реле инвертированно
     pinMode(router, OUTPUT);
-    //internet_pin_inv = internet_pin_inv ^ 1;; //читаем текущее состояние
     digitalWrite(router, digitalRead(router) ^ 1); //подключаем роутер
     Serial.println("реле роутера:" + String(router) + "состояние:" + String(digitalRead(router), DEC));
   }
@@ -179,7 +154,6 @@ void captive_loop() {
     status = WL_IDLE_STATUS;//обнуляем статус, для подключения
     Serial.println ( "Connect requested" );
     connect = false;
-    //
     connectWifi(ssid, password);
     lastConnectTry = onesec;
   }
@@ -199,7 +173,6 @@ void captive_loop() {
   }
   {
 
-    //Serial.println ( "status:"+String(s));
     uint8_t s = WiFi.status();
 
     if ( onesec > lastConnectTry + 60 ) {
@@ -213,18 +186,14 @@ void captive_loop() {
           return;
         }
         else if (((WiFi.getMode() == WIFI_AP)  && (wifi_softap_get_station_num() == 0)) && (wifi_scan)) {
-        //else if ((WiFi.getMode() == WIFI_AP) && (wifi_scan)) {
           Serial.println("Connect Creditnails");
-
           if (load_ssid_pass()) {
             WiFi.disconnect();
-            //   loadCredentials();//должен подключаться в любом случае()
             connect = true;
           }
           return;
         }
         else if ((!internet) && (!ESP_busy) && (geo_enable)) {
-          //        status_before_connect_free = WiFi.status();
           Serial.println("Status WIFI:" + String(WiFi.status()));
           try_connect_free();//если нет интрнета в любом случае не зависимо от подключения, но должен возвращаться в исходное состояние точка доступа или клиент
         }
@@ -232,24 +201,6 @@ void captive_loop() {
       }
       lastConnectTry = onesec;
     }
-    /*
-      if (millis() > lastConnectTryInternet + 60000 ) {
-        if ((!internet) && (!ESP_busy) && (geo_enable)) {
-          //        status_before_connect_free = WiFi.status();
-          Serial.println("Status WIFI:" + String(WiFi.status()));
-          try_connect_free();//если нет интрнета в любом случае не зависимо от подключения, но должен возвращаться в исходное состояние точка доступа или клиент
-        }
-        lastConnectTryInternet = millis();
-
-      }
-    */
-    //else if (((millis()-TrytoConnectAgainTime)>60000)&&(strlen(ssid)>0)&&(WiFi.getMode() == WIFI_AP)){//подключить Wifi клиент снова
-    //lastConnectTry=0;
-    // TrytoConnectAgainTime=millis();
-
-    //  }
-    //else if (WiFi.getMode()==WIFI_AP)
-
     if (ESP_busy) {
       if (onesec > buff_ESP_busy + 30 ) {
         ESP_busy = false;
@@ -271,9 +222,6 @@ void captive_loop() {
         Serial.print ( "IP address: " );
         Serial.println ( WiFi.localIP() );
         server.send(200, "text/plain", toStringIp(WiFi.localIP()));
-        // Setup MDNS responder
-
-        /////////////////////////////
         save_wifiList(String(ssid), String(password));
 
 
@@ -281,18 +229,7 @@ void captive_loop() {
           Serial.println("Error setting up MDNS responder!");
         } else {
           Serial.println("mDNS responder started");
-          // Add service to MDNS-SD
-
           MDNS.addService("http", "tcp", ipport);
-
-          //setup_time();
-          //updatetime();
-          //if (timeStatus() == timeSet) {
-
-          //}
-
-
-
           //////////отправляем местоположение
           if (geo_enable) {
             String pos = getHttp("api.2ip.ua/geo.json?ip=");
@@ -323,6 +260,7 @@ void captive_loop() {
         loadCredentials();
         connect = true;
       }
+      setup_alarm();// delete if something wrong with alarm
     }
 
     if (s == WL_CONNECTED) {

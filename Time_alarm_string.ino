@@ -37,7 +37,7 @@ bool alarm_is_active[Condition][Numbers];
 unsigned int update_alarm_active, check_bySignal_variable = 0;
 //uint8_t alarmRepeats = 255;
 
-bool timer_alarm_action_switch;
+bool timer_alarm_action_switch = 0;
 unsigned char timer_alarm_action = 0, timer_alarm_action_max = 20;
 
 void setup_alarm() {

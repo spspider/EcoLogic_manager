@@ -159,9 +159,7 @@ var jsonStr = {};
 var jsonStrIR = {};
 var dataOther = {};
 var optionsIR_array = [];
-//var inputIRArray=[];
-//var xmlHttp = createXmlHttpObject();
-//load();
+
 ///////////////////////////////////////////////////
 
 
@@ -252,8 +250,8 @@ function loadIR() {
             document.getElementById("test").innerHTML += e;
         }
         jsonStrIR = data;
-        optionsIR_array = (jsonStrIR.name) ? jsonStrIR.name : optionsIR_array[0] = "нет";
-        optionsIR_array.unshift("нет");
+        optionsIR_array = (jsonStrIR.name) ? jsonStrIR.name : optionsIR_array[0] = "none";
+        optionsIR_array.unshift("none");
         //makeIRsetup();
         //readTextFile("other_setup.txt", callback_Other);
 
@@ -261,35 +259,6 @@ function loadIR() {
 
 
 }
-
-/*
- function createXmlHttpObject() {
- if (window.XMLHttpRequest) {
- xmlHttp = new XMLHttpRequest();
- } else {
- xmlHttp = new ActiveXObject('Microsoft.XMLHTTP');
- }
- return xmlHttp;
- }
-
- function readTextFile(file, callback) {
- //var rawFile = new XMLHttpRequest();
- var xmlHttp = createXmlHttpObject();
- xmlHttp.overrideMimeType("application/json");
- xmlHttp.open("GET", file, true);
- xmlHttp.onreadystatechange = function () {
- if (xmlHttp.readyState === 4) {
- if (xmlHttp.status === 200) {
- callback(xmlHttp.responseText);
- } else {
- callback(null);
- }
- }
- }
- xmlHttp.send(null);
- }
- ///////////////////////////////////
- */
 
 function makeInputs() {
 
@@ -395,9 +364,9 @@ function set(jsonStr) {
         if (jsonStr) {
 
             if (dataOther) {
-                MQTT_adress = "MQTT топик: " + dataOther.deviceID + "/" + description + "/" + i + "\n";
-                MQTT_adress += "MQTT топик управление: " + dataOther.deviceID + "/" + description + "/" + i + "/" + "status" + "\n";
-                MQTT_adress += "удаленное управление HTTP: " + window.location.host + "/aRest?Json={pin:" + inputPin.indexOf(parseInt(jsonStr.pin[i])) + ",val:1}";
+                MQTT_adress = "MQTT topic: " + dataOther.deviceID + "/" + description + "/" + i + "\n";
+                MQTT_adress += "MQTT control topic: " + dataOther.deviceID + "/" + description + "/" + i + "/" + "status" + "\n";
+                MQTT_adress += "remote control HTTP: " + window.location.host + "/aRest?Json={pin:" + inputPin.indexOf(parseInt(jsonStr.pin[i])) + ",val:1}";
             }
         }
         if (jsonStr) {
@@ -457,8 +426,8 @@ function makeIRsetup() {
     //AviailablePins.splice(inputPin.indexOf(null),1);
     var optionsIR_receive_output = makeinOption_pin(AviailablePinsR, jsonStr.IR_rec ? jsonStr.IR_rec : 0);
     var optionsIR_output_output = makeinOption_pin(AviailablePinsT, jsonStr.IR_LED ? jsonStr.IR_LED : 0);
-    ir_string += "<tr><td>IR приемник</td><td><select class='form-control' id='IR_receive_output'>" + optionsIR_receive_output + "</select></td></tr>";
-    ir_string += "<tr><td>IR LED светодиод</td><td><select class='form-control' id='IR_output_output'>" + optionsIR_output_output + "</select></td></tr></table>";
+    ir_string += "<tr><td>IR receiver</td><td><select class='form-control' id='IR_receive_output'>" + optionsIR_receive_output + "</select></td></tr>";
+    ir_string += "<tr><td>IR LED</td><td><select class='form-control' id='IR_output_output'>" + optionsIR_output_output + "</select></td></tr></table>";
     setHTML("IR_setup", ir_string);
     IR_receive_output = jsonStr.IR_rec ? jsonStr.IR_rec : 0;
     IR_output_output = jsonStr.IR_LED ? jsonStr.IR_LED : 0;
@@ -479,7 +448,7 @@ function makeDivider() {
         analogDivider = !isNaN(parseFloat(jsonStr.aDiv)) ? parseFloat(jsonStr.aDiv) : 1;
         analogSubtracter = !isNaN(parseFloat(jsonStr.aSusbt)) ? parseFloat(jsonStr.aSusbt) : 0;
     }
-    divider += "<table class='table' id='Divider_table'><tr><td>делитель аналогового выхода:</td>";
+    divider += "<table class='table' id='Divider_table'><tr><td>analog output divider:</td>";
     divider += "<td><input type='text' class='form-control' id='analogDivider' value='" + analogDivider + "'</input></td></tr>";
     divider += "<tr><td>отнять:</td><td><input type='text' class='form-control' id='analogSubtracter'value='" + analogSubtracter + "'</input></td></tr></table>";
     setHTML("Divider", divider);
@@ -531,10 +500,10 @@ function setRouterPin() {
     selectList.value = router === 255 ? "no" : router;
     select433.value = w433 === 255 ? "no" : w433;
     cell2.appendChild(selectList);
-    cell1.innerHTML = "пин роутер";
+    cell1.innerHTML = "pin router";
 
     cell2_433.appendChild(select433);
-    cell1_433.innerHTML = "w433 пин";
+    cell1_433.innerHTML = "w433 pin";
     ////////////////////////////////////
 }
 
@@ -644,59 +613,6 @@ function selectidIR(i) { //сделать выбор изjsonStr.pin в string_d
 function make_string_pin() {
     //getVal("val");
 }
-
-/*
- function setHTML(ID, value) {
- if (document.getElementById(ID)) {
- document.getElementById(ID).innerHTML = value; //range
- }
- }
-
- function getHTML(ID) {
- var value;
- if (document.getElementById(ID)) {
- value = document.getElementById(ID).innerHTML; //range
- return value;
- } else {
- if (document.getElementById("test")) {
- //document.getElementById("test").innerHTML += "<br>wrong_getHTML:'" + ID + "'"; //range
- }
- }
- return undefined;
- }
-
- function getVal(ID) {
- var value = null;
- var object;
- if (document.getElementById(ID)) {
- object = document.getElementById(ID);
- if (object.type == "checkbox") {
- value = document.getElementById(ID).checked;
- //alert(value);
- } else {
- value = document.getElementById(ID).value; //range
- }
- }
- return value;
- }
-
- function setVal(ID, value) {
- var object;
- if (document.getElementById(ID)) {
- object = document.getElementById(ID);
- if (object.type == "checkbox") {
- document.getElementById(ID).checked = value;
- }
- else if (object.type == "select-one") {
- object.value = value;
- } else {
- document.getElementById(ID).value = value;
- }
- } else {
- return "no " + ID;
- }
- }
- */
 
 function saveAllStrings(numberChosed) {
     //document.getElementById("test").innerHTML += numberChosed + "!!!!!!";

@@ -77,6 +77,25 @@ function readTextFile(file, callback) {
     xmlHttp.send(null);
 }
 
+function readTextFiles_array(files, callback) {
+    if (files.length === 0) {
+        // All files have been read, call final callback function
+        callback();
+    } else {
+        // Read the first file in the array using readTextFile
+        var file = files[0];
+        readTextFile(file, function(result) {
+            if (result === 404) {
+                // Handle file not found error
+            } else {
+                // Handle successful file read
+                // Call readTextFiles again with the remaining files in the array
+                readTextFiles(files.slice(1), callback);
+            }
+        });
+    }
+}
+
 function set_cookie(name, value, exp_y, exp_m, exp_d, path, domain, secure) {
     var cookie_string = name + "=" + escape(value);
 

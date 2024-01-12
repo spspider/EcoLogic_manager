@@ -1,12 +1,13 @@
 //4mb 1mb 1mb
 //arduino 2.6.3
 //----------------------------------------defines-------------------------------//
-#define ws2811_include// активировать для ws2811
-//#define will_use_serial
+//#define ws2811_include// активировать для ws2811
+#define will_use_serial
 //#define pubClient
-#define ds18b20
+//#define ds18b20
 //#define ads1115
-#define emon
+//#define emon
+#define ws433
 //------------------------------------------------------------------------------//
 
 //#include <Adafruit_GFX.h>
@@ -166,7 +167,9 @@ char timezone = 2;               // часовой пояс GTM
 /////////////IR
 bool Page_IR_opened = false;
 bool geo_enable = false;
-bool loop_433 = false;
+#if defined(ws433)
+bool loop_433 = true;
+#endif
 //bool ir_loop = false;
 bool wifi_scan = true;
 bool ws8211_loop = true;
@@ -176,8 +179,10 @@ bool loop_alarm_active = true;
 bool check_internet = true;
 short unsigned int mqttspacing = 60;
 ///////////////////433
+#if defined(ws433)
 char w433rcv = 255;
 uint8_t w433send = 255;
+#endif
 //////////////////////////////
 //String jsonConfig = "{}";
 ////////////TimeAlarmString/////////
@@ -259,7 +264,9 @@ void setup() {
     setup_IR();
   }
   //////////////////////////////////////
-  // setup_w433();
+#if defined(ws433)
+  setup_w433();
+#endif
   //setup_wg();
   /////////////////////////////////////
   callback_from_stat();
@@ -278,9 +285,11 @@ void loop() {
   if (IR_recieve) {
     loop_IR();
   }
+#if defined(ws433)
   if (w433rcv != 255) {
-    //loop_w433();
+    loop_w433();
   }
+#endif
   if (ws8211_loop == true) {
 #if defined(ws2811_include)
     loop_ws2811();//include ws2811.in
@@ -293,14 +302,6 @@ void loop() {
 
   if (millis() > 1000L + millis_strart_one_sec) {
     onesec++;
-    //onesec_255 = onesec_255 > 240 ?  0; check_my_alarm = 0 : onesec_255 + 1;
-    //  if (onesec_240 > 240) {
-    //   onesec_240 = 0;
-    //   check_my_alarm = 0;
-    //   Serial.println("onesec_240=0");
-    // }
-    //  Serial.println(onesec_240);
-    //onesec_240++;
     onesec_255++;
     check_if_there_next_times();
     //Serial.println(onesec_255);
