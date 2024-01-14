@@ -57,12 +57,12 @@ void setup_IR()
   }
 }
 void updateIR() {
-  String irJson = readCommonFiletoJson("IRButtons");
+  File irJson = SPIFFS.open("/IRButtons.txt", "r");
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
 
   DeserializationError error = deserializeJson(jsonDocument, irJson);
   if (error) {
-    Serial.print(F("deserializeJson() failed with code "));
+    Serial.print(F("deserializeJson() failed with code updateIR"));
     Serial.println(error.c_str());
     return;
   }
@@ -100,11 +100,12 @@ long long toLongLong(String x) {
 void send_IR_code(const char* full_code_char) {
   String full_code = String(full_code_char);
   if (full_code.length() < 2) {//цифра вместо кода
-    String jsonSend = readCommonFiletoJson("IrRaw_Code" + full_code);
+//    String jsonSend = readCommonFiletoJson("IrRaw_Code" + full_code);
+    File jsonSend = SPIFFS.open("/IrRaw_Code" + full_code + ".txt", "r");
     DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
     DeserializationError error = deserializeJson(jsonDocument, jsonSend);
     if (error) {
-      Serial.print(F("deserializeJson() failed with code "));
+      Serial.print(F("deserializeJson() failed with code send_IR_code"));
       Serial.println(error.c_str());
       return;
     }

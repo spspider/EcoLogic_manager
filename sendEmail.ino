@@ -3,6 +3,14 @@
 //WiFiClient client_my;
 
 
+//char smtp_arr[] = "mail.smtp2go.com";
+//short unsigned int smtp_port = 2525;
+//String to_email_addr = "spspider@mail.ru"; // destination email address
+//String from_email_addr = "spspider95@smtp2go.com"; //source email address
+////Use this site to encode: http://webnet77.com/cgi-bin/helpers/base-64.pl/
+//String emaillogin = "c3BzcGlkZXI5NUBnbWFpbC5jb20="; //username
+//String password_email = "NTUwNjQ4Nw=="; //password_email
+//char timezone = 2;               // часовой пояс GTM
 
 
 
@@ -11,7 +19,30 @@
 
 byte sendEmail(String message)
 {
+  ///////////load email
+  File load_other_setup = SPIFFS.open("/other_setup.txt", "r");
+  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+  DeserializationError error = deserializeJson(jsonDocument, load_other_setup);
 
+  if (error) {
+    Serial.println("Failed to parse JSON! loadConfig for email");
+    return false;
+  }
+  char smtp_arr[] = "mail.smtp2go.com";
+  char timezone;
+
+  const char *buff_smtp_arr = jsonDocument["smtp_arr"];
+  snprintf(smtp_arr, sizeof smtp_arr, "%s", buff_smtp_arr);
+  smtp_arr[sizeof(smtp_arr) - 1] = '\0';
+
+  short unsigned int smtp_port = jsonDocument["smtp_port"];
+  String to_email_addr = jsonDocument["to_email_addr"].as<String>();
+  String from_email_addr = jsonDocument["from_email_addr"].as<String>();
+  String emaillogin = jsonDocument["emaillogin"].as<String>();
+  String password_email = jsonDocument["password_email"].as<String>();
+
+  jsonDocument.containsKey("timezone") ? timezone = jsonDocument["timezone"] : timezone = 2;
+  ///////////end load email
   byte thisByte = 0;
   byte respCode;
 

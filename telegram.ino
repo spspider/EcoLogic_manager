@@ -1,114 +1,126 @@
-/*
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/telegram-control-esp32-esp8266-nodemcu-outputs/
-  
-  Project created using Brian Lough's Universal Telegram Bot Library: https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
-  Example based on the Universal Arduino Telegram Bot Library: https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot/blob/master/examples/ESP8266/FlashLED/FlashLED.ino
-*/
+
 #ifdef use_telegram
-#define ESP8266
-#ifdef ESP32
-  #include <WiFi.h>
-#else
-  #include <ESP8266WiFi.h>
-#endif
-#include <WiFiClientSecure.h>
-#include <UniversalTelegramBot.h>   // Universal Telegram Bot Library written by Brian Lough: https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
-#include <ArduinoJson.h>
-
-// Initialize Telegram BOT
-
-#ifdef ESP8266
-  X509List cert(TELEGRAM_CERTIFICATE_ROOT);
-#endif
-
-WiFiClientSecure client;
-UniversalTelegramBot bot(BOTtoken, client);
-
-// Checks for new messages every 1 second.
-int botRequestDelay = 1000;
-unsigned long lastTimeBotRan;
-
-const int ledPin = 2;
-bool ledState = LOW;
-
-// Handle what happens when you receive new messages
-void handleNewMessages(int numNewMessages) {
-  Serial.println("handleNewMessages");
-  Serial.println(String(numNewMessages));
-
-  for (int i=0; i<numNewMessages; i++) {
-    // Chat id of the requester
-    String chat_id = String(bot.messages[i].chat_id);
-    if (chat_id != CHAT_ID){
-      bot.sendMessage(chat_id, "Unauthorized user", "");
-      continue;
-    }
-    
-    // Print the received message
-    String text = bot.messages[i].text;
-    Serial.println(text);
-
-    String from_name = bot.messages[i].from_name;
-
-    if (text == "/start") {
-      String welcome = "Welcome, " + from_name + ".\n";
-      welcome += "Use the following commands to control your outputs.\n\n";
-      welcome += "/led_on to turn GPIO ON \n";
-      welcome += "/led_off to turn GPIO OFF \n";
-      welcome += "/state to request current GPIO state \n";
-      bot.sendMessage(chat_id, welcome, "");
-    }
-
-    if (text == "/led_on") {
-      bot.sendMessage(chat_id, "LED state set to ON", "");
-      ledState = HIGH;
-      digitalWrite(ledPin, ledState);
-    }
-    
-    if (text == "/led_off") {
-      bot.sendMessage(chat_id, "LED state set to OFF", "");
-      ledState = LOW;
-      digitalWrite(ledPin, ledState);
-    }
-    
-    if (text == "/state") {
-      if (digitalRead(ledPin)){
-        bot.sendMessage(chat_id, "LED is ON", "");
-      }
-      else{
-        bot.sendMessage(chat_id, "LED is OFF", "");
-      }
-    }
-  }
-}
+/*
+  Name:        echoBot.ino
+  Created:     12/21/2017
+  Author:      Stefano Ledda <shurillu@tiscalinet.it>
+  Description: a simple example that check for incoming messages
+              and reply the sender with the received message
+*/
+#include "CTBot.h"
+CTBot myBot;
+CTBotInlineKeyboard myKbd;
 
 void setup_telegram() {
+  // initialize the Serial
 
-//#define BOTtoken "XXXXXXXXXX:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"  // your Bot Token (Get from Botfather)
-//#define CHAT_ID "XXXXXXXXXX"
- 
-  #ifdef ESP8266
-    configTime(0, 0, "pool.ntp.org");      // get UTC time via NTP
-    client.setTrustAnchors(&cert); // Add root certificate for api.telegram.org
-  #endif
 
-  #ifdef ESP32
-    client.setCACert(TELEGRAM_CERTIFICATE_ROOT); // Add root certificate for api.telegram.org
-  #endif
+  // set the telegram bot token
+  myBot.setTelegramToken(BOTtoken);
 
+  // check if all things are ok
+  if (myBot.testConnection())
+    Serial.println("\ntestConnection OK");
+  else
+    Serial.println("\ntestConnection NOK");
+  for (char i = 0; i < char(nWidgets); i++) {
+    if (pinmode[i] == 2) {
+      Serial.println("adding button");
+
+      char descr_on[20];
+      sprintf(descr_on, "%s :on", descr[i], 20);
+      char descr_off[20];
+      sprintf(descr_off, "%s :off", descr[i], 20);
+
+      myKbd.addButton(descr_on, descr_on, CTBotKeyboardButtonQuery);
+      myKbd.addButton(descr_off, descr_off, CTBotKeyboardButtonQuery);
+      myKbd.addRow();
+    }
+  }
 }
 
-void loop_telegram() {
-  if (millis() > lastTimeBotRan + botRequestDelay)  {
-    int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+void loop_telegram_char() { //char
+  // a variable to store telegram message data
+  TBMessage msg;
+  if (CTBotMessageText == myBot.getNewMessage(msg)) {
+    // ...forward it to the sender
+    char messageText[256];
+    strcpy(messageText, msg.text.c_str());
 
-    while(numNewMessages) {
-      Serial.println("got response");
-      handleNewMessages(numNewMessages);
-      numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+    char* colonIndex = strchr(messageText, ':');
+
+    // Extract the substrings before and after the colon
+    if (colonIndex != NULL) {
+      // Extract the substrings before and after the colon
+      char part1[50];
+      strncpy(part1, messageText, colonIndex - messageText);
+      part1[colonIndex - messageText] = '\0';
+
+      char part2[50];
+      strcpy(part2, colonIndex + 1);
+
+      char Topic = atoi(part1);
+      Serial.print("Topic:");
+      Serial.println(Topic);
+      Serial.print("value:");
+      Serial.println(part2);
+
+      callback_scoket(Topic, atoi(part2));
+
+      // Clear the contents of part1 and part2
+      memset(part1, 0, sizeof(part1));
+      memset(part2, 0, sizeof(part2));
     }
-    lastTimeBotRan = millis();
+
+    char fullanswer[256] = "";
+    for (int i = 0; i < nWidgets; i++) {
+      char answer[50];
+      sprintf(answer, "%s: %.2f\n", descr[i], get_new_pin_value(i));
+      strcat(fullanswer, answer);
+    }
+    myBot.sendMessage(msg.sender.id, fullanswer);
+
+    // Clear the contents of fullanswer
+    memset(fullanswer, 0, sizeof(fullanswer));
+
+    delay(500);
   }
+}
+
+void loop_telegram() { // String way
+  // a variable to store telegram message data
+  TBMessage msg;
+  //    if there is an incoming message...
+  if (CTBotMessageText == myBot.getNewMessage(msg)) {
+    // ...forward it to the sender
+    String messageText = msg.text;
+    char colonIndex = messageText.indexOf(':');
+    // Extract the substrings before and after the colon
+    if (colonIndex != -1) {
+      // Extract the substrings before and after the colon
+      String part1 = messageText.substring(0, colonIndex);
+      String part2 = messageText.substring(colonIndex + 1);
+      char Topic = (char) part1.toInt();
+//      Serial.print("Topic:");
+//      Serial.println(Topic, DEC);
+//      Serial.print("value:");
+//      Serial.println(part2);
+
+      callback_scoket(Topic, part2.toInt());
+    }
+
+    //////////////////STRING WORKING//////////////
+    String fullanswer = "";
+    // Assuming nWidgets is defined somewhere
+    for (int i = 0; i < nWidgets; i++) {
+      String valueStr = String(get_new_pin_value(i), 2);
+      fullanswer += String(descr[i]) + ": " + valueStr + "\n";
+    }
+    /////////////////////////////////////////
+
+    myBot.sendMessage(msg.sender.id, fullanswer);
+    delay(500);
+  }
+
 }
 #endif

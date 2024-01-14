@@ -13,29 +13,17 @@
 #include <TimeLib.h>
 //#include <TimeAlarms.h>
 
-
-//AlarmId alalrmId;
-//uint8_t tID_a[Condition][Numbers];
 bool En_a[Condition][Numbers];
 uint8_t type_a[Condition][Numbers];
-//short int timer_a[Condition][Numbers];
-//uint8_t timerType_a[Condition][Numbers];//надо переделать в int
 uint8_t act_a[Condition][Numbers];
-//String actBtn_a[Condition][Numbers];
 char actBtn_a_ch[Condition][Numbers][20];
 
-int times[Condition][Numbers];//время в формате часы*60+минуты.
-//String dates[Condition][Numbers];
+unsigned int times[Condition][Numbers];//время в формате часы*60+минуты.
 char bySignal[Condition][Numbers];
 
-//int pwmTypeAct[Condition][Numbers];
 char actOn_a[Condition][Numbers];//надо переделать в int
 char NumberIDs[Condition];
 bool alarm_is_active[Condition][Numbers];
-//bool opposite_action[Condition][Numbers];
-//AlarmId idA[Condition][Numbers];
-unsigned int update_alarm_active, check_bySignal_variable = 0;
-//uint8_t alarmRepeats = 255;
 
 bool timer_alarm_action_switch = 0;
 unsigned char timer_alarm_action = 0, timer_alarm_action_max = 20;
@@ -47,7 +35,9 @@ void setup_alarm() {
     NumberIDs[thatCondition] = 0;
     String NameFile = "Condition" + String(thatCondition, DEC);
     String jsonCondition = readCommonFiletoJson(NameFile);
-    jsonCondition != "" ? load_Current_condition(jsonCondition) : false;
+    if (jsonCondition != "") {
+      load_Current_condition(jsonCondition);
+    }
   }
   Serial.println("setup_alarm() - OK");
 }
@@ -327,33 +317,8 @@ void loop_alarm() {
   //if (alarm_is_active) {
   // Alarm.delay(0); // wait one second between clock display
   //}
-  if (onesec > check_bySignal_variable + 1 ) {
-    check_for_changes();
-    check_bySignal_variable = onesec;
-#if defined(pubClient)
-    subscr_loop_PLUS();
-#endif
-  }
-  if (check_internet) {
-    if (onesec > update_alarm_active + 21600 ) { //каждые 6 часов
-      CheckInternet("worldclockapi.com/api/json/utc/now");
-      for (uint8_t i1 = 0; i1 < Condition; i1++) {//пробегаемся по всем кнопкам
-        uint8_t idWidget = i1;
-        for (uint8_t i = 0; i < Numbers; i++) {//от всего колимчества таймеров
-          //если это не "переключить условие" То всегда будет срабатывать opposite
-        }
-      }
-      update_alarm_active = onesec;
-    }
-  }
-  /*
-    if (onesec_240 > check_my_alarm + 59 ) {//каждую минуту
-      Serial.println("min");
 
-      Serial.println(check_my_alarm);
-      check_my_alarm = onesec_240;
-    }
-  */
+
 
   if (minute() != l_minute) {
 
@@ -361,6 +326,7 @@ void loop_alarm() {
   }
 }
 void CheckInternet(String request) {
+  char timezone;
   String respond = getHttp(request);
 
   if (respond == "fail") { //интернета нет
@@ -808,17 +774,16 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
       float payload = get_new_pin_value(that_condtion_widget);//узнаем какой уровень на пине который опрашиваем
       unsigned char minTemp, maxTemp, button_;
       if (payload != 0) {
-        if (times[that_condtion_widget][that_number_cond] == -1) {
-          char * pEnd;
-          minTemp = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], &pEnd, 10), // преобразовать первую часть строки в значение 10-й СС //minTemp
-          maxTemp = strtol(pEnd,    &pEnd, 10), // преобразовать часть строки в значение 16-й СС //maxTemp
-          button_ = strtol(pEnd,    &pEnd,  10); //button_
-          //сейчас нужно переписать формулу (1024 / (maxTemp - minTemp)); что бы освободить переменную maxTemp
+        char * pEnd;
 
-        }
-        //        Serial.print("minTemp:"); Serial.println(minTemp);
-        //        Serial.print("maxTemp:"); Serial.println(maxTemp);
-        //        Serial.print("button_:"); Serial.println(button_);
+        minTemp = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], &pEnd, 10), // преобразовать первую часть строки в значение 10-й СС //minTemp
+        maxTemp = strtol(pEnd,    &pEnd, 10), // преобразовать часть строки в значение 16-й СС //maxTemp
+        button_ = strtol(pEnd,    &pEnd,  10); //button_
+        //сейчас нужно переписать формулу (1024 / (maxTemp - minTemp)); что бы освободить переменную maxTemp
+
+//        Serial.print("minTemp:"); Serial.println(minTemp);
+//        Serial.print("maxTemp:"); Serial.println(maxTemp);
+//        Serial.print("button_:"); Serial.println(button_);
 
         payload = ((payload - minTemp * 1.0) * (1024.0)) / (maxTemp  - minTemp) * 1.0;
         payload = payload < 0 ? 0 : payload;

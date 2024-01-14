@@ -50,7 +50,7 @@ function CatchForm() {
 
 }
 function SwitchOn() {
-    var request = "/function?json={'WOL':'"+getVal("mac")+"'}";
+    var request = "/function?json={'WOL':'\""+getVal("mac")+"\"'}";
     readTextFile(request, function (settings) {
         alert(settings);
     });

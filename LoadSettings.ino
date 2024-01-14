@@ -1,9 +1,9 @@
-bool loadConfig(String jsonConfig) {
+bool loadConfig(File jsonConfig) {
   DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, jsonConfig);
 
   if (error) {
-    Serial.println("Failed to parse JSON!");
+    Serial.println("Failed to parse JSON! loadConfig");
     return false;
   }
 
@@ -36,17 +36,11 @@ bool loadConfig(String jsonConfig) {
   jsonDocument.containsKey("mqttspacing") ? mqttspacing = jsonDocument["mqttspacing"] : mqttspacing = 60;
 #endif
 
-  const char *buff_smtp_arr = jsonDocument["smtp_arr"];
-  snprintf(smtp_arr, sizeof smtp_arr, "%s", buff_smtp_arr);
-  smtp_arr[sizeof(smtp_arr) - 1] = '\0';
 
-  smtp_port = jsonDocument["smtp_port"];
-  to_email_addr = jsonDocument["to_email_addr"].as<String>();
-  from_email_addr = jsonDocument["from_email_addr"].as<String>();
-  emaillogin = jsonDocument["emaillogin"].as<String>();
-  password_email = jsonDocument["password_email"].as<String>();
 
-  jsonDocument.containsKey("timezone") ? timezone = jsonDocument["timezone"] : timezone = 2;
+
+
+
   jsonDocument.containsKey("geo_enable") ? geo_enable = jsonDocument["geo_enable"] : geo_enable = 0;
   jsonDocument.containsKey("wifi_scan") ? wifi_scan = jsonDocument["wifi_scan"] : wifi_scan = 1;
 
@@ -75,8 +69,8 @@ bool loadConfig(String jsonConfig) {
   setup_IOTManager();
 #endif
 
-  String jsonConfig_string = readCommonFiletoJson("pin_setup");
-  if (updatepinsetup(jsonConfig_string)) {
+//  String jsonConfig_string = readCommonFiletoJson("pin_setup");
+  if (updatepinsetup(SPIFFS.open("/pin_setup.txt", "r"))) {
     Serial.println("Widgets Loaded");
   }
 
@@ -235,7 +229,7 @@ bool SaveCondition(String json) {
 
 //////////////////////////////////////////////////////////////////////////////
 
-bool updatepinsetup(String jsonrecieve) {
+bool updatepinsetup(File jsonrecieve) {
   DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, jsonrecieve);
   
@@ -297,7 +291,7 @@ bool load_stat() {
   }
 
   DynamicJsonDocument jsonDocument_stat(2048); // Adjust the capacity as needed
-  String stat1 = readCommonFiletoJson("stat");
+  File stat1 = SPIFFS.open("/stat.txt", "r");
 
   DeserializationError error = deserializeJson(jsonDocument_stat, stat1);
   if (error) {

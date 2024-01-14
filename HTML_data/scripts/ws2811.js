@@ -51,7 +51,7 @@ function load() {
     }
 
     function loadMainJson() {
-        readTextFile("/function?json={'ws2811_setup':1}", function (callback) {
+        readTextFile("/function?json={\"ws2811_setup\":\"1\"}", function (callback) {
             if (testJson(callback)) {
 
                 Data_limits = JSON.parse(callback);

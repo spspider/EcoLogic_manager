@@ -210,12 +210,12 @@ void save_stat_void() {
 }
 
 bool saveSPIFFS_jsonArray(int *stat_arr) {
-  String buffer_read = readCommonFiletoJson("pin_setup");
+  File buffer_read = SPIFFS.open("/pin_setup.txt", "r"); 
   DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, buffer_read);
   
   if (error) {
-    Serial.print(F("deserializeJson() failed with code "));
+    Serial.print(F("deserializeJson() failed with pin_setup code "));
     Serial.println(error.c_str());
     return false;
   }

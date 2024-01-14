@@ -207,11 +207,12 @@ void handle_sendEmail() {
   }
 */
 void handle_setTime() {
+  char timezone;
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
 
   DeserializationError error = deserializeJson(jsonDocument, server.arg("DateTime"));
   if (error) {
-    Serial.print(F("deserializeJson() failed with code "));
+    Serial.print(F("deserializeJson() failed with handle_setTime code "));
     Serial.println(error.c_str());
     return;
   }
@@ -323,7 +324,7 @@ void handleAJAX() {
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, server.arg("json"));
   if (error) {
-    Serial.print(F("deserializeJson() failed with code "));
+    Serial.print(F("deserializeJson() failed with handleAJAX code "));
     Serial.println(error.c_str());
     return;
   }
@@ -337,7 +338,7 @@ void FunctionHTTP() {
 
   DeserializationError error = deserializeJson(jsonDocument, server.arg("json"));
   if (error) {
-    Serial.print(F("deserializeJson() failed with code "));
+    Serial.print(F("deserializeJson() FunctionHTTP failed with code "));
     Serial.println(error.c_str());
     return;
   }
@@ -350,9 +351,9 @@ void FunctionHTTP() {
   }
 
   if (jsonDocument.containsKey("ws2811_setup")) {
-    #if defined(ws2811_include)
+#if defined(ws2811_include)
     loadLimits();
-    #endif
+#endif
   }
 
   if (jsonDocument.containsKey("pin_setup_limits")) {
@@ -411,33 +412,40 @@ void FunctionHTTP() {
 
   if (jsonDocument.containsKey("Activation")) {
     uint8_t Activation = jsonDocument["Activation"];
-    switch (Activation) {
-      case 0:
-        server.send(200, "text/plain", String(license, DEC));
-        break;
-      case 1:
-        server.send(200, "text/plain", WiFi.macAddress());
-        break;
-      case 2:
-        if (jsonDocument["code"] == WiFi.macAddress() + "password") {
+
+    if (Activation == 0) {
+      server.send(200, "text/plain", String(license, DEC));
+    }
+    else if (Activation == 1) {
+      server.send(200, "text/plain", WiFi.macAddress());
+    }
+    else if (Activation == 2) {
+      //calculate md5:
+      MD5Builder md5;
+      md5.begin();
+      md5.add(WiFi.macAddress() + "password");
+      md5.calculate();
+      String generatedCode = md5.toString();
+      String recievedCode = jsonDocument["code"].as<String>();
+
+      if (recievedCode == generatedCode) {
+        if (saveCommonFiletoJson("activation", recievedCode, 1)) {
           server.send(200, "text/plain", "1");
-          saveEEPROM_char(0, 13);
-          if (saveCommonFiletoJson("activation", jsonDocument["code"].as<String>(), 1)) {
-            license = 1;
-          } else {
-            server.send(200, "text/plain", "failWrite");
-            return;
-          }
+          license = 1;
         } else {
-          server.send(200, "text/plain", "0");
+          server.send(200, "text/plain", "failWrite");
+          return;
         }
-        break;
-      case 4:
-        if (FileDelete("activation.txt")) {
-          license = 0;
-        }
-        server.send(200, "text/plain", "license=" + String(license, DEC));
-        break;
+      } else {
+        server.send(200, "text/plain", "0");
+      }
+    }
+    else if (Activation == 4) {
+      if (FileDelete("activation.txt")) {
+        license = 0;
+      }
+      server.send(200, "text/plain", "license=" + String(license, DEC));
+
     }
   }
 
@@ -457,26 +465,26 @@ void FunctionHTTP() {
 }
 
 void handlews2811() {
-  #if defined(ws2811_include)
+#if defined(ws2811_include)
   char buffer[200];
   server.arg("json").toCharArray(buffer, sizeof buffer);
   if ( LoadData(buffer)) {//include ws2811.in
     server.send(200, "text / plain", "OK");
   }
   loop_ws2811();//include ws2811.in
-    #endif
+#endif
 }
 void handlews2811set() {
   char buffer[400];
   server.arg("json").toCharArray(buffer, sizeof buffer);
-    #if defined(ws2811_include)
+#if defined(ws2811_include)
   if ( LoadData_set_leds(buffer)) {//include ws2811.in
     server.send(200, "text / plain", "OK");
   } else {
     server.send(200, "text / plain", server.arg("json"));
   }
   loop_ws2811();//include ws2811.in
-      #endif
+#endif
 }
 void Server_begin() {
 

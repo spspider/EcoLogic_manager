@@ -11,7 +11,7 @@ function load() {
     id = getParameterByName('id');
     //id = 1;
 
-    readTextFile("/function?json={'cond_setup':1}", function (callback) {
+    readTextFile("/function?json={'cond_setup':\"1\"}", function (callback) {
         //readTextFile("cond_setup.txt", function (callback) {
         if (testJson(callback)) {
             JSON.parse(callback);
@@ -638,7 +638,7 @@ function getCondBack(act, actBtn2, i) {
                 var id = document.getElementById("NumberWidget").selectedIndex;
 
 
-                readTextFile("function?json={\"NextRepeat\":1,\"NextRepeatCondition\":" + id + ",\"NextRepeatNumber\":" + i + "}", function (callback) {
+                readTextFile("function?json={\"NextRepeat\":1,\"NextRepeatCondition\":\"" + id + "\",\"NextRepeatNumber\":\"" + i + "\"}", function (callback) {
                     var data = JSON.parse(callback);
                     document.getElementById("output").appendChild(alert_message(JSON.stringify(callback)));
                     var time = data.times;
@@ -1078,7 +1078,7 @@ function typeActChange(btnId) {
 
             break;
         case act[3]: //нажать удаленную кнопку
-            result_pins += "<input class='form-control' id='typePins" + btnId + "' type='text' placeholder='192.168.1.108/aRest?Json={pin:1,val:100}' title='192.168.1.108/aRest?Json={pin:1,val:100} \n 192.168.1.108- адрес устройства \n pin - номер ножки,\n val - ее значение' value='192.168.1.108/aRest?Json={pin:1,val:100}' size='100'>";
+            result_pins += "<input class='form-control' id='typePins" + btnId + "' type='text' placeholder='192.168.1.108/aRest?Json={\"pin\":\"1\",\"val\":\"100\"}' title='192.168.1.108/aRest?Json={\"pin\":\"1\",\"val\":\"100\"} \n 192.168.1.108- адрес устройства \n pin - номер ножки,\n val - ее значение' value='192.168.1.108/aRest?Json={pin:1,val:100}' size='100'>";
             //result_pins += "<div class='row'><div class='col-md-6'>IP:<input class='form-control' id='typePinsIP" + btnId + "' type='text' placeholder='192.168.1.108/aRest?Json={pin:1,val:100}' title='192.168.1.108/aRest?Json={pin:1,val:100} \n 192.168.1.108- адрес устройства \n pin - номер ножки,\n val - ее значение' value='' size='10'></div>";
             //result_pins += "<div class='col-md-6'>PIN:<input class='form-control' id='typePinsPIN" + btnId + "' type='text' value='' size='2'></div>";
             //result_pins += "<div class='col-md-6'>VAL:<input class='form-control' id='typePinsVAL" + btnId + "' type='text' value='' size='2'></div></div>";
@@ -1333,7 +1333,7 @@ function getTimeOfNextRepeat(btnId) {
     t.setAttribute("id", "NextRepeat" + btnId);
     element.appendChild(t);
 
-    readTextFile("function?json={\"NextRepeat\":1,\"NextRepeatCondition\":" + id + ",\"NextRepeatNumber\":" + btnId + "}", function (callback) {
+    readTextFile("function?json={\"NextRepeat\":\"1\",\"NextRepeatCondition\":\"" + id + "\",\"NextRepeatNumber\":\"" + btnId + "\"}", function (callback) {
         var data = JSON.parse(callback);
         document.getElementById("output").appendChild(alert_message(JSON.stringify(callback)));
         var time = data.times;

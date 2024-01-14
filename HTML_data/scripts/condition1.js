@@ -10,7 +10,7 @@ function load() {
     //alert("alert"+getParameterByName('id'));
     id = getParameterByName('id');
     //id = 1;
-    readTextFile("/function?json={'cond_setup':1}", function (callback) {
+    readTextFile("/function?json={'cond_setup':\"1\"}", function (callback) {
         //readTextFile("cond_setup.txt", function (callback) {
         if (testJson(callback)) {
             JSON.parse(callback);
@@ -640,7 +640,7 @@ function getCondBack(act, actBtn2, i) {
                 var id = document.getElementById("NumberWidget").selectedIndex;
 
 
-                readTextFile("function?json={\"NextRepeat\":1,\"NextRepeatCondition\":" + id + ",\"NextRepeatNumber\":" + i + "}", function (callback) {
+                readTextFile("function?json={\"NextRepeat\":1,\"NextRepeatCondition\":\"" + id + "\",\"NextRepeatNumber\":\"" + i + "\"}", function (callback) {
                     var data = JSON.parse(callback);
                     document.getElementById("output").appendChild(alert_message(JSON.stringify(callback)));
                     var time = data.times;

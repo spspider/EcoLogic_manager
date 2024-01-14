@@ -20,10 +20,11 @@ void setup_w433() {
 void saveocde_to_file(String code) {
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
   // Load existing data from file
-  String existingData = readCommonFiletoJson("w433");
+//  String existingData = readCommonFiletoJson("w433");
+  File existingData = SPIFFS.open("/w433.txt", "r");
   DeserializationError error = deserializeJson(jsonDocument, existingData);
   if (error) {
-    Serial.print(F("deserializeJson() failed with code "));
+    Serial.print(F("deserializeJson() failed with saveocde_to_file code "));
     Serial.println(error.c_str());
     return;
   }
@@ -42,11 +43,10 @@ void saveocde_to_file(String code) {
 void check_code_w433(String codeIR) {
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
 
-  String irlist = readCommonFiletoJson("IRButtons");
-
+  File irlist = SPIFFS.open("/IRButtons.txt", "r");
   DeserializationError error = deserializeJson(jsonDocument, irlist);
   if (error) {
-    Serial.print(F("deserializeJson() failed with code "));
+    Serial.print(F("deserializeJson() failed with code check_code_w433"));
     Serial.println(error.c_str());
     return;
   }

@@ -296,7 +296,7 @@ function makeinOption_child(inputOption, id, onChange) {
 
 function send_code_back() {
     var code = getVal('activation_input');
-    readTextFile("/function?json={\"Activation\":2,\"code\":" + code + "}", function (callback) {
+    readTextFile("/function?json={\"Activation\":\"2\",\"code\":\"" + code + "\"}", function (callback) {
         if (parseInt(callback) === 1) {
             alert("activated:");
         } else {
@@ -308,11 +308,11 @@ function send_code_back() {
 
 function ActivateDialog() {
     if (document.getElementById('activation_input')) return;
-    readTextFile('/function?json={\"Activation\":1}', function (callback) {
+    readTextFile('/function?json={\"Activation\":\"1\"}', function (callback) {
         //var x = prompt("ActivationCode:\n" + callback, "");
 
 
-        var page = "http://my-smart-home.zzz.com.ua/product/registration?code=" + (callback);
+        var page = "copy this code=" + (callback);
         var message = "follow this link:\n" +
             "<a href='" + page + "'class='form-control' >" + page + "</a>" +
             "\n then Enter code:\n" +
@@ -334,7 +334,7 @@ function check_if_activated() {
     var license_code = "<a id ='activation_button' class='btn btn-block btn-default' onclick='ActivateDialog()' type='button'>activate</a>";
     // var btmBtns;
     //var license_code = "<a class='btn btn-block btn-default' onclick='ActivateDialog()' type='button'>activate</a>";
-    readTextFile('/function?json={\"Activation\":0}', function (callback) {//проверить если активирован
+    readTextFile('/function?json={\"Activation\":\"0\"}', function (callback) {//проверить если активирован
         if (parseInt(callback) === 1) {//Activated
             Activation = 1;
             setHTML("activation_button", "");

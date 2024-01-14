@@ -56,7 +56,7 @@ boolean captivePortal() {
 void handleWifilist() {
   DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
   JsonObject json = jsonDocument.to<JsonObject>();
-  
+
   json["ssid"] = ssid;
   json["WiFilocalIP"] = toStringIp(WiFi.localIP());
   json["softAP"] = softAP_ssid;
@@ -145,31 +145,34 @@ void handleWifiSave() {
 
 
 void save_wifiList(String s, String p) {
-  String WifiList = readCommonFiletoJson("wifilist");
+  File WifiList = SPIFFS.open("/wifilist.txt", "r");
 
   s.toCharArray(ssid, sizeof(ssid) - 1);
   p.toCharArray(password, sizeof(password) - 1);
 
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, WifiList);
-  
-  if (error) {
-    Serial.print(F("deserializeJson() failed with code "));
-    Serial.println(error.c_str());
-    return;
-  }
 
-  JsonArray name_array = jsonDocument["name"].as<JsonArray>();
-  JsonArray pass_array = jsonDocument["pass"].as<JsonArray>();
+  if (error) {
+    Serial.print(F("deserializeJson() save_wifiList failed with code "));
+    Serial.println(error.c_str());
+    //    return;
+  }
+  
+  JsonArray name_array = jsonDocument.createNestedArray("name");
+  JsonArray pass_array = jsonDocument.createNestedArray("pass");
 
   char num = name_array.size();
   bool ssid_not_found = true;
   bool write_array = false;
 
+  if (num == 0) {
+    jsonDocument["num"] = 1;
+  }
   for (unsigned char i = 0; i < num; i++) {
     char nameWifi[20];
     char passWifi[20];
-    
+
     strlcpy(nameWifi, name_array[i], sizeof(nameWifi));
     strlcpy(passWifi, pass_array[i], sizeof(passWifi));
 
@@ -198,9 +201,8 @@ void save_wifiList(String s, String p) {
   }
 
   if (write_array) {
-    String buffer;
-    serializeJson(jsonDocument, buffer);
-    // Serial.println(buffer);
+  String buffer;
+  serializeJson(jsonDocument, buffer);
     saveCommonFiletoJson("wifilist", buffer, 1);
   }
 
@@ -228,14 +230,16 @@ bool load_ssid_pass() {
   Serial.println("scan start");
   int n = WiFi.scanNetworks();
   Serial.println("scan done");
-  
+
   if (n > 0) {
-    String WifiList = readCommonFiletoJson("wifilist");
+    //        String WifiList = readCommonFiletoJson("wifilist");
+
+    File WifiList = SPIFFS.open("/wifilist.txt", "r");
 
     DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
     DeserializationError error = deserializeJson(jsonDocument, WifiList);
     if (error) {
-      Serial.print(F("deserializeJson() failed with code "));
+      Serial.print(F("load_ssid_pass deserializeJson() failed load_ssid_pass with code "));
       Serial.println(error.c_str());
       return false;
     }
