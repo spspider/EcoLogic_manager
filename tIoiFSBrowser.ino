@@ -402,8 +402,8 @@ void FunctionHTTP() {
     uint8_t Condition = jsonDocument["NextRepeatCondition"];
     uint8_t Number = jsonDocument["NextRepeatNumber"];
     JsonObject json = jsonDocument.to<JsonObject>();
-    json["actBtn_a_ch"] =  actBtn_a_ch[Condition][Number];
-    json["times"] =   times[Condition][Number];
+    json["actBtn_a_ch"] = 0;
+    json["times"] =   type_value[Condition][Number];
     json["Number"] =  Number;
     String buffer;
     serializeJson(json, buffer);

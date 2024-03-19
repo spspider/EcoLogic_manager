@@ -92,6 +92,7 @@ void loop_telegram() { // String way
   TBMessage msg;
   //    if there is an incoming message...
   if (CTBotMessageText == myBot.getNewMessage(msg)) {
+    String fullanswer = "";
     // ...forward it to the sender
     String messageText = msg.text;
     char colonIndex = messageText.indexOf(':');
@@ -101,16 +102,18 @@ void loop_telegram() { // String way
       String part1 = messageText.substring(0, colonIndex);
       String part2 = messageText.substring(colonIndex + 1);
       char Topic = (char) part1.toInt();
-//      Serial.print("Topic:");
-//      Serial.println(Topic, DEC);
-//      Serial.print("value:");
-//      Serial.println(part2);
+      //      Serial.print("Topic:");
+      //      Serial.println(Topic, DEC);
+      //      Serial.print("value:");
+      //      Serial.println(part2);
 
       callback_scoket(Topic, part2.toInt());
+    } else {
+      fullanswer += messageText + "\n";
     }
 
     //////////////////STRING WORKING//////////////
-    String fullanswer = "";
+
     // Assuming nWidgets is defined somewhere
     for (int i = 0; i < nWidgets; i++) {
       String valueStr = String(get_new_pin_value(i), 2);

@@ -15,7 +15,7 @@ float get_new_pin_value(unsigned char i) {
     return that_stat;
   }
   if ((pinmode[i] == 2) || (pinmode[i] == 3) || (pinmode[i] == 5)) { //out
-    // that_stat = digitalRead(pin[i])^defaultVal[i];
+    that_stat = digitalRead(pin[i]);
     //stat[i] = that_stat;
     return that_stat;
   }
@@ -125,7 +125,7 @@ float get_new_pin_value(unsigned char i) {
     break;
   */
 
-//  that_stat = (isnan(that_stat) || isnanf (that_stat)) ? stat[i] : that_stat;
+  //  that_stat = (isnan(that_stat) || isnanf (that_stat)) ? stat[i] : that_stat;
   if ((isnan(that_stat)) || ( isinf (that_stat))) {
     that_stat =  stat[i];//0
     return that_stat;
@@ -161,43 +161,43 @@ void makeAres_sim(String json) {
 
   switch (control) {
     case 255: {
-      char i = 255;
-      for (char i1 = 0; i1 < nWidgets; i1++) {
-        if (that_pin == pin[i1]) {
-          i = i1;
-          break; // Fix for the loop termination condition
+        char i = 255;
+        for (char i1 = 0; i1 < nWidgets; i1++) {
+          if (that_pin == pin[i1]) {
+            i = i1;
+            break; // Fix for the loop termination condition
+          }
         }
-      }
 
-      if (that_stat != 255) {
-        if (root.containsKey("val")) {
-          stat[that_stat] = that_val;
-        } else {
-          that_val = get_new_pin_value(that_stat); //только чтение
+        if (that_stat != 255) {
+          if (root.containsKey("val")) {
+            stat[that_stat] = that_val;
+          } else {
+            that_val = get_new_pin_value(that_stat); //только чтение
+          }
         }
-      }
 
-      if (i != 255) {
-        if ((pinmode[i] == 2) || (pinmode[i] == 1)) { //out, in
-          stat[i] = static_cast<int>(that_val) ^ defaultVal[i];
-          //send_IR(i);
-          digitalWrite(that_pin, stat[i]);
-        } else if (pinmode[i] == 3) { //pwm
-          //unsigned int freq = PWM_frequency * 100;
-          //analogWriteFreq(freq);
-          analogWrite(that_pin, that_val);
+        if (i != 255) {
+          if ((pinmode[i] == 2) || (pinmode[i] == 1)) { //out, in
+            stat[i] = static_cast<int>(that_val) ^ defaultVal[i];
+            //send_IR(i);
+            digitalWrite(that_pin, stat[i]);
+          } else if (pinmode[i] == 3) { //pwm
+            //unsigned int freq = PWM_frequency * 100;
+            //analogWriteFreq(freq);
+            analogWrite(that_pin, that_val);
+          }
         }
-      }
 
-      //pubStatusFULLAJAX_String(false);
-      that_val = round(that_val * 200) / 200;
-      server.send(200, "text / json", String(that_val, DEC));
-      break;
-    }
+        //pubStatusFULLAJAX_String(false);
+        that_val = round(that_val * 200) / 200;
+        server.send(200, "text / json", String(that_val, DEC));
+        break;
+      }
     case 1: //PLUS Control
       {
-        bySignalPWM[that_pin][that_stat] = that_val;
-        server.send(200, "text / json",  saveConditiontoJson(that_pin));
+//        bySignalPWM[that_pin][that_stat] = that_val;
+//        server.send(200, "text / json",  saveConditiontoJson(that_pin));
         break;
       }
     case 2: //IR

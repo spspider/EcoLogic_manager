@@ -8,7 +8,7 @@
 #define ds18b20
 //#define ads1115
 //#define emon
-#define ws433
+//#define ws433
 //------------------------------------------------------------------------------//
 
 //#include <Adafruit_GFX.h>
@@ -179,7 +179,7 @@ uint8_t w433send = 255;
 const unsigned char Numbers = 1;//количество условий в каждой кнопке
 const unsigned char Condition = 1;//количество кнопок
 unsigned char save_stat_long = 0;                     // only initialized once
-short int bySignalPWM[Condition][Numbers];
+//short int bySignalPWM[Condition][Numbers];
 ///////////////////////////////////////
 uint8_t pwm_delay_long = 10;
 ///////////////////////////////////////////
@@ -198,7 +198,6 @@ unsigned char PWM_frequency = 1;
 //telegram global
 #ifdef use_telegram
 String BOTtoken = "";
-String CHAT_ID = "";
 #endif
 
 /////////////////////////////ads
@@ -306,7 +305,7 @@ void loop() {
     one_sec_lock();
     millis_strart_one_sec = millis();
   }
-  loop_ota();
+
   //EncoderCalc();
   //ultrasonic_loop();
 

@@ -355,7 +355,7 @@ void callback(char* topic_char, byte * Byte, unsigned char length) {
     thatConditionNumberInt = strtol(thatConditionNumber, NULL, 10);
     //thatConditionNumberInt = String(thatConditionNumber).toInt();
 
-    bySignalPWM[thatConditionInt][thatConditionNumberInt] = newValue;
+//    bySignalPWM[thatConditionInt][thatConditionNumberInt] = newValue;
     saveConditiontoJson(thatConditionInt);
   }
   for (char i = 0; i < nWidgets; i++) {

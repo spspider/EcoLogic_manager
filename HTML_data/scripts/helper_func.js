@@ -1,4 +1,8 @@
 //var HelperLoaded=true;
+
+
+
+
 function createXmlHttpObject() {
     var xmlHttp;
     if (window.XMLHttpRequest) {

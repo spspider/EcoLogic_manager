@@ -60,16 +60,14 @@ bool loadConfig(File jsonConfig) {
   if (jsonDocument.containsKey("BOTtoken")) {
     BOTtoken = jsonDocument["BOTtoken"].as<String>();
   }
-  if (jsonDocument.containsKey("CHAT_ID")) {
-    CHAT_ID = jsonDocument["CHAT_ID"].as<String>();
-  }
+
 #endif
 
 #if defined(pubClient)
   setup_IOTManager();
 #endif
 
-//  String jsonConfig_string = readCommonFiletoJson("pin_setup");
+  //  String jsonConfig_string = readCommonFiletoJson("pin_setup");
   if (updatepinsetup(SPIFFS.open("/pin_setup.txt", "r"))) {
     Serial.println("Widgets Loaded");
   }
@@ -153,6 +151,7 @@ void Setup_pinmode(bool stat_loaded) {
       }
 
     }
+    get_new_pin_value(i);
   }
 
 }
@@ -232,7 +231,7 @@ bool SaveCondition(String json) {
 bool updatepinsetup(File jsonrecieve) {
   DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, jsonrecieve);
-  
+
   if (error) {
     Serial.println("Failed to parse JSON!");
     return false;
@@ -243,18 +242,18 @@ bool updatepinsetup(File jsonrecieve) {
     Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FAIL!! numberChosed = 0");
     return false;
   }
-  
+
   if (numberChosed > nWidgetsArray) {
     numberChosed = nWidgetsArray;
   }
-  
+
   nWidgets = numberChosed;
 
 #if defined(ws433)
   w433rcv = jsonDocument.containsKey("w433") ? jsonDocument["w433"] : 255;
   w433send = jsonDocument.containsKey("w433send") ? jsonDocument["w433send"] : 255;
 #endif
-  
+
   for (uint8_t i = 0; i < numberChosed; i++) {
     pinmode[i] = jsonDocument["pinmode"][i];
     pin[i] = jsonDocument["pin"][i];
@@ -275,11 +274,11 @@ bool updatepinsetup(File jsonrecieve) {
 #endif
 
   router = jsonDocument.containsKey("router") ? jsonDocument["router"] : 255;
-  
+
 #if defined(pubClient)
   initThingConfig();
 #endif
-  
+
   Setup_pinmode(load_stat());
 
   return true;
@@ -296,9 +295,9 @@ bool load_stat() {
   DeserializationError error = deserializeJson(jsonDocument_stat, stat1);
   if (error) {
     Serial.println("PARSE FAIL!!");
-    // for (char i = 0; i < nWidgets; i++) {
-    //   stat[i] = 0;
-    // }
+    //     for (char i = 0; i < nWidgets; i++) {
+    //       stat[i] = 0;
+    //     }
     return false;
   }
 

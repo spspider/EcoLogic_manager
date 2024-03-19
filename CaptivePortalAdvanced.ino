@@ -229,6 +229,7 @@ void captive_loop() {
         if (!MDNS.begin(myHostname)) {
           Serial.println("Error setting up MDNS responder!");
         } else {
+          setup_ota();
           Serial.println("mDNS responder started");
           MDNS.addService("http", "tcp", ipport);
           //////////отправляем местоположение
@@ -248,7 +249,7 @@ void captive_loop() {
           setup_alarm();
           ///////////
         }
-        setup_ota();
+
       } else if (s == WL_NO_SSID_AVAIL) {
         internet = false;
         try_MQTT_access = false;
@@ -265,6 +266,7 @@ void captive_loop() {
 #ifdef use_telegram
       setup_telegram();
 #endif
+
     }
 
     if (s == WL_CONNECTED) {
