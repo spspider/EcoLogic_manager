@@ -22,5 +22,6 @@
   "ws8211_loop": true,
   "save_stat": false,
   "PWM_frequency": "40",
-  "ir_loop": -1
+  "ir_loop": -1,
+  "BOTtoken":"6921614283:AAGhiuQYd-WbitNJzCGTyrUT3M1mt1mOUU4"
 }

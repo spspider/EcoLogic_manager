@@ -43,9 +43,9 @@ void callback_scoket(char i, int payload_is) {
   if ((pinmode[i] == 2) || (pinmode[i] == 1)) { //out,in - saveEEPROM=false;
     //Serial.println("SendIR");
     //send_IR(i);
-    digitalWrite(pin[i], stat[i]);
-    check_if_there_timer_once(i);
     stat[i] = (payload_is);// ^ defaultVal[i]
+    digitalWrite(pin[i], payload_is);
+    check_if_there_timer_once(i);
   } else if (pinmode[i] == 3) {//pwm
     if (!license)return;
     payload_is = defaultVal[i] == 1 ? 1024 - payload_is : payload_is;

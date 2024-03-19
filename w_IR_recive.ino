@@ -57,23 +57,31 @@ void setup_IR()
   }
 }
 void updateIR() {
-  String irJson = readCommonFiletoJson("IRButtons");
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& rootjs = jsonBuffer.parseObject(irJson);
-  unsigned int numberChosed = rootjs["num"];
+  File irJson = SPIFFS.open("/IRButtons.txt", "r");
+  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+
+  DeserializationError error = deserializeJson(jsonDocument, irJson);
+  if (error) {
+    Serial.print(F("deserializeJson() failed with code updateIR"));
+    Serial.println(error.c_str());
+    return;
+  }
+
+  unsigned int numberChosed = jsonDocument["num"];
   if (numberChosed > IRCodeString_numbers_array) {
     numberChosed = IRCodeString_numbers_array;
   }
   IRCodeId_numbers = numberChosed;
-  for (char i = 0; i < numberChosed; i++) {
-    //char* IRCode = rootjs["code"][i];
-    // if (IRCode) {
-    //IRCodeString[i] = IRCode;
-    strcpy(IRCodeString[i], rootjs["code"][i]);
-    //}
-  }
 
+  for (char i = 0; i < numberChosed; i++) {
+    const char* IRCode = jsonDocument["code"][i].as<const char*>();
+    if (IRCode) {
+      strncpy(IRCodeString[i], IRCode, sizeof(IRCodeString[i]) - 1);
+      IRCodeString[i][sizeof(IRCodeString[i]) - 1] = '\0'; // Ensure null-termination
+    }
+  }
 }
+
 
 uint64_t StrToHex(const char* str)
 {
@@ -92,25 +100,28 @@ long long toLongLong(String x) {
 void send_IR_code(const char* full_code_char) {
   String full_code = String(full_code_char);
   if (full_code.length() < 2) {//цифра вместо кода
-    String jsonSend = readCommonFiletoJson("IrRaw_Code" + full_code);
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& rootjs = jsonBuffer.parseObject(jsonSend);
-    if (!rootjs.success()) {
-      Serial.println("parseObject() failed IrRaw_Code");
-      //return;
+//    String jsonSend = readCommonFiletoJson("IrRaw_Code" + full_code);
+    File jsonSend = SPIFFS.open("/IrRaw_Code" + full_code + ".txt", "r");
+    DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+    DeserializationError error = deserializeJson(jsonDocument, jsonSend);
+    if (error) {
+      Serial.print(F("deserializeJson() failed with code send_IR_code"));
+      Serial.println(error.c_str());
+      return;
     }
-    int codeLen = rootjs["len"];
+    int codeLen = jsonDocument["len"];
+    if (codeLen > 250) return;
     uint16_t Signal_ON_0[250];
-    if (codeLen > 250)return;
-    for (int i = 0; i <= codeLen; i++) {
-      Signal_ON_0[i] = rootjs["c"][i];
-      //Serial.print(Signal_ON_0[i]);
+    for (int i = 0; i < codeLen; i++) {
+      Signal_ON_0[i] = jsonDocument["c"][i];
+      // Serial.print(Signal_ON_0[i]);
     }
     irsend.sendRaw(Signal_ON_0, codeLen, 38);
   } else {
     irsend.sendNEC(StrToHex(full_code_char), 32);
   }
 }
+
 void send_IR(char ButtonNumber) {
 
   if (ButtonNumber != char(-1)) {

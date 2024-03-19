@@ -1,7 +1,7 @@
 ﻿var max_number_chosed = 12;
 
 function loadlimits() {
-    readTextFile("/function?json={pin_setup_limits:1}", function (callback) {
+    readTextFile("/function?json={\"pin_setup_limits\":\"1\"}", function (callback) {
         try {
          if (callback!==404){
             max_number_chosed = callback !== parseInt(callback) ? parseInt(callback) : 8;}
@@ -112,7 +112,7 @@ var numberChosed = 0;
 var Activation;
 
 function Activation_check() {
-    readTextFile('/function?json={\"Activation\":0}', function (callback) {//проверить если активирован
+    readTextFile('/function?json={\"Activation\":\"0\"}', function (callback) {//проверить если активирован
         if (parseInt(callback) === 1) {//Activated
             Activation = 1;
             // setHTML("btmBtns", getHTML("btmBtns") + license_code);
@@ -366,7 +366,7 @@ function set(jsonStr) {
             if (dataOther) {
                 MQTT_adress = "MQTT topic: " + dataOther.deviceID + "/" + description + "/" + i + "\n";
                 MQTT_adress += "MQTT control topic: " + dataOther.deviceID + "/" + description + "/" + i + "/" + "status" + "\n";
-                MQTT_adress += "remote control HTTP: " + window.location.host + "/aRest?Json={pin:" + inputPin.indexOf(parseInt(jsonStr.pin[i])) + ",val:1}";
+                MQTT_adress += "remote control HTTP: " + window.location.host + "/aRest?Json={pin:\"" + inputPin.indexOf(parseInt(jsonStr.pin[i])) + "\",\"val\":\"1\"}";
             }
         }
         if (jsonStr) {

@@ -3,11 +3,12 @@
 //----------------------------------------defines-------------------------------//
 //#define ws2811_include// активировать для ws2811
 #define will_use_serial
+#define use_telegram
 //#define pubClient
-//#define ds18b20
+#define ds18b20
 //#define ads1115
 //#define emon
-#define ws433
+//#define ws433
 //------------------------------------------------------------------------------//
 
 //#include <Adafruit_GFX.h>
@@ -139,31 +140,20 @@ char softAP_ssid[32] = "ESP_ap_dev_001";
 char softAP_password[32] = "12345678";
 char ssid[32] = "";
 char password[32] = "";
-short unsigned int ipport = 80;
+uint8_t ipport = 80;
 /* hostname for mDNS. Should work at least on windows. Try http://esp8266.local */
 const char *myHostname = "esp8266";
-char deviceID[20] = "dev01-kitchen";   // thing ID - unique device id in our project
+char deviceID[20] = "dev-"; // thing ID - unique device id in our project
 #if defined(pubClient)
 char prefix[20]  = "/IoTmanager";     // global prefix for all topics - must be some as mobile device
-
 char mqttServerName[25] = "m20.cloudmqtt.com";
 unsigned int mqttport = 16238;
-//String mqttuser = "spspider";
 char mqttuser[15] = "spspider";
-//String mqttpass = "5506487";
 char mqttpass[15] = "5506487";
 unsigned char type_mqtt = 1;
 #endif
 //////////////Email///////////
-char smtp_arr[] = "mail.smtp2go.com";
-short unsigned int smtp_port = 2525;
-String to_email_addr = "spspider@mail.ru"; // destination email address
-String from_email_addr = "spspider95@smtp2go.com"; //source email address
-//Use this site to encode: http://webnet77.com/cgi-bin/helpers/base-64.pl/
-String emaillogin = "c3BzcGlkZXI5NUBnbWFpbC5jb20="; //username
-String password_email = "NTUwNjQ4Nw=="; //password_email
-char timezone = 2;               // часовой пояс GTM
-//String deviceID = deviceID; // Имя SSDP
+
 /////////////IR
 bool Page_IR_opened = false;
 bool geo_enable = false;
@@ -189,7 +179,7 @@ uint8_t w433send = 255;
 const unsigned char Numbers = 1;//количество условий в каждой кнопке
 const unsigned char Condition = 1;//количество кнопок
 unsigned char save_stat_long = 0;                     // only initialized once
-short int bySignalPWM[Condition][Numbers];
+//short int bySignalPWM[Condition][Numbers];
 ///////////////////////////////////////
 uint8_t pwm_delay_long = 10;
 ///////////////////////////////////////////
@@ -199,19 +189,16 @@ uint8_t router = 255;
 unsigned char countdown_lock = 0;
 unsigned int onesec;
 unsigned long millis_strart_one_sec;
-//uint8_t onesec_240;
-//uint8_t check_my_alarm;
 uint8_t onesec_255;
 
 bool license = 0;
-//bool get_new_pin_value_ = true;
-
 bool test_action = false;
-//bool internet_pin_inv=0;
-//char internet_cycle = 255;
 
 unsigned char PWM_frequency = 1;
-
+//telegram global
+#ifdef use_telegram
+String BOTtoken = "";
+#endif
 
 /////////////////////////////ads
 //ads1115
@@ -244,7 +231,7 @@ void setup() {
   //short int testInt = atoi(testString);
   //Serial.print("!!!!!!!!!!!!!!!!!!!!!testInt:");
   //Serial.println(testInt);
-  if (loadConfig(readCommonFiletoJson("other_setup"))) { }
+  if (loadConfig(SPIFFS.open("/other_setup.txt", "r"))) { }
   //server = ESP8266WebServer (ipport);
 
 
@@ -302,6 +289,13 @@ void loop() {
 
   if (millis() > 1000L + millis_strart_one_sec) {
     onesec++;
+#ifdef use_telegram
+    loop_telegram();
+#endif
+    check_for_changes();
+#if defined(pubClient)
+    subscr_loop_PLUS();
+#endif
     onesec_255++;
     check_if_there_next_times();
     //Serial.println(onesec_255);
@@ -311,7 +305,7 @@ void loop() {
     one_sec_lock();
     millis_strart_one_sec = millis();
   }
-  loop_ota();
+
   //EncoderCalc();
   //ultrasonic_loop();
 

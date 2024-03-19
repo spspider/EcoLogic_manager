@@ -137,7 +137,7 @@ function dec2bin(dec){
 }
 function sendCode(i) {
 setVal("bin",dec2bin(parseInt(i,16)));
-    readTextFile('/function?json={\"sendIR\":'+i+'}', function (callback) {
+    readTextFile('/function?json={\"sendIR\":\"'+i+'\"}', function (callback) {
         document.getElementById("test").appendChild(alert_message(callback));
     })
 }

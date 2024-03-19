@@ -18,40 +18,57 @@ void setup_w433() {
 }
 
 void saveocde_to_file(String code) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& jsonObj = jsonBuffer.createObject();
+  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+  // Load existing data from file
+//  String existingData = readCommonFiletoJson("w433");
+  File existingData = SPIFFS.open("/w433.txt", "r");
+  DeserializationError error = deserializeJson(jsonDocument, existingData);
+  if (error) {
+    Serial.print(F("deserializeJson() failed with saveocde_to_file code "));
+    Serial.println(error.c_str());
+    return;
+  }
+  // Create a new JsonObject
+  JsonObject jsonObj = jsonDocument.to<JsonObject>();
+  // Add or update the code and time in the JsonObject
   jsonObj["code"] = code;
-  jsonObj["time"] = String(hour() + ":" + minute());
+  jsonObj["time"] = String(hour()) + ":" + minute();
+  // Convert JsonObject to a string
   String buffer;
-  jsonObj.printTo(buffer);
+  serializeJson(jsonObj, buffer);
+  // Save the updated data to the file
   saveCommonFiletoJson("w433", buffer, 0);
 }
+
 void check_code_w433(String codeIR) {
-  //open all w433 codes,
-  //find match
-  //find match with button
-  //do button
-  char numbers_i = 0;
-  DynamicJsonBuffer jsonBuffer;
-  String irlist = readCommonFiletoJson("IRButtons");
-  JsonObject& root = jsonBuffer.parseObject(irlist);
-  root.containsKey("num") ? numbers_i = root["num"] : numbers_i = 0;
+  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+
+  File irlist = SPIFFS.open("/IRButtons.txt", "r");
+  DeserializationError error = deserializeJson(jsonDocument, irlist);
+  if (error) {
+    Serial.print(F("deserializeJson() failed with code check_code_w433"));
+    Serial.println(error.c_str());
+    return;
+  }
+
+  char numbers_i = jsonDocument.containsKey("num") ? jsonDocument["num"] : 0;
+  
   for (char i = 0; i < numbers_i; i++) {
-    String code = root["code"][i];
+    String code = jsonDocument["code"][i].as<String>();
     if (code == codeIR) { //found
-      String name_i = root["name"][i];
+      String name_i = jsonDocument["name"][i].as<String>();
       //write logic to do action
       for (char i1 = 0; i1 < char(nWidgets); i1++) {
         if (String(descr[i1]) == name_i) {
           Serial.print("do action:");
           Serial.println(name_i);
           callback_scoket(i1, int(stat[i1]) ^ 1);
-
         }
       }
     }
   }
 }
+
 void loop_w433() {
 
   if (mySwitch.available()) {
