@@ -175,7 +175,8 @@ function loadBootstrap() {
     if (top != 'rgb(51, 51, 51)') {
         var el = document.head,
             elChild = document.createElement('link');
-        elChild.innerHTML = '<link sync rel="stylesheet" href="bootstrap.min.css">';
+        // elChild.innerHTML = '<link sync rel="stylesheet" href="bootstrap.min.css">';
+        elChild.innerHTML = '<link rel="stylesheet" type="text/css" href="scripts/style-generated.css">';
         el.insertBefore(elChild, el.firstChild);
     }
 }
@@ -258,7 +259,7 @@ function testJson(text) {
 }
 
 function makeinOption(inputOption, id, onChange) {
-    var options = "<select class='form-control' " +
+    var options = "<select class='form-control option' " +
         "" +
         "id=" + id + " onchange='" + onChange + ";'>";
 
@@ -363,14 +364,14 @@ function bottomButtons() {
     check_if_activated();
     var btmBtns =
         "<div class='btn-group btn-group-justified'>" +
-        "<a class='btn btn-block btn-default' href='/'>cont</a>" +
-        "<a class='btn btn-block btn-default' href='/wifi'>Wifi</a>" +
-        "<a class='btn btn-block btn-default' href='/other_setup'>conn</a>" +
-        "<a class='btn btn-block btn-default' href='/pin_setup'>buttons</a>" +
-        //"<a class='btn btn-block btn-default' href='/IR_setup'>ИК</a>" +
-        "<a class='btn btn-block btn-default' href='/condition'>condition</a>" +
-        "<a class='btn btn-block btn-default' href='/ws2811.html'>ws2811</a>" +
-        "<a class='btn btn-block btn-default' href='/help'>?</a>" +
+        "<a class='btn btn-block btn-default' type='button' href='/'>cont</a>" +
+        "<a class='btn btn-block btn-default' type='button' href='/wifi'>Wifi</a>" +
+        "<a class='btn btn-block btn-default' type='button' href='/other_setup'>conn</a>" +
+        "<a class='btn btn-block btn-default' type='button' href='/pin_setup'>buttons</a>" +
+        // "<a class='btn btn-block btn-default' href='/IR_setup'>IR</a>" +
+        "<a class='btn btn-block btn-default' type='button' href='/condition'>condition</a>" +
+        "<a class='btn btn-block btn-default' type='button' href='/ws2811.html'>ws2811</a>" +
+        "<a class='btn btn-block btn-default' type='button' href='/help'>?</a>" +
         //       "<a class='btn btn-block btn-default' id = 'activation' onclick='ActivateDialog()' type='button'></a>"+
         " </div>";
     return btmBtns;

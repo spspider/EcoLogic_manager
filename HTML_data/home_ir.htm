@@ -4,7 +4,7 @@
 <head>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
 
-    <link rel="stylesheet" type="text/css" href="style.css?modified=20012009">
+    <link rel="stylesheet" type="text/css" href="style.css">
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>Dev</title>
     <!-- <script type="text/javascript" src="graphs.js"></script>-->
@@ -19,20 +19,12 @@
 
 </head>
 <body>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            loadBootstrap();
 
-        loadBootstrap();
-
-        if (typeof Chart === 'undefined') {
-            loadjQuery("chart.min.js", function () {
-                loadfields();
-            });
-        }
-
-    });
-
-</script>
+        });
+    </script>
 <div class="container">
     <div class="row" style="text-align:center;">
         <div class="col-sm-offset-2 col-sm-8 col-md-offset-3 col-md-6">

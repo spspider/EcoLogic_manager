@@ -307,11 +307,11 @@ function set(jsonStr) {
         "<tr>" +
         "<td >one_st</td>" +
 
-        "<td >descr</td>" +
-        "<td >widget</td>" +
-        "<td>_pin__</td>" +
+        "<td>descr</td>" +
+        "<td>widget</td>" +
+        "<td>pinout</td>" +
         "<td>IR</td>" +
-        "<td >def</td>" +
+        "<td>def</td>" +
         "<td>cond</td>" +
         "</tr>";
     for (var i1 = 0; i1 < numberChosed; i1++) {
