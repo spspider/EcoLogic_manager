@@ -29,15 +29,34 @@ void handleRoot() {
     Page += String(F("<p>You are connected through the wifi network: ")) + ssid + F("</p>");
     }
   */
-  Page += F(
-            "<p><br><a href='/home.htm'><button>домашняя страница</button></a></p>"
-            "<p><br><a href='/wifi'><button>подключение к Wifi</button></a></p>"
-            "<p><br><a href='/other_setup'><button>другие настройки</button></a></p>"
-            "<p><br><a href='/pin_setup'><button>pin setup</button></a></p>"
-            "<p><br><a href='/IR_setup'><button>ИК настройки</button></a></p>"
-            "<p><br><a href='/condition'><button>условия</button></a></p>"
-            "<p><br><a href='/function?json={reboot:1}'><button>перезапуск</button></a></p>"
-          );
+  Page += String(F(
+                   "<style>"
+                   "button {"
+                   "   padding: 10px 20px; "
+                   "   font-size: 16px;"
+                   "   width: 200px;"
+                   "   margin: 5px;"
+                   "   text-align: center;"
+                   "   display: inline-block;"
+                   "   border: none;"
+                   "   cursor: pointer;"
+                   "   background-color: #008CBA; "
+                   "   color: white;"
+                   "   border-radius: 5px;"
+                   "}"
+                   "a {"
+                   "   text-decoration: none;"
+                   "}"
+                   "</style>"
+                   "<p><br><a href='/home.htm'><button>home page</button></a></p>"
+                   "<p><br><a href='/wifi'><button>Wifi</button></a></p>"
+                   "<p><br><a href='/other_setup'><button>other setup</button></a></p>"
+                   "<p><br><a href='/pin_setup'><button>pin setup</button></a></p>"
+                   "<p><br><a href='/IR_setup'><button>IR</button></a></p>"
+                   "<p><br><a href='/condition'><button>condition</button></a></p>"
+                   "<p><br><a href='/function?json={reboot:1}'><button>reboot</button></a></p>"
+                 ));
+
 
 
   server.send(200, "text / html", Page);
@@ -84,7 +103,8 @@ void handleWifilist() {
 void handleWifi() {
   String Page = sendHead();
   Page += F(
-            "<h1>Wifi config</h1>");
+            "<h1>Wifi config</h1>"
+            "<script>function populateSSID(ssid) {document.getElementById(\"network\").value = ssid;}</script>");
   if (server.client().localIP() == apIP) {
     Page += String(F("<p>You are connected through the soft AP: ")) + softAP_ssid + F("</p>");
   } else {
@@ -117,7 +137,8 @@ void handleWifi() {
   Serial.println("scan done");
   if (n > 0) {
     for (int i = 0; i < n; i++) {
-      Page += String(F("\r\n<tr><td>SSID ")) + WiFi.SSID(i) + ((WiFi.encryptionType(i) == ENC_TYPE_NONE) ? F(" ") : F(" *")) + F(" (") + WiFi.RSSI(i) + F(")</td></tr>");
+      //      Page += String(F("\r\n<tr><td>SSID ")) + WiFi.SSID(i) + ((WiFi.encryptionType(i) == ENC_TYPE_NONE) ? F(" ") : F(" *")) + F(" (") + WiFi.RSSI(i) + F(")</td></tr>");
+      Page += String(F("\r\n<tr><td><a href='#' onclick='populateSSID(\"")) + WiFi.SSID(i) + String(F("\")'>")) + WiFi.SSID(i) + ((WiFi.encryptionType(i) == ENC_TYPE_NONE) ? F(" ") : F(" *")) + F(" (") + WiFi.RSSI(i) + F(")</a></td></tr>");
     }
   } else {
     Page += F("<tr><td>No WLAN found</td></tr>");
@@ -125,7 +146,7 @@ void handleWifi() {
   Page += F(
             "</table>"
             "\r\n<br /><form method='POST' action='wifisave'><h4>Connect to network:</h4>"
-            "<input type='text' placeholder='network' name='n'/>"
+            "<input type='text' id='network' placeholder='network' name='n'/>"
             "<br /><input type='password' placeholder='password' name='p'/>"
             "<br /><input type='submit' value='Connect/Disconnect'/></form>"
             "<p>You may want to <a href='/'>return to the home page</a>.</p>"
@@ -158,7 +179,7 @@ void save_wifiList(String s, String p) {
     Serial.println(error.c_str());
     //    return;
   }
-  
+
   JsonArray name_array = jsonDocument.createNestedArray("name");
   JsonArray pass_array = jsonDocument.createNestedArray("pass");
 
@@ -201,8 +222,8 @@ void save_wifiList(String s, String p) {
   }
 
   if (write_array) {
-  String buffer;
-  serializeJson(jsonDocument, buffer);
+    String buffer;
+    serializeJson(jsonDocument, buffer);
     saveCommonFiletoJson("wifilist", buffer, 1);
   }
 

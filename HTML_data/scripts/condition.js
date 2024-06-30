@@ -182,7 +182,7 @@ var signals_time_convInt = new Array();
 
 var nConditions;
 
-var timeChoise = ["сек", "мин"];
+var timeChoise = ["sec", "min"];
 
 function AddCondition(btnId, save_that) {
     nConditions = btnId;
@@ -203,33 +203,35 @@ function AddCondition(btnId, save_that) {
 
 
 
-    types[0] = "нет";
-    types[1] = "по достижению времени";
-    types[2] = "равно";
-    types[3] = "больше:";
-    types[4] = "меньше:";
-    types[5] = "таймер";
 
-
-    act[0] = "нет";
-    act[1] = "переключить пин";
-    act[2] = "переключить кнопку";
-    act[3] = "перекл удаленную кнопку";
-    act[4] = "отправить Email";
-    act[5] = "переключить условие";
-    act[6] = "перекл mqtt запрос";
-    act[7] = "включить ленту 8211";
+    types[0] = "none";
+    types[1] = "on time reached";
+    types[2] = "equal";
+    types[3] = "greater than:";
+    types[4] = "less than:";
+    types[5] = "timer";
+    
+    
+    act[0] = "no";
+    act[1] = "switch pin";
+    act[2] = "switch button";
+    act[3] = "switch remote button";
+    act[4] = "send Email";
+    act[5] = "switch condition";
+    act[6] = "switch mqtt request";
+    act[7] = "turn on 8211 strip";
     act[8] = "WOL";
-    act[9] = "настроить таймер";
-    act[10] = "передвинуть слайдер";
-
+    act[9] = "set timer";
+    act[10] = "move slider";
+    
     act_btn[0] = "0";
     act_btn[1] = "1";
-    act_btn[2] = "шим";
+    act_btn[2] = "PWM";
+    
+    //signals_time[0] = "hour";
+    //signals_time[1] = "minute";
+    signals_time[0] = "second";
 
-    //signals_time[0] = "час";
-    //signals_time[1] = "мин";
-    signals_time[0] = "сек";
 
 
     var makeBtnid = btnId;
@@ -350,15 +352,15 @@ function makeAddbuttons(btnId) {
         if (btnId === undefined) {
             btnId = 0;
         }
-        setHTML("firstButton", "<input type='submit' class='btn btn-lg btn-primary btn-block' value='добавить условие:" + (btnId) + "' onclick='AddCondition(" + (btnId) + ",true);' />");
+        setHTML("firstButton", "<input type='submit' class='btn btn-lg btn-primary btn-block' value='add condtition:" + (btnId) + "' onclick='AddCondition(" + (btnId) + ",true);' />");
         //setHTML("firstButton", getHTML("firstButton") + "<input type='submit' class='btn btn-lg btn-primary btn-block' value='удалить условие:" + (btnId - 1) + "' onclick='deleteRow(" + (btnId - 1) + ");' />");
     } else {
         btnId++;
-        setHTML("firstButton", "<input type='submit' class='btn btn-lg btn-primary btn-block' value='Достигли ограничения:");
+        setHTML("firstButton", "<input type='submit' class='btn btn-lg btn-primary btn-block' value='limit:");
         //setHTML("firstButton", getHTML("firstButton") + "<input type='submit' class='btn btn-lg btn-primary btn-block' value='удалить условие:" + (btnId - 1) + "' onclick='deleteRow(" + (btnId - 1) + ");' />");
 
     }
-    setHTML("firstButton", getHTML("firstButton") + "<input type='submit' class='btn btn-lg btn-primary btn-block' value='сохранить' onclick='save(" + (btnId - 1) + ")' />");
+    setHTML("firstButton", getHTML("firstButton") + "<input type='submit' class='btn btn-lg btn-primary btn-block' value='save' onclick='save(" + (btnId - 1) + ")' />");
     for (i1 = 0; i1 < btnId; i1++) {
         //typeConditionChange(i1);
         typeActChange(i1);
@@ -778,7 +780,7 @@ function typeActChange(btnId) {
             break;
         case act[4]: //отправить Email
         case act[8]://WOL
-            result_pins += "<input class='form-control' id='typePins" + btnId + "' type='text' placeholder='ваш текст' title='вписать текст сообщения' value='' size='100'>";
+            result_pins += "<input class='form-control' id='typePins" + btnId + "' type='text' placeholder='ваш текст' title='message text' value='' size='100'>";
             setHTML("OptionWhich" + btnId, getHTML("OptionWhich" + btnId) + result_pins);
             break;
         case act[5]: //включить или отключить условие
@@ -809,7 +811,7 @@ function typeActChange(btnId) {
             setHTML("OptionWhich" + btnId, getHTML("OptionWhich" + btnId) + result_pins);
             break;
         case act[6]: //нажать mqtt кнопку
-            result_pins += "<input class='form-control' id='typePins" + btnId + "' type='text' title='{\"Topic\":\"dev01/button/id\",\"msg\":\"1\"} \n dev01/button/id- топик \n 1 - сообщение' value='{\"Topic\":\"-=topic=-\",\"msg\":\"-=messgage=-\"}' size='100'>";
+            result_pins += "<input class='form-control' id='typePins" + btnId + "' type='text' title='{\"Topic\":\"dev01/button/id\",\"msg\":\"1\"} \n dev01/button/id- topic \n 1 - message' value='{\"Topic\":\"-=topic=-\",\"msg\":\"-=messgage=-\"}' size='100'>";
             setHTML("OptionWhich" + btnId, getHTML("OptionWhich" + btnId) + result_pins);//
             break;
         case act[7]://ws8211
@@ -829,7 +831,7 @@ function typeActChange(btnId) {
             var element = document.getElementById("OptionWhich" + btnId);
 
             //var h = document.createElement("p")                // Create a <h1> element
-            var t = document.createTextNode("продолжительность");     // Create a text node
+            var t = document.createTextNode("duration");     // Create a text node
             element.appendChild(t);
             var input = document.createElement("INPUT");
 
@@ -841,7 +843,7 @@ function typeActChange(btnId) {
             element.appendChild(makeinOption_child(timeChoise, "typePinsTimeChoise" + btnId, false));
             var that = document.getElementById("typePinsTimeChoise" + btnId);
             //
-            t = document.createTextNode("повторы");
+            t = document.createTextNode("repeats");
             element.appendChild(t);
             //
             input = document.createElement("INPUT");
@@ -850,7 +852,7 @@ function typeActChange(btnId) {
             input.setAttribute("id", "typePinsrepeats" + btnId);
             element.appendChild(input);
             //
-            t = document.createTextNode("между повторами (мин)");
+            t = document.createTextNode("between repeats (minuts)");
             element.appendChild(t);
             //
             input = document.createElement("INPUT");
@@ -859,7 +861,7 @@ function typeActChange(btnId) {
             input.setAttribute("id", "typeDelay" + btnId);
             element.appendChild(input);
             //
-            t = document.createTextNode("следующий повтор:");
+            t = document.createTextNode("next repeat:");
             element.appendChild(t);
             //
             t = document.createElement("p");
@@ -896,7 +898,7 @@ function typeActChange(btnId) {
                         */
             //текст
             var element = document.getElementById("OptionWhich" + btnId);
-            var t = document.createTextNode("мин темп:");     // Create a text node
+            var t = document.createTextNode("min temp:");     // Create a text node
             element.appendChild(t);
             //ввод минмальной температуры
             var input = document.createElement("INPUT");
@@ -906,7 +908,7 @@ function typeActChange(btnId) {
             element.appendChild(input);
             //текст
             var element = document.getElementById("OptionWhich" + btnId);
-            var t = document.createTextNode("макс темп:");     // Create a text node
+            var t = document.createTextNode("max temp:");     // Create a text node
             element.appendChild(t);
             //ввод максимальной температуры
             var input = document.createElement("INPUT");
@@ -915,7 +917,7 @@ function typeActChange(btnId) {
             input.setAttribute("id", "typePins_maxTemp" + btnId);
             element.appendChild(input);
             //текст
-            var t = document.createTextNode("слайдер:");     // Create a text node
+            var t = document.createTextNode("slider:");     // Create a text node
             element.appendChild(t);
             //
             //

@@ -34,50 +34,6 @@ html {
 }
 
 /*background end*/
-/*titles start*/
-#titles {
-    z-index: -1;
-    position: absolute;
-    width: 18em;
-    height: 20em;
-    bottom: 0;
-    left: 50%;
-    margin-left: -9em;
-    font-size: 350%;
-    font-weight: bold;
-    text-align: justify;
-    overflow: hidden;
-    transform-origin: 50% 100%;
-    transform: perspective(300px) rotateX(25deg);
-    color: rgba(254, 171, 69, 0.5);
-
-}
-
-#titles:after {
-    position: absolute;
-    content: ' ';
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 60%;
-    background-image: linear-gradient(top, rgba(0, 0, 0, 1) 0%, transparent 100%);
-    pointer-events: none;
-}
-
-#titlecontent {
-    position: absolute;
-    top: 100%;
-    animation: scroll 100s linear 4s infinite;
-}
-
-@keyframes scroll {
-    0% {
-        top: 100%;
-    }
-    100% {
-        top: -170%;
-    }
-}
 
 /*tites end*/
 .body {
@@ -86,14 +42,14 @@ html {
 /*
 удалить этот блок что бы сделать поле видимым
  */
-pre {
-    /*visibility: hidden;
+/* pre {
+    visibility: hidden;
     block-size: 0px;
     margin: 0px;
     padding: 0px;
 
-     */
-}
+    
+} */
 
 /* Setup */
 @media only screen and (max-width: 500px) {

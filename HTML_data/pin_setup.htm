@@ -6,8 +6,9 @@
 <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
-    <!--<link sync rel="stylesheet" href="bootstrap.min.css?modified=20012009">-->
+    <!-- <link rel="stylesheet" type="text/css" href="scripts/style-generated.css"> -->
     <link sync rel="stylesheet" type="text/css" href="style.css">
+    <!-- <link sync rel="stylesheet" type="text/css" href="style_pin_setup.css"> -->
     <script defer type="text/javascript" src="scripts/helper_func.js"></script>
     <script sync type="text/javascript" src="scripts/pin_setup.js"></script>
     <script sync type="text/javascript" src="scripts/pin_setup_post.js"></script>
@@ -18,23 +19,16 @@
 </head>
 
 <body>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var element = document.body,
-            style = window.getComputedStyle(element),
-            top = style.getPropertyValue('color');
-        if (top != 'rgb(51, 51, 51)') {
-            var el = document.head,
-                elChild = document.createElement('link');
-            elChild.innerHTML = '<link sync rel="stylesheet" href="scripts/bootstrap.min.css?modified=20012001">';
-            el.insertBefore(elChild, el.firstChild);
-        }
-    })
-</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            loadBootstrap();
+
+        });
+    </script>
 <div class="container">
 
     <div class="row" style="text-align:center;">
-        <div class="col-sm-offset-2 ">
+        <div class="col-sm-offset-2">
             <form id="form" class="form" method='POST' action='#' class="col-sm-offset-2 ">
                 <h4>button setup</h4>
                 <div class="row">
@@ -75,7 +69,7 @@
               <!--  <pre id="test"></pre>
                 <pre id="test2"></pre>-->
             </form>
-            <input type='submit' class="btn btn-lg btn-primary btn-block" value='Сохранить' onclick="makePOST();"/>
+            <input type='submit' class="btn btn-lg btn-primary btn-block" value='save' onclick="makePOST();"/>
 
 
             <!--
