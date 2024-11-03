@@ -1,0 +1,11 @@
+d0 - switch
+d1 - ads115, dht-11, 
+d2 - ads115, rx433, 
+d3 - switch
+d4 - switch, 
+d5 - mosf1, tsop, max6675, 
+d6 - mosf2, max6675,
+d7 - mosf3, ds18b20,
+d8 - ws8211-data, max6675, IR-transm
+rx - movedetector
+tx - switch
