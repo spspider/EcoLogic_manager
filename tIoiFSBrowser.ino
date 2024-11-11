@@ -85,7 +85,6 @@ bool handleFileRead(String path) {
     if (SPIFFS.exists(pathWithGz))
       path += ".gz";
     File file = SPIFFS.open(path, "r");
-    ESP_busy = true;
     if (contentType != "text/plain") {
       //server.sendHeader("Cache-Control", "public, max-age=86400, must-revalidate");
       //server.sendHeader("Pragma", "public");

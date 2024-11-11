@@ -15,7 +15,7 @@ String getHttp(String request) {
   if ((WiFi.status() == WL_CONNECTED)) {
     HTTPClient http;
     Serial.print("[HTTP] begin...\n");
-    http.begin("http://" + request); //запрос HTTP//"http://api.2ip.ua/geo.json?ip="
+    http.begin(wclient, "http://" + request); //запрос HTTP//"http://api.2ip.ua/geo.json?ip="
     Serial.println(request);
     Serial.print("[HTTP] GET...\n");
     int httpCode = http.GET();
