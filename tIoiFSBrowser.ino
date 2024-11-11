@@ -631,9 +631,10 @@ void server_init() {
       server.send(404, "text/plain", "FileNotFound");
   });
 
+
+   DBG_OUTPUT_PORT.println("HTTP server started");
   //get heap status, analog input value and all GPIO statuses in one json call
-  /*
-    server.on("/all", HTTP_GET, []() {
+  server.on("/all", HTTP_GET, []() {
     String json = "{";
     json += "\"heap\":" + String(ESP.getFreeHeap());
     json += ", \"analog\":" + String(analogRead(A0));
@@ -641,11 +642,7 @@ void server_init() {
     json += "}";
     server.send(200, "text/json", json);
     json = String();
-    });
-  */
-  //server.begin();
-  DBG_OUTPUT_PORT.println("HTTP server started");
-
+  });
 }
 
 void handleOpenLockForTime() {

@@ -248,6 +248,10 @@ void captive_loop() {
           //          CheckInternet("worldclockapi.com/api/json/utc/now");
           setup_alarm();
           ///////////
+#ifdef use_telegram
+      setup_telegram();
+#endif
+
         }
 
       } else if (s == WL_NO_SSID_AVAIL) {
@@ -263,9 +267,6 @@ void captive_loop() {
         connect = true;
       }
       setup_alarm();// delete if something wrong with alarm
-#ifdef use_telegram
-      setup_telegram();
-#endif
 
     }
 

@@ -408,6 +408,7 @@ void callback(char* topic_char, byte * Byte, unsigned char length) {
 void setup_IOTManager() {
   client.setServer(mqttServerName, mqttport);
   client.setCallback(callback);
+  client.setBufferSizes(512, 512);  // Set the minimum buffer sizes
   else {
     initVar();
   }

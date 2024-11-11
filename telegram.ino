@@ -20,9 +20,9 @@ void setup_telegram() {
 
   // check if all things are ok
   if (myBot.testConnection())
-    Serial.println("\ntestConnection OK");
+    Serial.println("\ntelegram Connection OK");
   else
-    Serial.println("\ntestConnection NOK");
+    Serial.println("\ntelegram Connection Not OK");
   for (char i = 0; i < char(nWidgets); i++) {
     if (pinmode[i] == 2) {
       Serial.println("adding button");
@@ -110,12 +110,13 @@ void loop_telegram() { // String way
       callback_scoket(Topic, part2.toInt());
     } else {
       fullanswer += messageText + "\n";
+      fullanswer += "\nnot found,\nusing:\n0:1 - number:value";
     }
 
     //////////////////STRING WORKING//////////////
 
     // Assuming nWidgets is defined somewhere
-    for (int i = 0; i < nWidgets; i++) {
+    for (unsigned char i = 0; i < nWidgets; i++) {
       String valueStr = String(get_new_pin_value(i), 2);
       fullanswer += String(descr[i]) + ": " + valueStr + "\n";
     }

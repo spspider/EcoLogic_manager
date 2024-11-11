@@ -3,7 +3,6 @@
     "configurations": [
         {
             "name": "Win32",
-            "compilerPath": "",
             "compilerArgs": [],
             "intelliSenseMode": "windows-msvc-x64",
             "includePath": [
