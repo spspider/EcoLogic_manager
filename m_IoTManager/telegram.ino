@@ -78,7 +78,7 @@ void setup_telegram() {
 //      Serial.print("value:");
 //      Serial.println(part2);
 //
-//      callback_scoket(Topic, atoi(part2));
+//      callback_socket(Topic, atoi(part2));
 //
 //      // Clear the contents of part1 and part2
 //      memset(part1, 0, sizeof(part1));
@@ -120,7 +120,7 @@ void loop_telegram() {
       messageText[colonIndex] = '\0';
       int Topic = atoi(messageText);
       int part2 = atoi(messageText + colonIndex + 1);
-      callback_scoket(Topic, part2);
+      callback_socket(Topic, part2);
     } else {
       snprintf(fullanswer, sizeof(fullanswer), "%s\nnot found,\nusing:\n0:1 - number:value\n", messageText);
     }
@@ -155,7 +155,7 @@ void loop_telegram() {
 //      //      Serial.print("value:");
 //      //      Serial.println(part2);
 //
-//      callback_scoket(Topic, part2.toInt());
+//      callback_socket(Topic, part2.toInt());
 //    } else {
 //      fullanswer += messageText + "\n";
 //      fullanswer += "\nnot found,\nusing:\n0:1 - number:value";

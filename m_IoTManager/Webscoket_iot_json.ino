@@ -22,10 +22,10 @@
   const char* newValue = jsonParse["newValue"];
   //Serial.print(Topic_is);
   //Serial.print(newValue);
-  callback_scoket(Topic_is, newValue);
+  callback_socket(Topic_is, newValue);
   }
 */
-void callback_scoket(char i, int payload_is) {
+void callback_socket(char i, int payload_is) {
   bool that_Ajax = false;
   bool saveEEPROM = false;
   if (i == 127) { //выслать только статус
