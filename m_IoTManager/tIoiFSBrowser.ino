@@ -329,7 +329,7 @@ void handleAJAX() {
   }
   char Topic_is = jsonDocument["t"];
   int newValue = jsonDocument["v"];
-  callback_scoket(Topic_is, newValue);
+  callback_socket(Topic_is, newValue);
 }
 
 void FunctionHTTP() {

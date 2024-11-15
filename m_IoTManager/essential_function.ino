@@ -27,6 +27,7 @@ float get_new_pin_value(unsigned char i) {
     return that_stat;
   }
   if (pinmode[i] == 6) { // dht Temp
+    #if defined(dht)
     if (!license) return 127;
     float temperature = dht.getTemperature();
     if (!isnan(temperature)) {
@@ -35,7 +36,7 @@ float get_new_pin_value(unsigned char i) {
     } else {
       that_stat = stat[i]; // Use a default value or handle the NaN case accordingly
     }
-
+    #endif
     return that_stat;
   }
   if (pinmode[i] == 7) {
@@ -44,6 +45,7 @@ float get_new_pin_value(unsigned char i) {
     return that_stat;
   }
   if (pinmode[i] == 8) { // dht Humidity
+    #if defined(dht)
     if (!license) return 127;
     float humidity = dht.getHumidity();
     if (!isnan(humidity)) {
@@ -52,6 +54,7 @@ float get_new_pin_value(unsigned char i) {
     } else {
       that_stat = stat[i]; // Use a default value or handle the NaN case accordingly
     }
+    #endif
     return that_stat;
   }
 

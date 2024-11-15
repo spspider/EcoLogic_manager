@@ -29,8 +29,6 @@ void connect_as_AccessPoint() {
   delay( 500 ); // Without delay I've seen the IP address blank
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
-
-
 }
 void captive_setup() {
 
@@ -119,7 +117,7 @@ void captive_loop() {
   if (try_MQTT_access) {
     if (IOT_Manager_loop) {
 #if defined(pubClient)
-      loop_IOTMAnager();
+      loop_IOTManager();
 #endif
     }
   }
