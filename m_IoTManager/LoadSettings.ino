@@ -33,7 +33,6 @@ bool loadConfig(File jsonConfig)
     client.disconnect();
   }
 
-  strcpy(prefix, jsonDocument["prefix"]);
   strcpy(mqttServerName, jsonDocument["mqttServerName"]);
   jsonDocument.containsKey("mqttport") ? mqttport = jsonDocument["mqttport"] : mqttport = 1883;
 

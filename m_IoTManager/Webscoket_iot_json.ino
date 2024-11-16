@@ -62,8 +62,10 @@ void callback_socket(char i, int payload_is) {
   }
   else if (pinmode[i] == 12) { //mac adress
     if (!license)return;
+    #if defined(wakeOnLan)
     const char* mac_adress = (const char *)descr;
     wakeMyPC(mac_adress);
+    #endif
 
     //stat[i]=stat[i]^1;
   }

@@ -1,0 +1,55 @@
+#if defined(picoMqtt)
+#include <PicoMQTT.h>
+
+PicoMQTT::Client mqtt;
+#if __has_include("config.h")
+#include "config.h"
+#endif
+
+bool setup_picoMqtt() {
+
+  File load_other_setup = SPIFFS.open("/other_setup.txt", "r");
+  DynamicJsonDocument jsonDocument(2048);
+  DeserializationError error = deserializeJson(jsonDocument, load_other_setup);
+  if (error) {
+    Serial.println("Failed to parse JSON! loadConfig for picoMqtt");
+    return false;
+  }
+
+  const char* deviceID_load = jsonDocument["deviceID"];
+  strncpy(deviceID, deviceID_load, sizeof(deviceID) - 1);
+  deviceID[sizeof(deviceID) - 1] = '\0';
+
+  mqtt.username = jsonDocument["deviceID"].as<String>();
+  mqtt.host = jsonDocument["mqttServerName"].as<String>();
+  mqtt.port = jsonDocument["mqttport"].as<unsigned int>();
+  mqtt.client_id = "esp-" + WiFi.macAddress();
+  mqtt.username = jsonDocument["deviceID"].as<String>();
+  mqtt.password = jsonDocument["mqttpass"].as<String>();
+
+
+  //  for (uint8_t i = 0; i < nWidgets; i++){
+  //    if ((pinmode[i] == 2) || (pinmode[i] == 3) || (pinmode[i] == 5)) {
+  //      mqtt.subscribe("picomqtt/#", [](const char * topic, const char * payload) {
+  //        Serial.printf("Received message in topic '%s': %s\n", topic, payload);
+  //      });
+  //    }
+  //    delay(200)
+  //  }
+
+
+  mqtt.begin();
+  return true;
+}
+
+void loop_picoMqtt() {
+  mqtt.loop();
+
+  // Changing host, port, client_id, username or password here is OK too.  Changes will take effect after next
+  // reconnect.  To force reconnection, explicitly disconnect the client by calling mqtt.disconnect().
+}
+void picoMqttOneSecEvent() { // this events calls every seconds, which can reduce load on esp8266
+  if (mqtt.connected()) {
+  }
+}
+#endif

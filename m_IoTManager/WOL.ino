@@ -1,3 +1,4 @@
+#if defined(wakeOnLan)
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 
@@ -34,4 +35,4 @@ void setup_WOL()
   //  wakeMyPC();
   //wakeOfficePC();
 }
-
+#endif

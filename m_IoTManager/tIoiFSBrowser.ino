@@ -370,8 +370,10 @@ void FunctionHTTP() {
   }
 
   if (jsonDocument.containsKey("WOL")) {
+    #if defined(wakeOnLan)
     const char* mac = jsonDocument["WOL"];
     wakeMyPC(mac);
+    #endif
   }
 
   if (jsonDocument.containsKey("setZeroFuel")) {
