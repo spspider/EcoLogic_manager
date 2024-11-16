@@ -7,6 +7,7 @@
 // #define use_telegram
 #define pubClient
 #define ds18b20
+//#define wakeOnLan
 // #define dht
 // #define ads1115
 // #define emon
@@ -95,7 +96,6 @@ uint8_t ipport = 80;
 const char *myHostname = "esp8266";
 char deviceID[20] = "dev-"; // thing ID - unique device id in our project
 #if defined(pubClient)
-char prefix[20] = "/IoTmanager"; // global prefix for all topics - must be some as mobile device
 char mqttServerName[60] = "m20.cloudmqtt.com";
 unsigned int mqttport = 16238;
 char mqttuser[15] = "spspider";
@@ -184,7 +184,9 @@ void setup()
 #if defined(ws2811_include)
   setup_ws2811(); // include ws2811.in
 #endif
+#if defined(wakeOnLan)
   setup_WOL();
+  #endif
   setup_compass();
   // Настраиваем и запускаем SSDP интерфейс
   //   Serial.println("Start 3-SSDP");
