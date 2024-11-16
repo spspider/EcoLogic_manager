@@ -1,3 +1,27 @@
+//This variables left in another file, so they are out of scope
+
+unsigned long newtimePWM, oldtimePWM;
+uint8_t oldtime = 0;
+char nWidgets = 9;
+const char nWidgetsArray = 9;
+short int stat[nWidgetsArray];
+//char widget[nWidgetsArray]; // inputWidjet[0] = 'unknown';1 = 'toggle';2 = 'simple-btn';4 = 'range';4 = 'small-badge';5 = 'chart';
+char descr[nWidgetsArray][10];
+char id[nWidgetsArray];
+unsigned char pin[nWidgetsArray];
+short int defaultVal[nWidgetsArray];
+char IrButtonID[nWidgetsArray];
+float analogDivider = 1.0F;
+short int analogSubtracter = 0;
+unsigned int low_pwm[nWidgetsArray];
+bool low_pwm_off = false;             // low_pwm
+unsigned char pinmode[nWidgetsArray]; // inputPinmode[0] = "no pin";inputPinmode[1] = "in";inputPinmode[2] = "out";inputPinmode[3] = "pwm";inputPinmode[4] = "adc";inputPinmode[5] = "low_pwm";inputPinmode[6] = "IR";inputPinmode[7] = "датчик газа MQ7";
+
+unsigned char subscribe_loop = 0;
+uint8_t subscr_sec = 5; 
+uint8_t mqttspacing_oldtime;
+
+
 #if defined(pubClient)
 
 char *setStatus(char *s)
@@ -95,7 +119,7 @@ void loop_IOTManager()
   }
 }
 
-void pubClientOneSecEvent() {
+void pubClientOneSecEvent() { //this event call each second, for reduce load on esp8266
   if (client.connected())
   {
     if (onesec > oldtime + subscr_sec && subscribe_loop < nWidgets)

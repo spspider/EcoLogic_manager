@@ -402,9 +402,11 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
 #endif
     }
     else if (act_a[that_condtion_widget][that_number_cond] == 8) { /////////////////////////WakeOnLan///////////////////////////
+      #if defined(wakeOnLan)
       char addresWakePC[20];
       strcpy(addresWakePC, actBtn_a_ch_string(that_condtion_widget, that_number_cond).c_str());
       wakeMyPC(addresWakePC);
+      #endif
     }
     else if (act_a[that_condtion_widget][that_number_cond] == 9) { /////////////////////////timer///////////////////////////
       //      switch_action(that_condtion_widget, that_number_cond, opposite);
