@@ -55,7 +55,7 @@ void pubStatus(char t[], char *payload)
   }
 }
 
-void pubConfig()
+void pubConfig()// that is how I publish config, you dont need to adhere same structure
 {
   for (char i = 0; i < nWidgets; i++)
   {
@@ -65,7 +65,7 @@ void pubConfig()
   }
 }
 
-void callback(char *topic, byte *payload, unsigned char length)
+void callback(char *topic, byte *payload, unsigned char length)// callback for recieving messages from subsriptions
 {
   char *lastSlash = strrchr(topic, '/');
   char i = lastSlash != NULL ? *(lastSlash + 1) : '0';
@@ -87,13 +87,13 @@ void callback(char *topic, byte *payload, unsigned char length)
   pubStatus(sTopic_ch, setStatus(newValue));
 }
 
-void setup_IOTManager()
+void setup_IOTManager() // that void is in setup() section in a main ino file
 {
   client.setServer(mqttServerName, mqttport);
   client.setCallback(callback);
 }
 
-void loop_IOTManager()
+void loop_IOTManager() // that void is in loop section in a main ino file
 {
   if (WiFi.status() == WL_CONNECTED)
   {
@@ -122,7 +122,7 @@ void loop_IOTManager()
 void pubClientOneSecEvent() { //this event call each second, for reduce load on esp8266
   if (client.connected())
   {
-    if (onesec > oldtime + subscr_sec && subscribe_loop < nWidgets)
+    if (onesec > oldtime + subscr_sec && subscribe_loop < nWidgets)// here I subscribe for a one message in a 1 period of subscribtion
     {
       char topic_subscr[30];
       if ((pinmode[subscribe_loop] == 2) || (pinmode[subscribe_loop] == 3) || (pinmode[subscribe_loop] == 5)) {
