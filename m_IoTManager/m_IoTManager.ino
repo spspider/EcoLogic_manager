@@ -1,4 +1,4 @@
-
+//WifiManager 0.14.0
 // 4mb 1mb 1mb
 // arduino 2.6.3 -> 3.1.2
 //----------------------------------------defines-------------------------------//
@@ -41,7 +41,6 @@ DallasTemperature sensors(&oneWire);
 WiFiClientSecure wclient;
 #if defined(pubClient)
 #include <PubSubClient.h>
-// WiFiClientSecure wclient;
 PubSubClient client(wclient); // for cloud broker - by hostname
 #endif
 #include <ESP8266WebServer.h> //Local WebServer used to
