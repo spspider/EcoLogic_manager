@@ -227,6 +227,7 @@ uint8_t one_min, one_hour;//, new_value_count;
 
 
 void one_sec() {
+#if defined(timerAlarm)
   if (timer_alarm_action_switch) {
     if (timer_alarm_action < timer_alarm_action_max) {
       timer_alarm_action++;
@@ -235,7 +236,7 @@ void one_sec() {
       timer_alarm_action = 0;
     }
   }
-
+#endif
   if ((duration > 0) && (duration != 255)) {
     running_led = true;
     //    alarm_is_active[idWidget][i] = true;
@@ -565,7 +566,7 @@ void loop_ws2811()
   if (millis() > (sp_ws8211)+ millis_strart) {
     for (char i = 0; i < num_ws8211; i++) {
       if (pos[0] == 0) {
-        //check_for_changes();
+        //
       }
       switch (dir_ws8211[i]) {
         case 0:
