@@ -1,30 +1,3 @@
-// Copyright Benoit Blanchon 2014-2016
-// MIT Licens
-//
-// Arduino JSON library
-// https://github.com/bblanchon/ArduinoJson
-// If you like this project, please add a star!
-
-
-
-
-/*
-  void WebScoketCallback(String text) {
-  DynamicJsonBuffer jsonBufferParse;
-  JsonObject& jsonParse = jsonBufferParse.parseObject(text);
-
-  // Test if parsing succeeds.
-  if (!jsonParse.success()) {
-    Serial.println("parseObject() failed");
-    return;
-  }
-  const char* Topic_is = jsonParse["topic"];
-  const char* newValue = jsonParse["newValue"];
-  //Serial.print(Topic_is);
-  //Serial.print(newValue);
-  callback_socket(Topic_is, newValue);
-  }
-*/
 void callback_socket(char i, int payload_is) {
   bool that_Ajax = false;
   bool saveEEPROM = false;
@@ -33,19 +6,12 @@ void callback_socket(char i, int payload_is) {
     return;
   }
 
-
-  //  if (i == 0) {
-  //    Serial.println("rewrite 0 !!!!!!!!!!!!!!!!!!!!!!!")
-  //  }
-  //if(pin[i]==255){
-  //return;
-  //}
   if ((pinmode[i] == 2) || (pinmode[i] == 1)) { //out,in - saveEEPROM=false;
-    //Serial.println("SendIR");
-    //send_IR(i);
     stat[i] = (payload_is);// ^ defaultVal[i]
     digitalWrite(pin[i], payload_is);
+#if defined(timerAlarm)
     check_if_there_timer_once(i);
+#endif
   } else if (pinmode[i] == 3) {//pwm
     if (!license)return;
     payload_is = defaultVal[i] == 1 ? 1024 - payload_is : payload_is;
@@ -74,7 +40,6 @@ void callback_socket(char i, int payload_is) {
     //dimmer.setPower(DimmerVal);
   }
 
-  //check_for_changes();
   pubStatusFULLAJAX_String(false);
 
 }

@@ -4,8 +4,8 @@
 //----------------------------------------defines-------------------------------//
 // #define ws2811_include// активировать для ws2811
 #define will_use_serial
-// #define timerAlarm
-//  #define use_telegram
+//#define timerAlarm
+// #define use_telegram
 #define pubClient
 #define ds18b20
 //#define wakeOnLan
@@ -190,7 +190,7 @@ void setup()
   setup_compass();
   // Настраиваем и запускаем SSDP интерфейс
   //   Serial.println("Start 3-SSDP");
-  SSDP_init();
+  // SSDP_init();
 
   if (IR_recieve)
   {

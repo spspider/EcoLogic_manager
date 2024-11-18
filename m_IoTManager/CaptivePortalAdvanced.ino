@@ -173,7 +173,9 @@ void captive_loop() {
         setup_ota();
         MDNS.addService("http", "tcp", ipport);
         if (geo_enable) sendLocationData();
+#if defined(timerAlarm)
         setup_alarm();
+#endif
 #ifdef use_telegram
         setup_telegram();
 #endif
@@ -184,7 +186,9 @@ void captive_loop() {
         WiFi.disconnect();
       }
       else if (s == WL_CONNECTED) MDNS.update();
+#if defined(timerAlarm)
       setup_alarm();
+#endif
     }
   }
   dnsServer.processNextRequest();
