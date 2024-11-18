@@ -1,5 +1,5 @@
 #include <TimeLib.h>
-
+#if defined(timerAlarm)
 bool En_a[Condition][Numbers];
 uint8_t type_a[Condition][Numbers];
 uint8_t act_a[Condition][Numbers];
@@ -68,17 +68,6 @@ bool load_Current_condition(String jsonCondition) {
       En_a[thatCondition][i] = En_that;
 
       alarm_is_active[thatCondition][i] = alarm_is_active[thatCondition][i] ^ true;
-
-#if defined(pubClient_disable)
-      if (client.connected()) {
-        if ((type_value[thatCondition][i] == 2) || (type_value[thatCondition][i] == 3)) {
-          //          Serial.println("POSSIBLE PUBLISH bySignalPWM[c][n]:" + String(bySignalPWM[thatCondition][i], DEC));
-          char pubstatus[40];
-          sprintf(pubstatus, "%s/PLUS/%d/%d", deviceID, thatCondition, i);
-          //          pubStatus(pubstatus, setStatus(bySignalPWM[thatCondition][i]));
-        }
-      }
-#endif
     }
 
     NumberIDs[thatCondition] = Numbers_that; //количество в этом условии (на этой кнопке);
@@ -165,38 +154,6 @@ void CheckInternet(String request) {
   }
 }
 
-#if defined(pubClient)
-//
-//char subscr_loop_PLUS_i = 0;
-//char subscr_loop_PLUS_i1 = 0;
-
-//void subscr_loop_PLUS() {
-//  if ((!client.connected()) || (!IOT_Manager_loop))  return;
-//  if (subscr_loop_PLUS_i <= 3) {
-//    if (subscr_loop_PLUS_i1 <= NumberIDs[subscr_loop_PLUS_i]) {
-//      //  if (bySignalPWM[subscr_loop_PLUS_i][subscr_loop_PLUS_i1] != -1) {
-//      if ((type_value[subscr_loop_PLUS_i][subscr_loop_PLUS_i1] == 2) || (type_value[subscr_loop_PLUS_i][subscr_loop_PLUS_i1] == 3)) {
-//        //String __topic_subscr = deviceID + "/PLUS/" + String(subscr_loop_PLUS_i, DEC) + "/" + String(subscr_loop_PLUS_i1, DEC) + "/status";
-//        char topic_subscr_char[50];
-//        sprintf(topic_subscr_char, "%s/PLUS/%d/%d/status", deviceID, subscr_loop_PLUS_i, subscr_loop_PLUS_i1);
-//        if (!client.subscribe(topic_subscr_char)) {
-//          Serial.print("Client subscribe FAIL!:");
-//          Serial.println(topic_subscr_char);
-//        }
-//        else {
-//          Serial.print("Client subscribe SUCCSESS!:");
-//          Serial.println(topic_subscr_char);
-//          subscribe_loop++;
-//        };
-//      }
-//      subscr_loop_PLUS_i1++;
-//    } else {
-//      subscr_loop_PLUS_i++;//ERRRRRRRRRRRRROOOOOORRRRRRRRRR
-//      subscr_loop_PLUS_i1 = 0;
-//    }
-//  }
-//}
-#endif
 void check_for_changes() {
   if (timer_alarm_action_switch == 0) {
     for (uint8_t i1 = 0; i1 < Condition; i1++) {//пробегаемся по всем кнопкам
@@ -352,43 +309,7 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
       //Serial.println("value:" + String(value^opposite));
       String respond = getHttp(host);
       //Serial.println(respond);
-
-
-    }
-    else if (act_a[that_condtion_widget][that_number_cond] == 6) { ///////////////////////////mqtt запрос/////////////////////////////////////////////////
-#ifdef pubClient_close
-      DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
-      String mqtt_parse = "";//String(actBtn_a_ch[that_condtion_widget][that_number_cond]);
-      Serial.println(mqtt_parse);
-      DeserializationError error = deserializeJson(jsonDocument, mqtt_parse);
-
-      if (error) {
-        Serial.println("Parsing fail mqtt");
-        return;
-      }
-
-      JsonObject root = jsonDocument.as<JsonObject>();
-      char char_arr[10];
-      int value = root["msg"];
-      value ^= opposite;
-      sprintf(char_arr, "%d", value);
-
-
-      String topic = root["Topic"].as<String>();
-      String message = String(char_arr);
-
-      Serial.println("Publish : (topic:" + topic + " msg:" + message + ")");
-      if (client.connected()) {
-        if (client.publish(topic.c_str(), message.c_str())) {
-          Serial.println("Publish SUCCESS! (topic:" + topic + " msg:" + message + ")");
-        } else {
-          Serial.println("Publish FAIL! (topic:" + topic + " msg:" + message + ")");
         }
-      } else {
-        Serial.println("Publish FAIL! client disconnected");
-      }
-#endif
-    }
 
     else if (act_a[that_condtion_widget][that_number_cond] == 7) { ///////////////////////////8211/////////////////////////////////////////////////
       uint8_t max_values = 3;
@@ -488,4 +409,4 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
   }
 }
 
-
+#endif

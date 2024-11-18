@@ -1,75 +1,67 @@
-/*
-  FSWebServer - Example WebServer with SPIFFS backend for esp8266
-  Copyright (c) 2015 Hristo Gochkov. All rights reserved.
-  This file is part of the ESP8266WebServer library for Arduino environment.
-
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  Licens as published by the Free Software Foundation; either
-  version 2.1 of the Licens, or (at your option) any later version.
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public  for more details.
-  You should have received a copy of the GNU Lesser General Public
-   along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-  upload the contents of the data folder with MkSPIFFS Tool ("ESP8266 Sketch Data Upload" in Tools menu in Arduino IDE)
-  or you can upload the contents of a folder if you CD in that folder and run the following command:
-  for file in `ls -A1`; do curl -F "file=@$PWD/$file" esp8266fs.local/edit; done
-
-  access the sample web page at http://esp8266fs.local
-  edit the page by going to http://esp8266fs.local/edit
-*/
-//#include <Main.h>;
-//ESP8266WebServer server(80);
-//holds the current upload
-
 File fsUploadFile;
 
-//format bytes
-String formatBytes(size_t bytes) {
-  if (bytes < 1024) {
+// format bytes
+String formatBytes(size_t bytes)
+{
+  if (bytes < 1024)
+  {
     return String(bytes) + "B";
-  } else if (bytes < (1024 * 1024)) {
+  }
+  else if (bytes < (1024 * 1024))
+  {
     return String(bytes / 1024.0) + "KB";
-  } else if (bytes < (1024 * 1024 * 1024)) {
+  }
+  else if (bytes < (1024 * 1024 * 1024))
+  {
     return String(bytes / 1024.0 / 1024.0) + "MB";
-  } else {
+  }
+  else
+  {
     return String(bytes / 1024.0 / 1024.0 / 1024.0) + "GB";
   }
 }
 
-String getContentType(String filename) {
-  if (server.hasArg("download")) return "application/octet-stream";
-  else if (filename.endsWith(".htm")) return "text/html";
-  else if (filename.endsWith(".html")) return "text/html";
-  else if (filename.endsWith(".css")) return "text/css";
-  else if (filename.endsWith(".js")) return "application/javascript";
-  else if (filename.endsWith(".png")) return "image/png";
-  else if (filename.endsWith(".gif")) return "image/gif";
-  else if (filename.endsWith(".jpg")) return "image/jpeg";
-  else if (filename.endsWith(".ico")) return "image/x-icon";
-  else if (filename.endsWith(".xml")) return "text/xml";
-  else if (filename.endsWith(".pdf")) return "application/x-pdf";
-  else if (filename.endsWith(".zip")) return "application/x-zip";
-  else if (filename.endsWith(".gz")) return "application/x-gzip";
+String getContentType(String filename)
+{
+  if (server.hasArg("download"))
+    return "application/octet-stream";
+  else if (filename.endsWith(".htm"))
+    return "text/html";
+  else if (filename.endsWith(".html"))
+    return "text/html";
+  else if (filename.endsWith(".css"))
+    return "text/css";
+  else if (filename.endsWith(".js"))
+    return "application/javascript";
+  else if (filename.endsWith(".png"))
+    return "image/png";
+  else if (filename.endsWith(".gif"))
+    return "image/gif";
+  else if (filename.endsWith(".jpg"))
+    return "image/jpeg";
+  else if (filename.endsWith(".ico"))
+    return "image/x-icon";
+  else if (filename.endsWith(".xml"))
+    return "text/xml";
+  else if (filename.endsWith(".pdf"))
+    return "application/x-pdf";
+  else if (filename.endsWith(".zip"))
+    return "application/x-zip";
+  else if (filename.endsWith(".gz"))
+    return "application/x-gzip";
   return "text/plain";
 }
 
-bool handleFileRead(String path) {
+bool handleFileRead(String path)
+{
   DBG_OUTPUT_PORT.println("handleFileRead: " + path);
-  if ((path.endsWith("bootstrap.min.css")) && (WiFi.getMode() != WIFI_STA)) {
+  if ((path.endsWith("bootstrap.min.css")) && (WiFi.getMode() != WIFI_STA))
+  {
     Serial.println("Bootstrap requested");
     path = "";
     return false;
   }
-  if ((path == "/scripts/bootstrap.min.css")
-      || (path == "/scripts/chart.min.js")
-      || (path.endsWith(".js"))
-      || (path.endsWith(".htm"))
-      || (path.endsWith(".css")))
+  if ((path == "/scripts/bootstrap.min.css") || (path == "/scripts/chart.min.js") || (path.endsWith(".js")) || (path.endsWith(".htm")) || (path.endsWith(".css")))
   {
     Serial.println("CASHE_CONTROL: " + path);
     server.sendHeader("Cache-Control", "public, max-age=604800, must-revalidate");
@@ -77,18 +69,21 @@ bool handleFileRead(String path) {
     server.sendHeader("Expires", "604800");
   }
 
-  //if ((path.indexOf(".") == -1) && (!path.endsWith("/"))) path += ".htm";
-  if (path.endsWith("/")) path += "home.htm";
+  // if ((path.indexOf(".") == -1) && (!path.endsWith("/"))) path += ".htm";
+  if (path.endsWith("/"))
+    path += "home.htm";
   String contentType = getContentType(path);
   String pathWithGz = path + ".gz";
-  if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
+  if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path))
+  {
     if (SPIFFS.exists(pathWithGz))
       path += ".gz";
     File file = SPIFFS.open(path, "r");
-    if (contentType != "text/plain") {
-      //server.sendHeader("Cache-Control", "public, max-age=86400, must-revalidate");
-      //server.sendHeader("Pragma", "public");
-      //server.sendHeader("Expires", "86400");
+    if (contentType != "text/plain")
+    {
+      // server.sendHeader("Cache-Control", "public, max-age=86400, must-revalidate");
+      // server.sendHeader("Pragma", "public");
+      // server.sendHeader("Expires", "86400");
     }
 
     size_t sent = server.streamFile(file, contentType);
@@ -99,43 +94,41 @@ bool handleFileRead(String path) {
   return false;
 }
 
-void handleFileUpload() {
-  if (server.uri() != "/edit") return;
-  HTTPUpload& upload = server.upload();
-  if (upload.status == UPLOAD_FILE_START) {
+void handleFileUpload()
+{
+  if (server.uri() != "/edit")
+    return;
+  HTTPUpload &upload = server.upload();
+  if (upload.status == UPLOAD_FILE_START)
+  {
     String filename = upload.filename;
-    /*
-      if (filename == "pin_setup.txt") {
-      //(updatepinsetup(String((char *)upload.buf))) ? server.send(200, "text/plain", String((char *)upload.buf)) : server.send(200, "text/plain", "FAIL!");
-      //ESP.restart();
-      } else if (filename == "other_setup.txt") {
-      (loadConfig(String((char *)upload.buf))) ? server.send(200, "text/plain", String((char *)upload.buf)) : server.send(200, "text/plain", "FAIL!");
-      //ESP.restart();
-      }
-      else if (filename.indexOf("Condition") != -1) {
-      //Serial.println("load Condition");
-      (load_Current_condition(String((char *)upload.buf))) ? server.send(200, "text/plain", String((char *)upload.buf)) : server.send(200, "text/plain", "FAIL!");
-      //ESP.restart();
-      }
-    */
-    DBG_OUTPUT_PORT.print("handleFileUpload Name: "); DBG_OUTPUT_PORT.println(filename);
-    if (!filename.startsWith("/")) filename = "/" + filename;
+    DBG_OUTPUT_PORT.print("handleFileUpload Name: ");
+    DBG_OUTPUT_PORT.println(filename);
+    if (!filename.startsWith("/"))
+      filename = "/" + filename;
     fsUploadFile = SPIFFS.open(filename, "w");
     filename = String();
-  } else if (upload.status == UPLOAD_FILE_WRITE) {
-    //DBG_OUTPUT_PORT.print("handleFileUpload Data: "); DBG_OUTPUT_PORT.println(upload.currentSize);
+  }
+  else if (upload.status == UPLOAD_FILE_WRITE)
+  {
+    // DBG_OUTPUT_PORT.print("handleFileUpload Data: "); DBG_OUTPUT_PORT.println(upload.currentSize);
     if (fsUploadFile)
       fsUploadFile.write(upload.buf, upload.currentSize);
-  } else if (upload.status == UPLOAD_FILE_END) {
+  }
+  else if (upload.status == UPLOAD_FILE_END)
+  {
     if (fsUploadFile)
       fsUploadFile.close();
-    DBG_OUTPUT_PORT.print("handleFileUpload Size: "); DBG_OUTPUT_PORT.println(upload.totalSize);
+    DBG_OUTPUT_PORT.print("handleFileUpload Size: ");
+    DBG_OUTPUT_PORT.println(upload.totalSize);
     server.send(200, "text/plain", "ok");
   }
 }
 
-void handleFileDelete() {
-  if (server.args() == 0) return server.send(500, "text/plain", "BAD ARGS");
+void handleFileDelete()
+{
+  if (server.args() == 0)
+    return server.send(500, "text/plain", "BAD ARGS");
   String path = server.arg(0);
   DBG_OUTPUT_PORT.println("handleFileDelete: " + path);
   if (path == "/")
@@ -147,7 +140,8 @@ void handleFileDelete() {
   path = String();
 }
 
-bool FileDelete(String path) {
+bool FileDelete(String path)
+{
   if (!SPIFFS.exists(path))
     return false;
   SPIFFS.remove(path);
@@ -156,7 +150,8 @@ bool FileDelete(String path) {
   path = String();
   return true;
 }
-void handleFileCreate() {
+void handleFileCreate()
+{
   if (server.args() == 0)
     return server.send(500, "text/plain", "BAD ARGS");
   String path = server.arg(0);
@@ -173,44 +168,27 @@ void handleFileCreate() {
   server.send(200, "text/plain", "");
   path = String();
 }
-void handle_sendEmail() {
-  //String email_txt = server.arg("Email"); // Получаем значение ssdp из запроса сохраняем в глобальной переменной
-  if (sendEmail(server.arg("Email"))) {
+void handle_sendEmail()
+{
+  // String email_txt = server.arg("Email"); // Получаем значение ssdp из запроса сохраняем в глобальной переменной
+  if (sendEmail(server.arg("Email")))
+  {
     server.send(200, "text/plain", "send OK"); // отправляем ответ о выполнении
   }
-  else {
+  else
+  {
     server.send(200, "text/plain", "Fail"); // отправляем ответ о выполнении
-
   }
 }
-/*
-  unsigned long ConvertCharToLong(char *pSrc) {
-  int i = 1;
-  static unsigned long result = (int)pSrc[0] - '0';
-  while (i < strlen(pSrc)) {
-    result = result * 10 + ((int)pSrc[i] - '0');
-    ++i;
-  }
-  return result;
-  }
 
-  unsigned long ConvertToLong(String x) {
-  static unsigned long y;
-  for (int i = 0; i < x.length(); i++) {
-    char c = x.charAt(i);
-    if (c < '0' || c > '9') break;
-    y *= 10;
-    y += (c - '0');
-  }
-  return y;
-  }
-*/
-void handle_setTime() {
+void handle_setTime()
+{
   char timezone;
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
 
   DeserializationError error = deserializeJson(jsonDocument, server.arg("DateTime"));
-  if (error) {
+  if (error)
+  {
     Serial.print(F("deserializeJson() failed with handle_setTime code "));
     Serial.println(error.c_str());
     return;
@@ -223,19 +201,26 @@ void handle_setTime() {
   short int year_r = jsonDocument["y"];
   short int new_timezone;
 
-  if (timeStatus() == timeNotSet) {
+  if (timeStatus() == timeNotSet)
+  {
     Serial.println("Time not set");
   }
 
-  if (timeStatus() == timeNeedsSync) {
+  if (timeStatus() == timeNeedsSync)
+  {
     Serial.println("Time needs sync");
   }
 
-  if (year_r != 0) {
-    if (timeStatus() == timeSet) {
-      if (hour_r > hour()) {
+  if (year_r != 0)
+  {
+    if (timeStatus() == timeSet)
+    {
+      if (hour_r > hour())
+      {
         new_timezone = hour_r - (hour() - timezone);
-      } else {
+      }
+      else
+      {
         new_timezone = hour() - (hour_r - timezone);
       }
       timezone = new_timezone;
@@ -245,7 +230,8 @@ void handle_setTime() {
 
     setTime(hour_r, min_r, 0, day_r, month_r, year_r);
 
-    if ((timestat == timeNotSet) && (timeStatus() == timeSet)) {
+    if ((timestat == timeNotSet) && (timeStatus() == timeSet))
+    {
       // setup_alarm();
     }
   }
@@ -266,8 +252,10 @@ void handle_setTime() {
   server.send(200, "text/json", buffer);
 }
 
-void handleFileList() {
-  if (!server.hasArg("dir")) {
+void handleFileList()
+{
+  if (!server.hasArg("dir"))
+  {
     server.send(500, "text/plain", "BAD ARGS");
     return;
   }
@@ -278,9 +266,11 @@ void handleFileList() {
   path = String();
 
   String output = "[";
-  while (dir.next()) {
+  while (dir.next())
+  {
     File entry = dir.openFile("r");
-    if (output != "[") output += ',';
+    if (output != "[")
+      output += ',';
     bool isDir = false;
     output += "{\"type\":\"";
     output += (isDir) ? "dir" : "file";
@@ -294,18 +284,21 @@ void handleFileList() {
   server.send(200, "text/json", output);
 }
 
-void handle_saveIR() {
+void handle_saveIR()
+{
   String IRjson = server.arg("IR");
   saveCommonFiletoJson("IRButtons", IRjson, 1);
   updateIR();
 }
 
-void setup_FS(void) {
+void setup_FS(void)
+{
 
   SPIFFS.begin();
   {
     Dir dir = SPIFFS.openDir("/");
-    while (dir.next()) {
+    while (dir.next())
+    {
       String fileName = dir.fileName();
       size_t fileSize = dir.fileSize();
       DBG_OUTPUT_PORT.printf("FS File: %s, size: %s\n", fileName.c_str(), formatBytes(fileSize).c_str());
@@ -313,54 +306,86 @@ void setup_FS(void) {
     DBG_OUTPUT_PORT.printf("\n");
   }
 
-
-
-  //SERVER INIT
-  //list directory
-
+  // SERVER INIT
+  // list directory
 }
-void handleAJAX() {
-  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
-  DeserializationError error = deserializeJson(jsonDocument, server.arg("json"));
-  if (error) {
-    Serial.print(F("deserializeJson() failed with handleAJAX code "));
-    Serial.println(error.c_str());
-    return;
+// void handleAJAX()
+// {
+//   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+//   DeserializationError error = deserializeJson(jsonDocument, server.arg("json"));
+//   if (error)
+//   {
+//     Serial.print(F("deserializeJson() failed with handleAJAX code "));
+//     Serial.println(error.c_str());
+//     return;
+//   }
+//   char Topic_is = jsonDocument["t"];
+//   int newValue = jsonDocument["v"];
+//   callback_socket(Topic_is, newValue);
+// }
+void handleAJAX()
+{
+  // Extract JSON from the server argument
+  const char *json = server.arg("json").c_str();
+
+  // Parse "t" value (Topic_is)
+  uint8_t Topic_is = 0;
+  const char *tStart = strstr(json, "\"t\":");
+  if (tStart)
+  {
+    tStart += 4; // Move past "\"t\":"
+    Topic_is = (uint8_t)atoi(tStart);
   }
-  char Topic_is = jsonDocument["t"];
-  int newValue = jsonDocument["v"];
+
+  // Parse "v" value (newValue)
+  uint16_t newValue = 0;
+  const char *vStart = strstr(json, "\"v\":");
+  if (vStart)
+  {
+    vStart += 4; // Move past "\"v\":"
+    newValue = (uint16_t)atoi(vStart);
+  }
+
+  // Call the callback function with parsed values
   callback_socket(Topic_is, newValue);
 }
 
-void FunctionHTTP() {
+void FunctionHTTP()
+{
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
 
   DeserializationError error = deserializeJson(jsonDocument, server.arg("json"));
-  if (error) {
+  if (error)
+  {
     Serial.print(F("deserializeJson() FunctionHTTP failed with code "));
     Serial.println(error.c_str());
     return;
   }
 
-  if (jsonDocument.containsKey("reboot")) {
-    if (captivePortal()) {
+  if (jsonDocument.containsKey("reboot"))
+  {
+    if (captivePortal())
+    {
       delay(500);
     }
     ESP.reset();
   }
 
-  if (jsonDocument.containsKey("ws2811_setup")) {
+  if (jsonDocument.containsKey("ws2811_setup"))
+  {
 #if defined(ws2811_include)
     loadLimits();
 #endif
   }
 
-  if (jsonDocument.containsKey("pin_setup_limits")) {
+  if (jsonDocument.containsKey("pin_setup_limits"))
+  {
     String buffer = String(nWidgetsArray, DEC);
     server.send(200, "text/plain", buffer);
   }
 
-  if (jsonDocument.containsKey("cond_setup")) {
+  if (jsonDocument.containsKey("cond_setup"))
+  {
     JsonObject json = jsonDocument.to<JsonObject>();
     json["ConNum"] = Condition;
     json["NumCon"] = Numbers;
@@ -369,14 +394,16 @@ void FunctionHTTP() {
     server.send(200, "text/json", buffer);
   }
 
-  if (jsonDocument.containsKey("WOL")) {
-    #if defined(wakeOnLan)
-    const char* mac = jsonDocument["WOL"];
+  if (jsonDocument.containsKey("WOL"))
+  {
+#if defined(wakeOnLan)
+    const char *mac = jsonDocument["WOL"];
     wakeMyPC(mac);
-    #endif
+#endif
   }
 
-  if (jsonDocument.containsKey("setZeroFuel")) {
+  if (jsonDocument.containsKey("setZeroFuel"))
+  {
     String Page;
     Page += F("set_analogSubtracter_value: ");
     Page += setZeroFuel();
@@ -388,7 +415,8 @@ void FunctionHTTP() {
     server.send(200, "text/html", Page);
   }
 
-  if (jsonDocument.containsKey("setFUllFuel")) {
+  if (jsonDocument.containsKey("setFUllFuel"))
+  {
     String Page;
     Page += F("set_analogSubtracter_value: ");
     Page += analogSubtracter;
@@ -399,29 +427,36 @@ void FunctionHTTP() {
     server.send(200, "text/html", Page);
   }
 
-  if (jsonDocument.containsKey("NextRepeat")) {
+  if (jsonDocument.containsKey("NextRepeat"))
+  {
     uint8_t Condition = jsonDocument["NextRepeatCondition"];
     uint8_t Number = jsonDocument["NextRepeatNumber"];
     JsonObject json = jsonDocument.to<JsonObject>();
     json["actBtn_a_ch"] = 0;
-    json["times"] =   type_value[Condition][Number];
-    json["Number"] =  Number;
+#if defined(timerAlarm)
+    json["times"] = type_value[Condition][Number];
+#endif
+    json["Number"] = Number;
     String buffer;
     serializeJson(json, buffer);
     server.send(200, "text/json", buffer);
   }
 
-  if (jsonDocument.containsKey("Activation")) {
+  if (jsonDocument.containsKey("Activation"))
+  {
     uint8_t Activation = jsonDocument["Activation"];
 
-    if (Activation == 0) {
+    if (Activation == 0)
+    {
       server.send(200, "text/plain", String(license, DEC));
     }
-    else if (Activation == 1) {
+    else if (Activation == 1)
+    {
       server.send(200, "text/plain", WiFi.macAddress());
     }
-    else if (Activation == 2) {
-      //calculate md5:
+    else if (Activation == 2)
+    {
+      // calculate md5:
       MD5Builder md5;
       md5.begin();
       md5.add(WiFi.macAddress() + "password");
@@ -429,33 +464,42 @@ void FunctionHTTP() {
       String generatedCode = md5.toString();
       String recievedCode = jsonDocument["code"].as<String>();
 
-      if (recievedCode == generatedCode) {
-        if (saveCommonFiletoJson("activation", recievedCode, 1)) {
+      if (recievedCode == generatedCode)
+      {
+        if (saveCommonFiletoJson("activation", recievedCode, 1))
+        {
           server.send(200, "text/plain", "1");
           license = 1;
-        } else {
+        }
+        else
+        {
           server.send(200, "text/plain", "failWrite");
           return;
         }
-      } else {
+      }
+      else
+      {
         server.send(200, "text/plain", "0");
       }
     }
-    else if (Activation == 4) {
-      if (FileDelete("activation.txt")) {
+    else if (Activation == 4)
+    {
+      if (FileDelete("activation.txt"))
+      {
         license = 0;
       }
       server.send(200, "text/plain", "license=" + String(license, DEC));
-
     }
   }
 
-  if (jsonDocument.containsKey("EncoderIA")) {
+  if (jsonDocument.containsKey("EncoderIA"))
+  {
     no_internet_timer = jsonDocument["rotations"];
     server.send(200, "text/plain", server.arg("json"));
   }
 
-  if (jsonDocument.containsKey("sendIR")) {
+  if (jsonDocument.containsKey("sendIR"))
+  {
     send_IR_code(jsonDocument["sendIR"]);
     send_IR_code(jsonDocument["sendIR"]);
     send_IR_code(jsonDocument["sendIR"]);
@@ -465,102 +509,83 @@ void FunctionHTTP() {
   }
 }
 
-void handlews2811() {
+void handlews2811()
+{
 #if defined(ws2811_include)
   char buffer[200];
   server.arg("json").toCharArray(buffer, sizeof buffer);
-  if ( LoadData(buffer)) {//include ws2811.in
+  if (LoadData(buffer))
+  { // include ws2811.in
     server.send(200, "text / plain", "OK");
   }
-  loop_ws2811();//include ws2811.in
+  loop_ws2811(); // include ws2811.in
 #endif
 }
-void handlews2811set() {
+void handlews2811set()
+{
   char buffer[400];
   server.arg("json").toCharArray(buffer, sizeof buffer);
 #if defined(ws2811_include)
-  if ( LoadData_set_leds(buffer)) {//include ws2811.in
+  if (LoadData_set_leds(buffer))
+  { // include ws2811.in
     server.send(200, "text / plain", "OK");
-  } else {
+  }
+  else
+  {
     server.send(200, "text / plain", server.arg("json"));
   }
-  loop_ws2811();//include ws2811.in
+  loop_ws2811(); // include ws2811.in
 #endif
 }
-void Server_begin() {
+void Server_begin()
+{
 
   server_init();
   Captive_server_init();
   // server.begin();
 }
-void server_init() {
+void server_init()
+{
   server.on("/sendAJAX", handleAJAX);
   server.on("/sendEmail", handle_sendEmail);
   server.on("/ws2811AJAX", handlews2811);
   server.on("/ws2811AJAXset", handlews2811set);
-  server.on("/ws2811",    []() {
-    handleFileRead("/ws2811.html");
-  });
+  server.on("/ws2811", []()
+            { handleFileRead("/ws2811.html"); });
   server.on("/list", HTTP_GET, handleFileList);
-  server.on("/", HTTP_GET, []() {//
-    if (WiFi.getMode() == WIFI_STA) {
+  server.on("/", HTTP_GET, []() { //
+    if (WiFi.getMode() == WIFI_STA)
+    {
       handleFileRead("/home.htm");
-    } else {
+    }
+    else
+    {
       handleRoot();
     }
 
   });
   server.on("/setDate", HTTP_GET, handle_setTime);
-  /*
-    server.on("/other_setup", HTTP_POST, []() {
-
-    if (server.arg("jsonArray")) {
-    Serial.println(server.arg("jsonArray"));
-    String jsonString = server.arg("jsonArray");
-    if ( saveCommonFiletoJson("other_setup", jsonString)) {
-    Serial.println("CONFIG SAVED: OK");
-    server.send(200, "text / plain", "OK");
-    } else {
-    server.send(200, "text / plain", "Error");
-    }
-    }
-    //handleFileRead("/other_setup.htm");
-    });
-  */
-  server.on("/other_setup", []() {
-    handleFileRead("/other_setup.htm");
-  });
-  /*
-    server.on("/condition_setup", HTTP_POST, []() {
-    String jsonrecieve = server.arg("json_name");
-    SaveCondition(jsonrecieve);
-    server.send(200, "text / plain", "OK");
-    //Serial.println(jsonrecieve);
-
-    }
-    );
-  */
-  /////////////////////////
-  //IR//////////////////////////
+  server.on("/other_setup", []()
+            { handleFileRead("/other_setup.htm"); });
   server.on("/aRest", HTTP_GET, []() { /*192.168.1.108/aRest?Json={pin:1,val:100}*/
-    //String json = server.arg("Json");
-    Serial.println(server.arg("Json"));
-    makeAres_sim(server.arg("Json"));
+                                       // String json = server.arg("Json");
+                                       Serial.println(server.arg("Json"));
+                                       makeAres_sim(server.arg("Json"));
   });
   /*
     server.on("/CommonSave", []() { //получаем методом AJAX включаем
     saveCommonFiletoJson(server.arg("fileName"), server.arg("json"));
     });
   */
-  //server.on("/CommonDelete", HTTP_DELETE, handleFileDelete);
-  server.on("/IR_setup", []() {
+  // server.on("/CommonDelete", HTTP_DELETE, handleFileDelete);
+  server.on("/IR_setup", []()
+            {
 
     //Serial.println("IR true");
     Page_IR_opened = false;
-    handleFileRead("/IR_setup.htm");
-  });
+    handleFileRead("/IR_setup.htm"); });
 
-  server.on("/WaitIR", []() { //получаем методом AJAX включаем IR
+  server.on("/WaitIR", []() { // получаем методом AJAX включаем IR
     Page_IR_opened = true;
   });
   server.on("/open", HTTP_GET, handleOpenLockForTime);
@@ -577,7 +602,7 @@ void server_init() {
     });
   */
   ////////////////////////////////////
-  //server.on("/pin_setup.txt", handle_ConfigJSON_pinSetup); // формирование configs.json страницы для передачи данных в web интерфейс
+  // server.on("/pin_setup.txt", handle_ConfigJSON_pinSetup); // формирование configs.json страницы для передачи данных в web интерфейс
   /*
     server.on("/pin_setup", HTTP_POST, []() {
     String jsonrecieve = server.arg("json_name");
@@ -591,16 +616,13 @@ void server_init() {
     handleFileRead("/pin_setup.htm");
     });
   */
-  server.on("/pin_setup", []() {
-    handleFileRead("/pin_setup.htm");
-  });
+  server.on("/pin_setup", []()
+            { handleFileRead("/pin_setup.htm"); });
   server.on("/function", FunctionHTTP);
-  server.on("/condition", []() {
-    handleFileRead("/condition.htm");
-  });
-  server.on("/help", []() {
-    handleFileRead("/help.htm");
-  });
+  server.on("/condition", []()
+            { handleFileRead("/condition.htm"); });
+  server.on("/help", []()
+            { handleFileRead("/help.htm"); });
   /*
     server.on("/License", []() {
     if (server.arg("code")) {
@@ -613,80 +635,82 @@ void server_init() {
     }
     });
   */
-  //server.on("/home", HTTP_POST, [](){ server.send(200, "text/plain", ""); }, handleFileRead("/home.htm"));
+  // server.on("/home", HTTP_POST, [](){ server.send(200, "text/plain", ""); }, handleFileRead("/home.htm"));
 
-  server.on("/edit", HTTP_GET, []() {
-    if (!handleFileRead("/edit.htm")) server.send(404, "text/plain", "FileNotFound");
-  });
+  server.on("/edit", HTTP_GET, []()
+            {
+    if (!handleFileRead("/edit.htm")) server.send(404, "text/plain", "FileNotFound"); });
 
   server.on("/edit", HTTP_PUT, handleFileCreate);
   server.on("/edit", HTTP_DELETE, handleFileDelete);
   server.on("/edit", HTTP_POST, []() {
 
-  }, handleFileUpload);
+  },
+            handleFileUpload);
 
-  //called when the url is not defined here
-  //use it to load content from SPIFFS
-  server.onNotFound([]() {
+  // called when the url is not defined here
+  // use it to load content from SPIFFS
+  server.onNotFound([]()
+                    {
     if (!handleFileRead(server.uri()))
-      server.send(404, "text/plain", "FileNotFound");
-  });
+      server.send(404, "text/plain", "FileNotFound"); });
 
-
-   DBG_OUTPUT_PORT.println("HTTP server started");
-  //get heap status, analog input value and all GPIO statuses in one json call
-  server.on("/all", HTTP_GET, []() {
+  DBG_OUTPUT_PORT.println("HTTP server started");
+  // get heap status, analog input value and all GPIO statuses in one json call
+  server.on("/all", HTTP_GET, []()
+            {
     String json = "{";
     json += "\"heap\":" + String(ESP.getFreeHeap());
     json += ", \"analog\":" + String(analogRead(A0));
     json += ", \"gpio\":" + String((uint32_t)(((GPI | GPO) & 0xFFFF) | ((GP16I & 0x01) << 16)));
     json += "}";
     server.send(200, "text/json", json);
-    json = String();
-  });
+    json = String(); });
 }
 
-void handleOpenLockForTime() {
+void handleOpenLockForTime()
+{
   // open_lock();
-  //countdown_lock = //server.arg("t").charAt(0);
+  // countdown_lock = //server.arg("t").charAt(0);
   countdown_lock = server.arg("t").toInt();
   sendMyheader();
   String Page = sendHead();
-  if (countdown_lock != 0) {
+  if (countdown_lock != 0)
+  {
     Page += F("<p>замок открыт на:");
     Page += (server.arg("t"));
     Page += F("минут</p>");
-  } else {
-    //lock_door();
+  }
+  else
+  {
+    // lock_door();
     Page += F("<h1>замок закрыт</h1>");
   }
   Page += F("<p><br><a href='/open?t=0'><button>закрыть</button></a></p>");
   server.send(200, "text/html", Page);
   Serial.println(countdown_lock, DEC);
 }
-void Captive_server_init() {
-  //server.on("/setup", handleRoot);
-  //  server.on("/wifi", handleWifi);
+void Captive_server_init()
+{
+  // server.on("/setup", handleRoot);
+  //   server.on("/wifi", handleWifi);
 
-  server.on("/wifi", []() {
+  server.on("/wifi", []()
+            {
     if (WiFi.getMode() == WIFI_STA) {//как клиент
       handleFileRead("/wifi_setup.htm");
     } else {
       handleWifi();
-    }
-  });
+    } });
   server.on("/wifiList", handleWifilist);
   server.on("/wifisave", handleWifiSave);
-  server.on("/generate_204", handleRoot);  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
-  server.on("/fwlink", handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
+  server.on("/generate_204", handleRoot); // Android captive portal. Maybe not needed. Might be handled by notFound handler.
+  server.on("/fwlink", handleRoot);       // Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
 
   server.serveStatic("/font", SPIFFS, "/font", "max-age=86400");
-  server.serveStatic("/js",   SPIFFS, "/js"  , "max-age=86400");
-  server.serveStatic("/css",  SPIFFS, "/css" , "max-age=86400");
+  server.serveStatic("/js", SPIFFS, "/js", "max-age=86400");
+  server.serveStatic("/css", SPIFFS, "/css", "max-age=86400");
 
-
-  //server.onNotFound ( handleNotFound );
+  // server.onNotFound ( handleNotFound );
   Serial.println("HTTP server started");
-
 }
-
