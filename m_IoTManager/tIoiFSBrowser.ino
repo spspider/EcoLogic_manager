@@ -377,7 +377,10 @@ void FunctionHTTP()
     loadLimits();
 #endif
   }
-
+  if (jsonDocument.containsKey("wifi_mac"))
+  {
+    server.send(200, "text/plain", WiFi.macAddress());
+  }
   if (jsonDocument.containsKey("pin_setup_limits"))
   {
     String buffer = String(nWidgetsArray, DEC);
