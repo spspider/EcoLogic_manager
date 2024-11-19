@@ -63,6 +63,10 @@ function loadOtherHelp() {
     //var bodyNode="";
     bodyNode = "<a  href=/function?json={reboot:1}>" + window.location.host + "/function?json={reboot:1}</a>";
     setHTML("bodyNodeReboot", bodyNode);
+
+    readTextFile("/function?json={'wifi_mac':1}", function (callback) {
+        setHTML("wifi_mac_address", callback);
+    });
 }
 
 function other_setupLoaded(data) {
