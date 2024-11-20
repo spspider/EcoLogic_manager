@@ -52,6 +52,7 @@ PubSubClient client(wclient); // for cloud broker - by hostname
 ////////////////////////////////////////////
 // serve the configuration portal
 #include <FS.h>
+
 #define DBG_OUTPUT_PORT Serial
 #include <MD5.h>
 

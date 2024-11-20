@@ -1,66 +1,74 @@
-File fsUploadFile;
+#include <FS.h>
+const char *fsName = "SPIFFS";
+FS *fileSystem = &SPIFFS;
+SPIFFSConfig fileSystemConfig = SPIFFSConfig();
 
-// format bytes
-String formatBytes(size_t bytes)
+static bool fsOK;
+String unsupportedFiles = String();
+#define USE_SPIFFS
+File uploadFile;
+
+static const char TEXT_PLAIN[] PROGMEM = "text/plain";
+static const char FS_INIT_ERROR[] PROGMEM = "FS INIT ERROR";
+static const char FILE_NOT_FOUND[] PROGMEM = "FileNotFound";
+
+////////////////////////////////
+// Utils to return HTTP codes, and determine content-type
+
+void replyOK()
 {
-  if (bytes < 1024)
-  {
-    return String(bytes) + "B";
-  }
-  else if (bytes < (1024 * 1024))
-  {
-    return String(bytes / 1024.0) + "KB";
-  }
-  else if (bytes < (1024 * 1024 * 1024))
-  {
-    return String(bytes / 1024.0 / 1024.0) + "MB";
-  }
-  else
-  {
-    return String(bytes / 1024.0 / 1024.0 / 1024.0) + "GB";
-  }
+  server.send(200, FPSTR(TEXT_PLAIN), "");
 }
 
-String getContentType(String filename)
+void replyOKWithMsg(String msg)
 {
-  if (server.hasArg("download"))
-    return "application/octet-stream";
-  else if (filename.endsWith(".htm"))
-    return "text/html";
-  else if (filename.endsWith(".html"))
-    return "text/html";
-  else if (filename.endsWith(".css"))
-    return "text/css";
-  else if (filename.endsWith(".js"))
-    return "application/javascript";
-  else if (filename.endsWith(".png"))
-    return "image/png";
-  else if (filename.endsWith(".gif"))
-    return "image/gif";
-  else if (filename.endsWith(".jpg"))
-    return "image/jpeg";
-  else if (filename.endsWith(".ico"))
-    return "image/x-icon";
-  else if (filename.endsWith(".xml"))
-    return "text/xml";
-  else if (filename.endsWith(".pdf"))
-    return "application/x-pdf";
-  else if (filename.endsWith(".zip"))
-    return "application/x-zip";
-  else if (filename.endsWith(".gz"))
-    return "application/x-gzip";
-  return "text/plain";
+  server.send(200, FPSTR(TEXT_PLAIN), msg);
 }
+
+void replyNotFound(String msg)
+{
+  server.send(404, FPSTR(TEXT_PLAIN), msg);
+}
+
+void replyBadRequest(String msg)
+{
+  DBG_OUTPUT_PORT.println(msg);
+  server.send(400, FPSTR(TEXT_PLAIN), msg + "\r\n");
+}
+
+void replyServerError(String msg)
+{
+  DBG_OUTPUT_PORT.println(msg);
+  server.send(500, FPSTR(TEXT_PLAIN), msg + "\r\n");
+}
+
+#ifdef USE_SPIFFS
+/*
+   Checks filename for character combinations that are not supported by FSBrowser (alhtough valid on SPIFFS).
+   Returns an empty String if supported, or detail of error(s) if unsupported
+*/
+String checkForUnsupportedPath(String filename)
+{
+  String error = String();
+  if (!filename.startsWith("/"))
+  {
+    error += F("!NO_LEADING_SLASH! ");
+  }
+  if (filename.indexOf("//") != -1)
+  {
+    error += F("!DOUBLE_SLASH! ");
+  }
+  if (filename.endsWith("/"))
+  {
+    error += F("!TRAILING_SLASH! ");
+  }
+  return error;
+}
+#endif
 
 bool handleFileRead(String path)
 {
   DBG_OUTPUT_PORT.println("handleFileRead: " + path);
-  if ((path.endsWith("bootstrap.min.css")) && (WiFi.getMode() != WIFI_STA))
-  {
-    Serial.println("Bootstrap requested");
-    path = "";
-    return false;
-  }
   if ((path == "/scripts/bootstrap.min.css") || (path == "/scripts/chart.min.js") || (path.endsWith(".js")) || (path.endsWith(".htm")) || (path.endsWith(".css")))
   {
     Serial.println("CASHE_CONTROL: " + path);
@@ -72,22 +80,28 @@ bool handleFileRead(String path)
   // if ((path.indexOf(".") == -1) && (!path.endsWith("/"))) path += ".htm";
   if (path.endsWith("/"))
     path += "home.htm";
-  String contentType = getContentType(path);
-  String pathWithGz = path + ".gz";
-  if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path))
+  String contentType;
+  if (server.hasArg("download"))
   {
-    if (SPIFFS.exists(pathWithGz))
-      path += ".gz";
-    File file = SPIFFS.open(path, "r");
-    if (contentType != "text/plain")
-    {
-      // server.sendHeader("Cache-Control", "public, max-age=86400, must-revalidate");
-      // server.sendHeader("Pragma", "public");
-      // server.sendHeader("Expires", "86400");
-    }
+    contentType = F("application/octet-stream");
+  }
+  else
+  {
+    contentType = mime::getContentType(path);
+  }
 
-    size_t sent = server.streamFile(file, contentType);
-    server.client().stop();
+  if (!fileSystem->exists(path))
+  {
+    // File not found, try gzip version
+    path = path + ".gz";
+  }
+  if (fileSystem->exists(path))
+  {
+    File file = fileSystem->open(path, "r");
+    if (server.streamFile(file, contentType) != file.size())
+    {
+      DBG_OUTPUT_PORT.println("Sent less data than expected!");
+    }
     file.close();
     return true;
   }
@@ -96,48 +110,97 @@ bool handleFileRead(String path)
 
 void handleFileUpload()
 {
+  if (!fsOK)
+  {
+    return replyServerError(FPSTR(FS_INIT_ERROR));
+  }
   if (server.uri() != "/edit")
+  {
     return;
+  }
   HTTPUpload &upload = server.upload();
   if (upload.status == UPLOAD_FILE_START)
   {
     String filename = upload.filename;
-    DBG_OUTPUT_PORT.print("handleFileUpload Name: ");
-    DBG_OUTPUT_PORT.println(filename);
+    // Make sure paths always start with "/"
     if (!filename.startsWith("/"))
+    {
       filename = "/" + filename;
-    fsUploadFile = SPIFFS.open(filename, "w");
-    filename = String();
+    }
+    DBG_OUTPUT_PORT.println(String("handleFileUpload Name: ") + filename);
+    uploadFile = fileSystem->open(filename, "w");
+    if (!uploadFile)
+    {
+      return replyServerError(F("CREATE FAILED"));
+    }
+    DBG_OUTPUT_PORT.println(String("Upload: START, filename: ") + filename);
   }
   else if (upload.status == UPLOAD_FILE_WRITE)
   {
-    // DBG_OUTPUT_PORT.print("handleFileUpload Data: "); DBG_OUTPUT_PORT.println(upload.currentSize);
-    if (fsUploadFile)
-      fsUploadFile.write(upload.buf, upload.currentSize);
+    if (uploadFile)
+    {
+      size_t bytesWritten = uploadFile.write(upload.buf, upload.currentSize);
+      if (bytesWritten != upload.currentSize)
+      {
+        return replyServerError(F("WRITE FAILED"));
+      }
+    }
+    DBG_OUTPUT_PORT.println(String("Upload: WRITE, Bytes: ") + upload.currentSize);
   }
   else if (upload.status == UPLOAD_FILE_END)
   {
-    if (fsUploadFile)
-      fsUploadFile.close();
-    DBG_OUTPUT_PORT.print("handleFileUpload Size: ");
-    DBG_OUTPUT_PORT.println(upload.totalSize);
-    server.send(200, "text/plain", "ok");
+    if (uploadFile)
+    {
+      uploadFile.close();
+    }
+    DBG_OUTPUT_PORT.println(String("Upload: END, Size: ") + upload.totalSize);
   }
 }
+void deleteRecursive(String path)
+{
+  File file = fileSystem->open(path, "r");
+  bool isDir = file.isDirectory();
+  file.close();
 
+  // If it's a plain file, delete it
+  if (!isDir)
+  {
+    fileSystem->remove(path);
+    return;
+  }
+
+  // Otherwise delete its contents first
+  Dir dir = fileSystem->openDir(path);
+
+  while (dir.next())
+  {
+    deleteRecursive(path + '/' + dir.fileName());
+  }
+
+  // Then delete the folder itself
+  fileSystem->rmdir(path);
+}
 void handleFileDelete()
 {
-  if (server.args() == 0)
-    return server.send(500, "text/plain", "BAD ARGS");
+  if (!fsOK)
+  {
+    return replyServerError(FPSTR(FS_INIT_ERROR));
+  }
+
   String path = server.arg(0);
-  DBG_OUTPUT_PORT.println("handleFileDelete: " + path);
-  if (path == "/")
-    return server.send(500, "text/plain", "BAD PATH");
-  if (!SPIFFS.exists(path))
-    return server.send(404, "text/plain", "FileNotFound");
-  SPIFFS.remove(path);
-  server.send(200, "text/plain", "");
-  path = String();
+  if (path.isEmpty() || path == "/")
+  {
+    return replyBadRequest("BAD PATH");
+  }
+
+  DBG_OUTPUT_PORT.println(String("handleFileDelete: ") + path);
+  if (!fileSystem->exists(path))
+  {
+    return replyNotFound(FPSTR(FILE_NOT_FOUND));
+  }
+  deleteRecursive(path);
+
+  replyOKWithMsg(lastExistingParent(path));
 }
 
 bool FileDelete(String path)
@@ -150,23 +213,111 @@ bool FileDelete(String path)
   path = String();
   return true;
 }
+String lastExistingParent(String path)
+{
+  while (!path.isEmpty() && !fileSystem->exists(path))
+  {
+    if (path.lastIndexOf('/') > 0)
+    {
+      path = path.substring(0, path.lastIndexOf('/'));
+    }
+    else
+    {
+      path = String(); // No slash => the top folder does not exist
+    }
+  }
+  DBG_OUTPUT_PORT.println(String("Last existing parent: ") + path);
+  return path;
+}
 void handleFileCreate()
 {
-  if (server.args() == 0)
-    return server.send(500, "text/plain", "BAD ARGS");
-  String path = server.arg(0);
-  DBG_OUTPUT_PORT.println("handleFileCreate: " + path);
+  if (!fsOK)
+  {
+    return replyServerError(FPSTR(FS_INIT_ERROR));
+  }
+
+  String path = server.arg("path");
+  if (path.isEmpty())
+  {
+    return replyBadRequest(F("PATH ARG MISSING"));
+  }
+#ifdef USE_SPIFFS
+  if (checkForUnsupportedPath(path).length() > 0)
+  {
+    return replyServerError(F("INVALID FILENAME"));
+  }
+#endif
   if (path == "/")
-    return server.send(500, "text/plain", "BAD PATH");
-  if (SPIFFS.exists(path))
-    return server.send(500, "text/plain", "FILE EXISTS");
-  File file = SPIFFS.open(path, "w");
-  if (file)
-    file.close();
+  {
+    return replyBadRequest("BAD PATH");
+  }
+  if (fileSystem->exists(path))
+  {
+    return replyBadRequest(F("PATH FILE EXISTS"));
+  }
+
+  String src = server.arg("src");
+  if (src.isEmpty())
+  {
+    // No source specified: creation
+    DBG_OUTPUT_PORT.println(String("handleFileCreate: ") + path);
+    if (path.endsWith("/"))
+    {
+      // Create a folder
+      path.remove(path.length() - 1);
+      if (!fileSystem->mkdir(path))
+      {
+        return replyServerError(F("MKDIR FAILED"));
+      }
+    }
+    else
+    {
+      // Create a file
+      File file = fileSystem->open(path, "w");
+      if (file)
+      {
+        file.write((const char *)0);
+        file.close();
+      }
+      else
+      {
+        return replyServerError(F("CREATE FAILED"));
+      }
+    }
+    if (path.lastIndexOf('/') > -1)
+    {
+      path = path.substring(0, path.lastIndexOf('/'));
+    }
+    replyOKWithMsg(path);
+  }
   else
-    return server.send(500, "text/plain", "CREATE FAILED");
-  server.send(200, "text/plain", "");
-  path = String();
+  {
+    // Source specified: rename
+    if (src == "/")
+    {
+      return replyBadRequest("BAD SRC");
+    }
+    if (!fileSystem->exists(src))
+    {
+      return replyBadRequest(F("SRC FILE NOT FOUND"));
+    }
+
+    DBG_OUTPUT_PORT.println(String("handleFileCreate: ") + path + " from " + src);
+
+    if (path.endsWith("/"))
+    {
+      path.remove(path.length() - 1);
+    }
+    if (src.endsWith("/"))
+    {
+      src.remove(src.length() - 1);
+    }
+    if (!fileSystem->rename(src, path))
+    {
+      return replyServerError(F("RENAME FAILED"));
+    }
+    replyOKWithMsg(lastExistingParent(src));
+  }
 }
 void handle_sendEmail()
 {
@@ -254,34 +405,87 @@ void handle_setTime()
 
 void handleFileList()
 {
+  if (!fsOK)
+  {
+    return replyServerError(FPSTR(FS_INIT_ERROR));
+  }
+
   if (!server.hasArg("dir"))
   {
-    server.send(500, "text/plain", "BAD ARGS");
-    return;
+    return replyBadRequest(F("DIR ARG MISSING"));
   }
 
   String path = server.arg("dir");
-  DBG_OUTPUT_PORT.println("handleFileList: " + path);
-  Dir dir = SPIFFS.openDir(path);
-  path = String();
-
-  String output = "[";
-  while (dir.next())
+  if (path != "/" && !fileSystem->exists(path))
   {
-    File entry = dir.openFile("r");
-    if (output != "[")
-      output += ',';
-    bool isDir = false;
-    output += "{\"type\":\"";
-    output += (isDir) ? "dir" : "file";
-    output += "\",\"name\":\"";
-    output += String(entry.name()).substring(1);
-    output += "\"}";
-    entry.close();
+    return replyBadRequest("BAD PATH");
   }
 
+  DBG_OUTPUT_PORT.println(String("handleFileList: ") + path);
+  Dir dir = fileSystem->openDir(path);
+  path.clear();
+
+  // use HTTP/1.1 Chunked response to avoid building a huge temporary string
+  if (!server.chunkedResponseModeStart(200, "text/json"))
+  {
+    server.send(505, F("text/html"), F("HTTP1.1 required"));
+    return;
+  }
+
+  // use the same string for every line
+  String output;
+  output.reserve(64);
+  while (dir.next())
+  {
+#ifdef USE_SPIFFS
+    String error = checkForUnsupportedPath(dir.fileName());
+    if (error.length() > 0)
+    {
+      DBG_OUTPUT_PORT.println(String("Ignoring ") + error + dir.fileName());
+      continue;
+    }
+#endif
+    if (output.length())
+    {
+      // send string from previous iteration
+      // as an HTTP chunk
+      server.sendContent(output);
+      output = ',';
+    }
+    else
+    {
+      output = '[';
+    }
+
+    output += "{\"type\":\"";
+    if (dir.isDirectory())
+    {
+      output += "dir";
+    }
+    else
+    {
+      output += F("file\",\"size\":\"");
+      output += dir.fileSize();
+    }
+
+    output += F("\",\"name\":\"");
+    // Always return names without leading "/"
+    if (dir.fileName()[0] == '/')
+    {
+      output += &(dir.fileName()[1]);
+    }
+    else
+    {
+      output += dir.fileName();
+    }
+
+    output += "\"}";
+  }
+
+  // send last string
   output += "]";
-  server.send(200, "text/json", output);
+  server.sendContent(output);
+  server.chunkedResponseFinalize();
 }
 
 void handle_saveIR()
@@ -294,18 +498,10 @@ void handle_saveIR()
 void setup_FS(void)
 {
 
-  SPIFFS.begin();
-  {
-    Dir dir = SPIFFS.openDir("/");
-    while (dir.next())
-    {
-      String fileName = dir.fileName();
-      size_t fileSize = dir.fileSize();
-      DBG_OUTPUT_PORT.printf("FS File: %s, size: %s\n", fileName.c_str(), formatBytes(fileSize).c_str());
-    }
-    DBG_OUTPUT_PORT.printf("\n");
-  }
-
+  fileSystemConfig.setAutoFormat(false);
+  fileSystem->setConfig(fileSystemConfig);
+  fsOK = fileSystem->begin();
+  DBG_OUTPUT_PORT.println(fsOK ? F("Filesystem initialized.") : F("Filesystem init failed!"));
   // SERVER INIT
   // list directory
 }
@@ -323,32 +519,6 @@ void handleAJAX()
   int newValue = jsonDocument["v"];
   callback_socket(Topic_is, newValue);
 }
-// void handleAJAX()
-// {
-//   // Extract JSON from the server argument
-//   const char *json = server.arg("json").c_str();
-
-//   // Parse "t" value (Topic_is)
-//   uint8_t Topic_is = 0;
-//   const char *tStart = strstr(json, "\"t\":");
-//   if (tStart)
-//   {
-//     tStart += 4; // Move past "\"t\":"
-//     Topic_is = (uint8_t)atoi(tStart);
-//   }
-
-//   // Parse "v" value (newValue)
-//   uint16_t newValue = 0;
-//   const char *vStart = strstr(json, "\"v\":");
-//   if (vStart)
-//   {
-//     vStart += 4; // Move past "\"v\":"
-//     newValue = (uint16_t)atoi(vStart);
-//   }
-
-//   // Call the callback function with parsed values
-//   callback_socket(Topic_is, newValue);
-// }
 
 void FunctionHTTP()
 {
