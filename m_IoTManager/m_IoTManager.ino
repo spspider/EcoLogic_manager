@@ -1,12 +1,13 @@
-//WifiManager 0.14.0
-// 4mb 1mb 1mb
-// arduino 2.6.3 -> 3.1.2
+// WifiManager 0.14.0
+//  4mb 1mb 1mb
+//  1mb 512kb 246kb
+//  arduino 2.6.3 -> 3.1.2
 //----------------------------------------defines-------------------------------//
-// #define ws2811_include// активировать для ws2811
+//  #define ws2811_include// активировать для ws2811
 #define will_use_serial
 // #define timerAlarm
 //  #define use_telegram
-//#define pubClient
+// #define pubClient
 #define ds18b20
 //#define wakeOnLan
 // #define dht
