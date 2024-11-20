@@ -1,0 +1,1 @@
+{"numberChosed":4,"pinmode":[16,16,3,3],"pin":[2,2,5,4],"descr":["cpu","videocard","cpu","videocard"],"widget":[5,5,3,3],"IrBtnId":[255,255,255,255],"defaultVal":[0,1,0,0],"aDiv":0.0185,"aSusbt":0,"router":255,"w433":255,"PWM_interval":"60","PCorr":"300"}
