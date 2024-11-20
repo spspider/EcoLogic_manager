@@ -309,46 +309,46 @@ void setup_FS(void)
   // SERVER INIT
   // list directory
 }
-// void handleAJAX()
-// {
-//   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
-//   DeserializationError error = deserializeJson(jsonDocument, server.arg("json"));
-//   if (error)
-//   {
-//     Serial.print(F("deserializeJson() failed with handleAJAX code "));
-//     Serial.println(error.c_str());
-//     return;
-//   }
-//   char Topic_is = jsonDocument["t"];
-//   int newValue = jsonDocument["v"];
-//   callback_socket(Topic_is, newValue);
-// }
 void handleAJAX()
 {
-  // Extract JSON from the server argument
-  const char *json = server.arg("json").c_str();
-
-  // Parse "t" value (Topic_is)
-  uint8_t Topic_is = 0;
-  const char *tStart = strstr(json, "\"t\":");
-  if (tStart)
+  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+  DeserializationError error = deserializeJson(jsonDocument, server.arg("json"));
+  if (error)
   {
-    tStart += 4; // Move past "\"t\":"
-    Topic_is = (uint8_t)atoi(tStart);
+    Serial.print(F("deserializeJson() failed with handleAJAX code "));
+    Serial.println(error.c_str());
+    return;
   }
-
-  // Parse "v" value (newValue)
-  uint16_t newValue = 0;
-  const char *vStart = strstr(json, "\"v\":");
-  if (vStart)
-  {
-    vStart += 4; // Move past "\"v\":"
-    newValue = (uint16_t)atoi(vStart);
-  }
-
-  // Call the callback function with parsed values
+  char Topic_is = jsonDocument["t"];
+  int newValue = jsonDocument["v"];
   callback_socket(Topic_is, newValue);
 }
+// void handleAJAX()
+// {
+//   // Extract JSON from the server argument
+//   const char *json = server.arg("json").c_str();
+
+//   // Parse "t" value (Topic_is)
+//   uint8_t Topic_is = 0;
+//   const char *tStart = strstr(json, "\"t\":");
+//   if (tStart)
+//   {
+//     tStart += 4; // Move past "\"t\":"
+//     Topic_is = (uint8_t)atoi(tStart);
+//   }
+
+//   // Parse "v" value (newValue)
+//   uint16_t newValue = 0;
+//   const char *vStart = strstr(json, "\"v\":");
+//   if (vStart)
+//   {
+//     vStart += 4; // Move past "\"v\":"
+//     newValue = (uint16_t)atoi(vStart);
+//   }
+
+//   // Call the callback function with parsed values
+//   callback_socket(Topic_is, newValue);
+// }
 
 void FunctionHTTP()
 {
@@ -658,7 +658,6 @@ void server_init()
     if (!handleFileRead(server.uri()))
       server.send(404, "text/plain", "FileNotFound"); });
 
-  DBG_OUTPUT_PORT.println("HTTP server started");
   // get heap status, analog input value and all GPIO statuses in one json call
   server.on("/all", HTTP_GET, []()
             {

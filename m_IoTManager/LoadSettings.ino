@@ -52,7 +52,7 @@ bool loadConfig(File jsonConfig)
   jsonDocument.containsKey("save_stat") ? save_stat = jsonDocument["save_stat"] : save_stat = 0;
   jsonDocument.containsKey("PWM_frequency") ? PWM_frequency = jsonDocument["PWM_frequency"] : PWM_frequency = 1;
   unsigned int freq = PWM_frequency * 100;
-  analogWriteFreq(freq);
+  analogWriteFreq(freq); // frequency for PWM
   jsonDocument.containsKey("IR_recieve") ? IR_recieve = jsonDocument["IR_recieve"] : IR_recieve = 0;
 
   // telegram
@@ -102,12 +102,7 @@ void Setup_pinmode(bool stat_loaded)
       if ((pinmode[i] == 3) || (pinmode[i] == 7))
       { // pwm,MQ7
         pinMode(pin[i], OUTPUT);
-
         analogWrite(pin[i], stat[i]); // PWM
-        //              setPwmFrequency(pin[i], 1024);
-
-        // analogWrite(pin[i], 286);//1.4V
-        // Serial.println("set pwm:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String(stat[i], DEC));
       }
       if (pinmode[i] == 5)
       { // low_pwm

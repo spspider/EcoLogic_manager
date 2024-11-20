@@ -185,9 +185,9 @@ void makeAres_sim(String json) {
             stat[i] = static_cast<int>(that_val) ^ defaultVal[i];
             //send_IR(i);
             digitalWrite(that_pin, stat[i]);
-          } else if (pinmode[i] == 3) { //pwm
-            //unsigned int freq = PWM_frequency * 100;
-            //analogWriteFreq(freq);
+          }
+          else if (pinmode[i] == 3)
+          { // pwm
             analogWrite(that_pin, that_val);
           }
         }

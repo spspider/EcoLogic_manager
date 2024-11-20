@@ -15,8 +15,9 @@ void callback_socket(char i, int payload_is) {
   } else if (pinmode[i] == 3) {//pwm
     if (!license)return;
     payload_is = defaultVal[i] == 1 ? 1024 - payload_is : payload_is;
-    analogWrite(pin[i], payload_is);
-    stat[i] = defaultVal[i] == 1 ? 1024 - payload_is : payload_is;
+    // analogWrite(pin[i], payload_is);
+    analogWrite(pin[i], 500);
+    stat[i] = payload_is;
   }
   else if (pinmode[i] == 5) {//low_pwm
     if (!license)return;
