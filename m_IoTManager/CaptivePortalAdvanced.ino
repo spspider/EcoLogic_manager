@@ -1,17 +1,34 @@
+#include <lwip/napt.h>
+#include <lwip/dns.h>
+#include <WiFiClient.h>
+
+#include <EEPROM.h>
+// #include "WifiHttp.h"
+
+#define NAPT 1000
+#define NAPT_PORT 10
+
+#define CONSOLE Serial
+#define _PRINTF(a, ...) printf_P(PSTR(a), ##__VA_ARGS__)
+#define CONSOLE_PRINTF CONSOLE._PRINTF
+#define DEBUG_PRINTF CONSOLE_PRINTF
+
 const byte DNS_PORT = 53;
 DNSServer dnsServer;
 
 struct ip_addr *IPaddress;
 uint32 uintaddress;
 
+// ESP8266WebServer server(80); - defined in previous ino file
 
-/* Soft AP network parameters */
 IPAddress apIP(192, 168, 4, 1);
 IPAddress netMsk(255, 255, 255, 0);
 
 
 /** Should I connect to WLAN asap? */
-boolean connect;
+bool connect = false;
+
+bool staReady = false; // Don't connect right away
 
 unsigned int lastConnectTry = 0;
 uint8_t status = WL_IDLE_STATUS;
@@ -23,19 +40,19 @@ void connect_as_AccessPoint() {
   Serial.print("Configuring access point...");
   /* You can remove the password parameter if you want the AP to be open. */
   WiFi.disconnect();
-  WiFi.mode(WIFI_AP);
+  WiFi.persistent(false); // w/o this a flash write occurs at every boot
+  WiFi.mode(WIFI_OFF);    // Prevent use of SDK stored credentials
   WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(softAP_ssid + WiFi.macAddress(), softAP_password);
+  dnsServer.setTTL(0);
+  dnsServer.start(IANA_DNS_PORT, "*", apIP);
   delay( 500 ); // Without delay I've seen the IP address blank
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
 }
-void captive_setup() {
+void captive_setup()
+{ // starting void
 
-  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-  dnsServer.start(DNS_PORT, "*", apIP);
-
-  server_init();
   Captive_server_init();
   if (load_ssid_pass()) {
     connect = strlen(ssid) > 0; // Request WLAN connect if there is a SSID
@@ -50,6 +67,8 @@ void captive_setup() {
     try_MQTT_access = false;
     connect_as_AccessPoint();
   }
+
+  server_init();
   server.begin();
 }
 
@@ -71,8 +90,8 @@ void connectWifi(char ssid_that[32], char password_that[32]) {
     Serial.print(".");
     attempt++;
   }
-  if (WiFi.waitForConnectResult() != WL_CONNECTED) connect_as_AccessPoint();
-
+  if (WiFi.waitForConnectResult() != WL_CONNECTED)
+    connect_as_AccessPoint();
 }
 //void try_connect_free() {
 //  Serial.println("!!!scan for FREE WIFI!!!");
@@ -114,12 +133,14 @@ void captive_loop() {
     connectWifi(ssid, password);
     lastConnectTry = onesec;
   }
-  if (try_MQTT_access) {
-    if (IOT_Manager_loop) {
+  if (try_MQTT_access)
+  {
 #if defined(pubClient)
+    if (IOT_Manager_loop)
+    {
       loop_IOTManager();
-#endif
     }
+#endif
   }
   if ((!try_MQTT_access) && (WiFi.status() == WL_CONNECTED) && (WiFi.getMode() == WIFI_STA)) {
     if (onesec > no_internet_timer + 300 ) {//пробовать подключится каждые30 сек
@@ -142,11 +163,19 @@ void captive_loop() {
           relayRouter();//если нет вещания, значит нужно переключить роутер
           return;
         }
-        else if (((WiFi.getMode() == WIFI_AP)  && (wifi_softap_get_station_num() == 0)) && (wifi_scan)) {
+        else if (((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() == 0)) && (wifi_scan) && staReady)
+        {
           Serial.println("Connect Creditnails");
           if (load_ssid_pass()) {
             WiFi.disconnect();
             connect = true;
+          }
+
+          dnsServer.setTTL(600); // 10 minutes
+          dnsServer.enableForwarder(myHostname, WiFi.dnsIP(0));
+          if (dnsServer.isDNSSet())
+          {
+            CONSOLE_PRINTF("  Forward other lookups to DNS: %s\r\n", dnsServer.getDNS().toString().c_str());
           }
           return;
         }
