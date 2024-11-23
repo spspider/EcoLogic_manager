@@ -176,7 +176,7 @@ function loadBootstrap() {
         var el = document.head,
             elChild = document.createElement('link');
         // elChild.innerHTML = '<link sync rel="stylesheet" href="bootstrap.min.css">';
-        elChild.innerHTML = '<link rel="stylesheet" type="text/css" href="scripts/style-generated.css">';
+        elChild.innerHTML = '<link rel="stylesheet" type="text/css" href="scripts/style_generated.css">';
         el.insertBefore(elChild, el.firstChild);
     }
 }
