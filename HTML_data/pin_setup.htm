@@ -5,9 +5,9 @@
 
 <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
-    <!-- <link rel="stylesheet" type="text/css" href="scripts/style_generated.css"> -->
-    <link sync rel="stylesheet" type="text/css" href="style.css">
+    <!-- <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" type="text/css" href="scripts/style_generated.css">
+    <!-- <link sync rel="stylesheet" type="text/css" href="style.css"> -->
     <!-- <link sync rel="stylesheet" type="text/css" href="style_pin_setup.css"> -->
     <script defer type="text/javascript" src="scripts/helper_func.js"></script>
     <script sync type="text/javascript" src="scripts/pin_setup.js"></script>
@@ -15,75 +15,85 @@
 
     <!--<script type="text/javascript" sother_setup.jsn.js"></script>-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="public"/>
+    <meta http-equiv="Cache-Control" content="public" />
+    <style>
+        @media (min-width: 1024px) {
+            body {
+                max-width: 100%;
+                margin: 0 auto;
+                width: auto;
+            }
+        }
+    </style>
 </head>
 
 <body>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            loadBootstrap();
+            // loadBootstrap();
 
         });
     </script>
-<div class="container">
+    <div class="container">
 
-    <div class="row" style="text-align:center;">
-        <div class="col-sm-offset-2">
-            <form id="form" class="form" method='POST' action='#' class="col-sm-offset-2 ">
-                <h4>button setup</h4>
-                <div class="row">
-                    <div class="col-sm-2">
-                    number of buttons
-                    </div>
-                    <div class="col-sm-2">
-
-                        <div id='sel1div'> </div>
-                    </div>
-                </div>
-                <br>
-                <table id='table' class='table'>
-
-                </table>
-                <div class="row">
-                    <div class="col-lg-6">
-                        <div class="input-group">
-                            <div id="Divider"></div>
+        <div class="row" style="text-align:center;">
+            <div class="col-sm-offset-2">
+                <form id="form" class="form" method='POST' action='#' class="col-sm-offset-2 ">
+                    <h4>button setup</h4>
+                    <div class="row">
+                        <div class="col-sm-2">
+                            number of buttons
                         </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <!--<div id="IR_setup"></div>-->
-                    </div>
-                    <div id="otherFunctions" class="col-sm-6">
-                        <div>
-                            slow PWM interval:
-                            <input type='text' class="form-control"
-                                   name='PWM_interval' id="PWM_interval" value="{{PWM_interval}}"/></div>
+                        <div class="col-sm-2">
+
+                            <div id='sel1div'> </div>
+                            </div>
+                            </div>
+                            <br>
+                            <table id='table' class='table'>
+
+                    </table>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="input-group">
+                                <div id="Divider"></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <!--<div id="IR_setup"></div>-->
+                        </div>
+                        <div id="otherFunctions" class="col-sm-6">
+                            <div>
+                                slow PWM interval:
+                                <input type='text' class="form-control" name='PWM_interval' id="PWM_interval" value="{{PWM_interval}}" />
+                                </div>
 
 
-                        <div>
-                            power correction:
-                            <input type='text' class="form-control"
-                                   name='PCorr' id="PCorr" value="{{PCorr}}"/></div>
-                    </div>
-                </div>
-              <!--  <pre id="test"></pre>
+                            <div>
+                                power correction:
+                                <input type='text' class="form-control" name='PCorr' id="PCorr" value="{{PCorr}}" />
+                                </div>
+                                </div>
+                                </div>
+                                <!--  <pre id="test"></pre>
                 <pre id="test2"></pre>-->
-            </form>
-            <input type='submit' class="btn btn-lg btn-primary btn-block" value='save' onclick="makePOST();"/>
+                </form>
+                <input type='submit' class="btn btn-lg btn-primary btn-block" value='save' onclick="makePOST();" />
 
 
-            <!--
+                <!--
            </form> -->
 
-            <!--<input type='file' accept='text/plain' onchange='openFile(event)'>-->
-            <br>
-           <div id='output'>...</div>
-            <p id="btmBtns"></p>
+                <!--<input type='file' accept='text/plain' onchange='openFile(event)'>-->
+                <br>
+                <div id='output'>...</div>
+                <p id="btmBtns"></p>
 
-        </div>
+            </div>
+            </div>
+
     </div>
 
-</div>
-
 </body>
+
 </html>
