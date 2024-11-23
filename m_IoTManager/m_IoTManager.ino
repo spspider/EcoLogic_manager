@@ -89,7 +89,7 @@ bool IOT_Manager_loop = 0;
 int no_internet_timer = 0;
 bool internet = false;
 //////////////////CaptivePortalAdvanced
-char softAP_ssid[32] = "ESP_ap_dev_001";
+char softAP_ssid[32] = "dev_001";
 char softAP_password[32] = "12345678";
 char ssid[32] = "";
 char password[32] = "";
