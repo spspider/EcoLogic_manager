@@ -11,7 +11,8 @@ body {
     line-height: 1.428571429;
     color: #333;
     background-color: #E9F0F0;
-
+    width: 100%;
+        /* Default width for smaller screens */
 }
 
 form {
@@ -51,7 +52,13 @@ form {
     margin-right: -15px;
     margin-left: -15px;
 }
-
+.col-sm-offset-2,
+.col-md-offset-3,
+.col-md-6 {
+    margin-bottom: 20px;
+    /* Add margin bottom for spacing */
+    width: 95vw;
+}
 /* Style for columns */
 .col-sm-6 {
     flex: 0 0 50%;
@@ -78,7 +85,20 @@ form {
     padding: 20px;
     /* Offset for smaller screens */
 }
-@media (max-width: 700px) {
+  @media (min-width: 1024px) {
+
+      /* Adjust the breakpoint as needed */
+      body {
+          max-width: 60%;
+          /* Set the maximum width for larger screens */
+          margin: 0 auto;
+          /* Center the columns on the page */
+          width: auto;
+          /* Allow the width to be determined by max-width */
+      }
+  }
+
+  @media (max-width: 760px) {
     /* Adjust container width */
 
     .col-sm-offset-2 {
