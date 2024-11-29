@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,7 +16,7 @@
 
 </head>
 
-<body> 
+<body>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             loadBootstrap();
@@ -26,12 +25,7 @@
     </script>
     <div class="container">
         <div class="row" style="text-align:center;">
-            <!-- <h1 style="margin:50px;">Other setup</h1>
-          -->
             <div class="col-sm-offset-2 ">
-                <!--<h2>Internet connection settings: Access point</h2>
-             -->
-                <br />
                 <form id="form" class="form-signin" method='POST' action='#'>
                     <h4>IoT client setup</h4>
                     <div class="row">
@@ -39,11 +33,6 @@
                             Use IoT
                             <input type='checkbox' class="form-control" name='iot_enable' id="iot_enable"
                                 value="Use IoT" />
-                            <!--<input type='checkbox' class="form-control"
-                               name='IR_receive_output' id="IR_receive_output" value="IR sensor"/>
-                        <input type='checkbox' class="form-control"
-                               name='IR_output_output' id="IR_output_output" value="IR led"/>-->
-
                             Server
                             <input type='text' value="{{mqttServerName}}" class="form-control"
                                 placeholder='server (m20.cloudmqtt.com)' name='mqttServerName' /> User
@@ -52,58 +41,33 @@
                             Send interval
                             <input type='text' value="{{mqttspacing}}" class="form-control" placeholder='60 (sec)'
                                 name='mqttspacing' />
-                        </div>
-
-                        <div class="col-sm-6">
                             Port
                             <input type='text' value="{{mqttport}}" class="form-control" placeholder='port (6231)'
                                 name='mqttport' /> Password
                             <input type='text' value="{{mqttpass}}" class="form-control" placeholder='password (pass)'
                                 name='mqttpass' />
 
-
-                        </div>
-                        <div class="col-sm-6">
-                            Prefix:
-                            <input type='text' value="{{prefix}}" class="form-control" placeholder='/IoTmanager'
-                                name='prefix' /> Device ID:
+                            Device ID:
                             <input type='text' value="{{deviceID}}" class="form-control" placeholder='dev01-kitchen'
                                 name='deviceID' />
 
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <br>
-                            <!--
-                        <input type='button' class="btn btn-lg btn-primary btn-block" value='Test'
-                               onclick="TestIOT(this);"/>
-                               -->
 
-                        </div>
-                    </div>
-                    <br />
-                    <p>Email:</p>
-                    <div class="row">
                         <div class="col-sm-6">
-
+                            <p>Email:</p>
+                            </br>
                             Provider address
                             <input type='text' class="form-control" placeholder='(mail.smtp2go.com)'
                                 value='{{smtp_arr}}' name='smtp_arr' /> Port
                             <input type='text' class="form-control" placeholder='2525' value='{{smtp_port}}'
                                 name='smtp_port' />
 
-                        </div>
-                        <div class="col-sm-6">
                             Recipient Email
                             <input type='text' class="form-control" placeholder='spspider@mail.ru'
                                 value='{{to_email_addr}}' name='to_email_addr' /> Sender Email
                             <input type='text' class="form-control" placeholder='from_email_addr'
                                 value='{{from_email_addr}}' name='from_email_addr' />
 
-                        </div>
-                        <br />
-                        <div class="col-sm-6">
                             Sender Email login
                             <input type='text' class="form-control" placeholder='login' value='{{emaillogin}}'
                                 name='emaillogin' /> Sender Email password
@@ -115,102 +79,64 @@
                             <br />
                         </div>
                     </div>
+                    <br />
                     <div class="row">
                         <div class="col-sm-6">
                             Device port:
                             <input type='text' class="form-control" placeholder='ipport' value='{{ipport}}'
                                 name='ipport' />
-                        </div>
-                        <div class="col-sm-6">
-                            <div>
-                                GMT+ (timezone):
-                                <input type='text' id="timezone" class="form-control" placeholder='0'
-                                    value='{{timezone}}' name='timezone' />
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
+                            GMT+ (timezone):
+                            <input type='text' id="timezone" class="form-control" placeholder='0' value='{{timezone}}' name='timezone' />
+
                             <div>
                                 Send location data on boot:
                                 <input type='checkbox' class="form-control" name='geo_enable' id="geo_enable"
                                     value="location" />
                             </div>
-                        </div>
-                        <div class="col-sm-6">
                             <div>
                                 Try reconnecting to Wifi network:
                                 <input type='checkbox' class="form-control" name='wifi_scan' id="wifi_scan"
                                     value="scan" />
                             </div>
-                            <!--
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <div>
-                                                    IR Service:
-                                                    <input type='checkbox' class="form-control"
-                                                           name='ir_loop' id="ir_loop" value=""/></div>
-                         -->
+                            <div>
+                                Save buttons:
+                                <input type='checkbox' class="form-control" name='save_stat' id="save_stat" value="" />
+                            </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div>
+                                    IR Service:
+                                <input type='checkbox' class="form-control" name='ir_loop' id="ir_loop" value="" />
+                                </div>
 
-                        </div>
-                        <div class="col-sm-6">
                             <div>
                                 433Mhz Service:
                                 <input type='checkbox' class="form-control" name='loop_433' id="loop_433" value="" />
                             </div>
 
-                        </div>
-                        <div class="col-sm-6">
                             <div>
                                 IR Receiver: (input 14(D5), output 15(D8))
                                 <input type='checkbox' class="form-control" name='IR_recieve' id="IR_recieve"
                                     value="" />
                             </div>
-
-                        </div>
-                        <div class="col-sm-6">
                             <div>
                                 ws8211 loop:
                                 <input type='checkbox' class="form-control" name='ws8211_loop' id="ws8211_loop"
                                     value="" />
                             </div>
 
-                        </div>
-                        <div class="col
-
--sm-6">
-                            <div>
-                                Save buttons:
-                                <input type='checkbox' class="form-control" name='save_stat' id="save_stat" value="" />
-                            </div>
-
-                        </div>
-
-                        <div class="col-sm-6">
                             <div>
                                 PWM frequency:<p id="PWMfreq"></p>
                                 <input type='range' class="form-control" name='PWM_frequency' id="PWM_frequency"
                                     value="" onchange="FreqChange()" min="1" max="300" />
                             </div>
-
-                        </div>
-                        <!--
-                    <br/> IP address:
-                    <p>{{ip}}</p>
-                    -->
-                        <br /> Device time:
-                        <div class="col-sm-6">
                             <div>
-                                <!-- <input class="form-control" type="date" id="BrowserMyDate">
-                             <input class="form-control" type="time" id="BrowserMyTime">
-                             <button class="btn btn-block btn-success" onclick="SetDate(this);" type='button'>Set from
-                                 browser
-                             </button>
-                             -->
+                                Device time:
                                 <strong id="time">{{time}}</strong>
                                 <p id="date">{{date}}</p>
                             </div>
                         </div>
                         <br>
-                        <!---->
                     </div>
                     <div class="row">
                         <div class="col-sm-6">
@@ -219,19 +145,13 @@
                                 Telegram BOTtoken:<p id="BOTtoken_"></p>
                                 <input type='text' class="form-control" name='BOTtoken' id="BOTtoken" value="{{BOTtoken}}" />
                             </div>
-                            <div>
-                                Telegram CHAT_ID:<p id="CHAT_ID_"></p>
-                                <input type='text' class="form-control" name='CHAT_ID' id="CHAT_ID" value="{{CHAT_ID}}" />
-                            </div>
                             <br>
                         </div>
                     </div>
-                    <input type='button' class="btn btn-lg btn-primary btn-block" value='Save'
-                        onclick="CatchForm();" />
+                    <input type='button' class="btn btn-lg btn-primary btn-block" value='Save' onclick="CatchForm();" />
                 </form>
 
                 <div id="test"></div>
-
                 <br />
                 <br />
                 <pre id="input"></pre>
@@ -245,4 +165,3 @@
 </body>
 
 </html>
-```

@@ -8,7 +8,7 @@ var reloadPeriod = 10000;
 var MAX_COND_NUMBER = 4;
 var running = false
 var defineFuel = 0;
-DEBUG = false
+DEBUG = true
 
 function AdditionalButtons() {
     var btmBtns =
@@ -28,59 +28,71 @@ function PromtVaule() {
 
 }
 
-async function firstload() {
-    try {
-        makeStartStopButton();
-        setHTML("btmBtns", bottomButtons());
-        if (defineFuel === 1) setHTML("additional", AdditionalButtons());
+function firstload() {
+    makeStartStopButton();
 
-        // Load files sequentially
-        const pinSetupText = await loadFileAsync("pin_setup.txt");
-        if (pinSetupText) createButtons_pin_setup(JSON.parse(pinSetupText));
+    setHTML("btmBtns", bottomButtons());
+    defineFuel === 1 ? setHTML("additional", AdditionalButtons()) : 0;
+    //setHTML("additional", AdditionalButtons());
+    readTextFile("pin_setup.txt", function (text) {
+        createButtons_pin_setup(JSON.parse(text));
 
-        const otherSetupText = await loadFileAsync("other_setup.txt");
-        if (otherSetupText && testJson(otherSetupText)) {
-            const otherSetup = JSON.parse(otherSetupText);
-            document.title = otherSetup.deviceID;
-        }
+        var sendJSON = JSON.stringify({
+            't': 127,
+            'v': 0
+        });
 
-        await loadLicense();
-        sendAJAX(this, JSON.stringify({ t: 127, v: 0 }));
-    } catch (error) {
-        console.error("Error in firstload:", error);
-    }
-}
-async function loadFileAsync(filePath) {
-    return new Promise((resolve) => {
-        readTextFile(filePath, (text) => resolve(text || null));
+        sendAJAX(this, sendJSON);
+
+        loadConditons(Cond_load);
+        readTextFile("other_setup.txt", function (text) {
+            if (!testJson(text)) {
+                other_setup = JSON.parse(text);
+                document.title = other_setup.deviceID;
+            }
+        })
     });
 }
 
-
-async function loadLicense() {
-    try {
-        const licenseText = await loadFileAsync("License");
-        if (licenseText) setTimeoutLicenseCode();
-    } catch (error) {
-        console.warn("License file not found, skipping...");
-    }
-}
-
-
 document.addEventListener('DOMContentLoaded', function () {
+
     firstload();
+
 }, false);
 
-var LicenseCodeTimeout;
-function setTimeoutLicenseCode() {
-    StartProgram();
+function ConditionsLoadComlited() {
+    readTextFile("License", function (text) {
+        setTimeoutLicenseCode();
+    })
 }
 
 function StartProgram() {
-    sendAJAX(this, JSON.stringify({ t: 127, v: 0 }));
+    var sendJSON = JSON.stringify({
+        't': 127,
+        'v': 0
+    });
     run();
 }
 
+var LicenseCodeTimeout;
+
+function setTimeoutLicenseCode() {
+    LicenseCodeTimeout = setTimeout(PromtLicense, 10000);
+    StartProgram();
+}
+
+function PromtLicense() {
+    var person = prompt("Please enter your name", "Harry Potter");
+    if (person != null) {
+        var submit;
+        server = "/License?code=" + person;
+        readTextFile(server, function (data) {
+
+        });
+    }
+    clearTimeout(LicenseCodeTimeout);
+    LicenseCodeTimeout = setTimeout(PromtLicense, 10000);
+}
 
 var myChart = [{}];
 var DataChart = [{}];
@@ -389,6 +401,7 @@ function ParseAndCreateButtons(parsetext) {
         default:
     }
 
+    makeWidjet += "<div id = 'PlusMinus" + id + "'></div>";
     if (makeWidjet) {
         setHTML("demo", getHTML("demo") + makeWidjet);//" pin: "+Pin_Setup.pin[id]+" "+
     }
@@ -397,8 +410,72 @@ function ParseAndCreateButtons(parsetext) {
 
 var Cond_load = 0;
 
+function loadConditons(id) {
+
+    if (id < MAX_COND_NUMBER) {
+        readTextFile("Condition" + id + ".txt", LoadFileComplitedButtons);
+    } else {
+        StartProgram();
+    }
+
+
+}
+
+function LoadFileComplitedButtons(text1) {
+
+
+    if (!testJson(text1)) {
+        loadConditons(++Cond_load);
+        return;
+    } 
+    var text = JSON.parse(text1);
+    Conditions[Cond_load] = text;
+    Data = text;
+    var count = 0;
+    var adress = [];
+    for (i = 0; i < Data.Numbers; i++) {
+        if ((parseInt(Data.bySignal[i]) === 2) || (parseInt(Data.bySignal[i]) === 3)) {
+
+            adress[count] = i;
+            count++;
+        }
+
+    }
+    var textNode = "";
+    for (i = 0; i < count; i++) {
+        textNode += "<div class='btn-group btn-group-justified'>";
+        textNode += Pin_Setup.descr[Data.ID] + " " + i + ": <input id='Plus" + Data.ID + adress[i] + "' class='btn btn-group   btn-default' type='button' value='+' onclick='PlusMinusPress(" + adress[i] + "," + Data.ID + ",true," + Data.bySignalPWM[adress[i]] + ");' />";
+        textNode += "<div  id = 'plusMinusValue" + Data.ID + adress[i] + "' class='btn-group' >" + Data.bySignalPWM[adress[i]] + "</div>";
+        //textNode +="test";
+        textNode += "<input id='Minus" + Data.ID + adress[i] + "' class='btn btn-group btn-default' type='button' value='-' onclick='PlusMinusPress(" + adress[i] + "," + Data.ID + ",false," + Data.bySignalPWM[adress[i]] + ");' />";
+        textNode += "</div><br>";
+    }
+    setHTML("PlusMinus" + Cond_load, textNode);
+    //alert(Data.ID);
+    //loadConditons();
+
+    //loadConditons(Cond_load++);
+    loadConditons(++Cond_load);
+}
+
+function SaveCond(id) {
+
+    saveData("Condition" + Conditions[id].ID + ".txt", Conditions[id], false);
+}
 
 var timeOut_saveCond;
+
+function PlusMinusPress(adress, id, isPlus, value) {
+    //value=parseInt(value);
+    var value = parseInt(Conditions[id].bySignalPWM[adress]);
+    isPlus ? value++ : value--;
+    Conditions[id].bySignalPWM[adress] = value;
+    setHTML("plusMinusValue" + id + adress, value);
+    clearTimeout(timeOut_saveCond);
+    timeOut_saveCond = setTimeout(SaveCond, 2000, id);
+
+
+}
 
 var timeOut_button = [];
 
