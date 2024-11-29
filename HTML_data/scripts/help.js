@@ -95,99 +95,93 @@ function loadConditons(id) {
     }
 }
 
-function setHTMLControlConditions() {
-    var count = 0;
-    var adress = [];
-    for (condID = 0; condID < MAX_COND_NUMBER; condID++) {
-        if (Conditions[condID] !== undefined) {
-            for (i = 0; i < 10; i++) {
-                if (Conditions[condID].bySignal !== undefined) {
-                    if ((parseInt(Conditions[condID].bySignal[i]) == 2) || (parseInt(Conditions[condID].bySignal[i]) == 3)) {
-                        adress[adress.length] = i;
-                        //count++;
-                    }
-                }
-            }
-        }
-    }
+// function setHTMLControlConditions() {
+//     var count = 0;
+//     var adress = [];
+//     for (condID = 0; condID < MAX_COND_NUMBER; condID++) {
+//         if (Conditions[condID] !== undefined) {
+//             for (i = 0; i < 10; i++) {
+//                 if (Conditions[condID].bySignal !== undefined) {
+//                     if ((parseInt(Conditions[condID].bySignal[i]) == 2) || (parseInt(Conditions[condID].bySignal[i]) == 3)) {
+//                         adress[adress.length] = i;
+//                         //count++;
+//                     }
+//                 }
+//             }
+//         }
+//     }
 
-    var bodyNode = "";
-    bodyNode +=
-        "<table class='table'>" +
-        "<tr><td>" +
-        "MQTT топик: " +
-        "</td><td>" +
-        "MQTT топик управление: " +
-        "</td><td>" +
-        "удаленное управление HTTP: " +
-        "</td></tr>";
-    for (condID = 0; condID < MAX_COND_NUMBER; condID++) {
-        if (Conditions[condID] !== undefined) {
-            for (i = 0; i < 10; i++) {
-                if (Conditions[condID].bySignal !== undefined) {
-                    if ((parseInt(Conditions[condID].bySignal[i]) == 2) || (parseInt(Conditions[condID].bySignal[i]) == 3)) {
-                        MQTT_topic = dataOther.deviceID + "/PLUS/" + condID + "/" + i + "\n";
-                        MQTT_control = dataOther.deviceID + "/PLUS/" + condID + "/" + i + "/" + "status" + "\n";
-                        MQTT_json = window.location.host + "/aRest?Json={C:1,pin:" + condID + ",stat:" + i + ",val:" + Conditions[condID].bySignalPWM[i] + "}\n";
-                        bodyNode +=
-                            "<tr><td><code>" +
-                            MQTT_topic +
-                            "</code></td><td>" +
-                            MQTT_control +
-                            "</td><td><code>" +
-                            MQTT_json +
-                            "</code></td></tr>";
-                    }
-                }
-            }
-        }
-    }
+//     var bodyNode = "";
+//     bodyNode +=
+//         "<table class='table'>" +
+//         "<tr><td>" +
+//     "Subscribe to this: " +
+//         "</td><td>" +
+//     "Control this: " +
+//         "</td><td>" +
+//         "удаленное управление HTTP: " +
+//         "</td></tr>";
+//     for (condID = 0; condID < MAX_COND_NUMBER; condID++) {
+//         if (Conditions[condID] !== undefined) {
+//             for (i = 0; i < 10; i++) {
+//                 if (Conditions[condID].bySignal !== undefined) {
+//                     if ((parseInt(Conditions[condID].bySignal[i]) == 2) || (parseInt(Conditions[condID].bySignal[i]) == 3)) {
+//                         MQTT_subscribe = dataOther.deviceID + "/PLUS/" + condID + "/" + i + "\n";
+//                         MQTT_control = dataOther.deviceID + "/PLUS/" + condID + "/" + i + "/" + "status" + "\n";
+//                         HTTP_control = window.location.host + "/aRest?Json={C:1,pin:" + condID + ",stat:" + i + ",val:" + Conditions[condID].bySignalPWM[i] + "}\n";
+//                         bodyNode +=
+//                             "<tr><td><code>" +
+//                         MQTT_subscribe +
+//                             "</code></td><td>" +
+//                             MQTT_control +
+//                             "</td><td><code>" +
+//                             HTTP_control +
+//                             "</code></td></tr>";
+//                     }
+//                 }
+//             }
+//         }
+//     }
 
-    bodyNode += "</table>";
-    setHTML("bodyNodeCond", bodyNode);
-}
+//     bodyNode += "</table>";
+//     setHTML("bodyNodeCond", bodyNode);
+// }
 
 function loadBody() {
     var bodyNode = "";
     bodyNode +=
         "<table class='table' style='width:100%'>" +
         "<tr><td>" +
-        "MQTT топик: " +
+    "MQTT subscribe topic: " +
         "</td><td>" +
-        "MQTT топик управление: " +
+    "MQTT command topic: " +
         "</td><td>" +
-        "удаленное управление HTTP: " +
+    "control by HTTP: " +
         "</td><td>" +
-        "чтение HTTP: " +
+    "read HTTP: " +
         "</td></tr>";
     for (i = 0; i < PinSetup.numberChosed; i++) {
-        MQTT_topic = dataOther.deviceID + "/" + PinSetup.descr[i] + "/" + i + "\n";
-        MQTT_control = dataOther.deviceID + "/" + PinSetup.descr[i] + "/" + i + "/" + "status" + "\n";
-        //status_val = STAT[i] !== undefined ? STAT[i] ^ 1 : PinSetup.defaultVal[i] ^ 1;
+        MQTT_subscribe = dataOther.deviceID + "/" + [i] + "/status\n";
+        MQTT_control = dataOther.deviceID + "/" + i + "\n";
         status_val = PinSetup.defaultVal[i] ^ 1;
-        //  if (PinSetup.pin[i] !== -1) {
-        //     MQTT_json = "<a href=/aRest?Json={stat:" + i + ",pin:"+status_val+"}>" + window.location.host + "/aRest?Json={pin:" + PinSetup.pin[i] + ",val:"+status_val+"}</a>";
-        // } else {
-        //    MQTT_json = "<a href=/aRest?Json={stat:" + i + ",val:"+status_val+"}>" + window.location.host + "/aRest?Json={stat:" + i + ",val:"+status_val+"}</a>";
         var http_request = "/sendAJAX?json={\"t\":" + i + ",\"v\":" + status_val + "}";
-        MQTT_json = "<a href="+ http_request + ">" +window.location.host + http_request + "</a>";
+        HTTP_control = "<a href=" + http_request + ">" + window.location.host + http_request + "</a>";
 
-        //}//sendAJAX?json={"t":127,"v":0}
-        MQTT_json_read = "<a href=/aRest?Json={stat:" + i + "}>" + window.location.host + "/aRest?Json={stat:" + i + "}</a>";
+        HTTP_control_read = "<a href=/aRest?Json={stat:" + i + "}>" + window.location.host + "/aRest?Json={stat:" + i + "}</a>";
         bodyNode +=
             "<td>" +
             "<code>" +
-            MQTT_topic +
+        MQTT_subscribe +
             "</code>" +
-            "</td><td>" +
+        "</td><td><code>" +
             MQTT_control +
-            "</td><td>" +
+        "</code></td><td>" +
             "<code>" +
-            MQTT_json +
+        HTTP_control +
             "</code>" +
             "</td><td>" +
             "<code>" +
-            MQTT_json_read +
+        HTTP_control_read +
             "</code>" +
             "</td></tr>";
     }

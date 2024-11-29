@@ -7,7 +7,7 @@
 #define will_use_serial
 // #define timerAlarm
 //  #define use_telegram
-// #define pubClient
+#define pubClient
 #define ds18b20
 //#define wakeOnLan
 // #define dht

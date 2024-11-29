@@ -864,20 +864,18 @@ void handleOpenLockForTime()
 }
 void Captive_server_init()
 {
-  // server.on("/setup", handleRoot);
-  //   server.on("/wifi", handleWifi);
-  server.on("/mode", []()
-            {
-    String mode = (WiFi.getMode() == WIFI_STA) ? "STA" : "AP";
-    String jsonResponse = "{\"mode\":\"" + mode + "\"}";
-    server.send(200, "application/json", jsonResponse); });
-  // server.on("/wifi", []()
+  // server.on("/mode", []()
   //           {
-  //   if (WiFi.getMode() == WIFI_STA) {//как клиент
-  //     handleFileRead("/wifi_setup.htm");
-  //   } else {
-  //     handleWifi();
-  //   } });
+  //   String mode = (WiFi.getMode() == WIFI_STA) ? "STA" : "AP";
+  //   String jsonResponse = "{\"mode\":\"" + mode + "\"}";
+  //   server.send(200, "application/json", jsonResponse); });
+  server.on("/wifi", []()
+            {
+    if (WiFi.getMode() == WIFI_STA) {//как клиент
+      handleFileRead("/wifi_setup.htm");
+    } else {
+      handleWifi();
+    } });
   server.on("/wifi", []()
             { handleFileRead("/wifi_setup.htm"); });
   server.on("/wifiList", handleWifilist);

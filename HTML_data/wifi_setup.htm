@@ -14,24 +14,6 @@
 <body>
     <script defer type="text/javascript" src="scripts/helper_func.js"></script>
     <script defer type=text/javascript src=scripts/wifi_setup.js></script>
-    <script>
-            // Example API endpoint to determine the mode
-            fetch('/mode')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.mode === 'STA') {
-                        // Dynamically load Bootstrap
-                        const bootstrapLink = document.createElement('link');
-                        bootstrapLink.rel = 'stylesheet';
-                        bootstrapLink.href = '//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css';
-                        document.head.appendChild(bootstrapLink);
-                    document.addEventListener('DOMContentLoaded', function () {
-                        loadBootstrap();
-                    });
-                }
-            })
-            .catch(err => console.error('Error fetching mode:', err));
-</script>
     <div class='container'>
         <div class='row' style='text-align:center;'>
             <div class="col-sm-offset-2 col-sm-8 col-md-offset-3 col-md-6">

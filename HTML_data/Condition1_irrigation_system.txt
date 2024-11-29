@@ -1,1 +1,0 @@
-{"tID":[0,1],"En":[1,1],"times":[480,-1],"dates":[-1,-1],"bySignal":[-1,1],"bySignalPWM":[-1,-1],"type":[1,2],"timer":[-1,-1],"timerType":[-1,-1],"act":[9,4],"actBtn":["1 0 3 1","полив"],"actOn":[0,-1],"pwmTypeAct":[-1,-1],"ID":1,"Numbers":2}
