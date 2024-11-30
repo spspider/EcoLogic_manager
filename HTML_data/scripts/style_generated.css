@@ -99,8 +99,9 @@ form {
   }
 
   @media (max-width: 760px) {
-    /* Adjust container width */
-
+    body {
+            margin: 0;
+        }
     .col-sm-offset-2 {
         flex: 0 0 95%;
         max-width: 95%;
@@ -108,7 +109,14 @@ form {
         margin-right: 0%;
         box-sizing:unset;
     }
-
+        .container {
+            margin: 0;
+            padding: 0;
+        }
+    
+        .row {
+            margin: 0;
+        }
 }
 .col-lg-6 {
     padding-left: 15px;
