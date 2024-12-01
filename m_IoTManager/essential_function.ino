@@ -205,7 +205,9 @@ void makeAres_sim(String json) {
       }
     case 2: //IR
       {
+#if defined(ir_code)
         send_IR(that_stat);
+#endif
         break;
       }
     case 3:

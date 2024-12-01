@@ -4,9 +4,8 @@
    Version 0.1 Sept, 2015
    Based on Ken Shirriff's IrsendDemo Version 0.1 July, 2009, Copyright 2009 Ken Shirriff, http://arcfn.com
 */
-#ifndef UNIT_TEST
-#include <Arduino.h>
-#endif
+#if defined(ir_code)
+
 #include <IRremoteESP8266.h>
 #include <IRrecv.h>
 #include <IRsend.h>
@@ -222,7 +221,9 @@ void loop_IR() {
       buff1 = 0;
       codeIR = String(charBuff1);
       if (!Page_IR_opened) {
+#if defined(ir_code)
         check_code_IR(codeIR);
+#endif
       }
       else {
         server.send(200, "text/plain", codeIR);
@@ -295,3 +296,4 @@ void loop_IR() {
   }
 */
 
+#endif

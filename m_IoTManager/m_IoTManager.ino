@@ -7,8 +7,9 @@
 #define will_use_serial
 // #define timerAlarm
 //  #define use_telegram
-#define pubClient
+#define pinMode
 #define ds18b20
+#define pubClient
 //#define wakeOnLan
 // #define dht
 // #define ads1115
@@ -194,10 +195,12 @@ void setup()
   //   Serial.println("Start 3-SSDP");
   SSDP_init();
 
+#if defined(ir_code)
   if (IR_recieve)
   {
     setup_IR();
   }
+#endif
   //////////////////////////////////////
 #if defined(ws433)
   setup_w433();
@@ -217,7 +220,9 @@ void loop()
   loop_websocket();
   if (IR_recieve)
   {
+#if defined(ir_code)
     loop_IR();
+#endif
   }
 #if defined(ws433)
   if (w433rcv != 255)
