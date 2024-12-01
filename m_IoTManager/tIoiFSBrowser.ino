@@ -492,7 +492,9 @@ void handle_saveIR()
 {
   String IRjson = server.arg("IR");
   saveCommonFiletoJson("IRButtons", IRjson, 1);
+#if defined(ir_code)
   updateIR();
+#endif
 }
 
 void setup_FS(void)
@@ -673,12 +675,14 @@ void FunctionHTTP()
 
   if (jsonDocument.containsKey("sendIR"))
   {
+#if defined(ir_code)
     send_IR_code(jsonDocument["sendIR"]);
     send_IR_code(jsonDocument["sendIR"]);
     send_IR_code(jsonDocument["sendIR"]);
     send_IR_code(jsonDocument["sendIR"]);
     send_IR_code(jsonDocument["sendIR"]);
     server.send(200, "text/plain", server.arg("json"));
+#endif
   }
 }
 
