@@ -116,24 +116,16 @@ function get_cookie(cookie_name) {
 }
 
 function setVal(ID, value) {
-    var object;
-    if (document.getElementById(ID)) {
-        object = document.getElementById(ID);
-        if (object.type == "checkbox") {
-            document.getElementById(ID).checked = value;
-            return true;
+    const object = document.getElementById(ID);
+    if (object) {
+        if (object.type === "checkbox") {
+            object.checked = value;
         } else {
-            document.getElementById(ID).value = value;
-            //document.getElementById(ID).innerHTML = value;
-            return true;
+            object.value = value;
         }
-    } else {
-        if (document.getElementById("test")) {
-            //document.getElementById("test").innerHTML += "<br>wrong_setVal:'" + ID + "' value:" + value; //range
-        }
-        //return false;
+        return true;
     }
-    //return false;
+    return false;
 }
 
 function setHTML(ID, value) {
@@ -173,22 +165,11 @@ function loadBootstrap() {
 }
 
 function getVal(ID) {
-    var value = -1;
-    var object;
-    if (document.getElementById(ID)) {
-        object = document.getElementById(ID);
-        if (object.type == "checkbox") {
-            value = document.getElementById(ID).checked;
-            //alert(value);
-        } else {
-            value = document.getElementById(ID).value; //range
-        }
-    } else {
-        if (document.getElementById("test")) {
-            //  document.getElementById("test").innerHTML += "<br>wrong:'" + ID + "'"; //range
-        }
+    const object = document.getElementById(ID);
+    if (object) {
+        return object.type === "checkbox" ? object.checked : object.value;
     }
-    return value;
+    return -1;
 }
 
 function getHTML(ID) {
@@ -314,13 +295,8 @@ function ActivateDialog() {
             "\n then Enter code:\n" +
             "<input type='text' class='form-control' id='activation_input'>" +
             "<input type='button' class='form-control' id='btn_activation' value='OK' onclick='send_code_back()'>";
-
         var button = document.getElementById("activation_button");
         button.appendChild(alert_message(message, 30));
-
-        var splitted_mac_sddress = callback.toString().split(":", 10);
-        //var x = prompt("enter activation code, device ID:"+callback, "");
-
 
     });
 }
@@ -341,17 +317,10 @@ function check_if_activated() {
             setHTML("btmBtns", getHTML("btmBtns") + license_code);
             return 0;
         }
-        //activation_loaded();
-        //startLoadNext();
-        // return btmBtns;
     });
 }
 
 function bottomButtons() {
-    //var license_code = "<a class='btn btn-block btn-default' onclick='ActivateDialog()' type='button'>activate</a>";
-    //if (check_if_activated()) {
-    //   license_code = "";
-    // }
     check_if_activated();
     var btmBtns =
         "<div class='btn-group btn-group-justified'>" +

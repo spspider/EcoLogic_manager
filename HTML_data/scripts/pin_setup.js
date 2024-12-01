@@ -2,68 +2,18 @@
 
 function loadlimits() {
     readTextFile("/function?json={\"pin_setup_limits\":\"1\"}", function (callback) {
-        try {
-         if (callback!==404){
-            max_number_chosed = callback !== parseInt(callback) ? parseInt(callback) : 8;}
-         else{
-             max_number_chosed = 12;}
-        } catch (e) {
-            max_number_chosed = 12;
-        }
+        max_number_chosed = (callback !== 404 && isNaN(parseInt(callback))) ? 8 : parseInt(callback) || 12;
         Activation_check();
-
     });
-    
     setHTML("btmBtns", bottomButtons());
 }
 
 document.addEventListener("DOMContentLoaded", loadlimits);
-//document.addEventListener("DOMContentLoaded", load2);
-//document.addEventListener("DOMContentLoaded", jsonParse_fortest);
-//
-var inputOption = new Array();
-var inputPinmode = new Array();
-var inputPage = new Array();
-var inputWidjet = new Array();
-var inputPin = new Array();
-var inputId = new Array();
 
+var inputOption = [], inputPinmode = [], inputPage = [], inputWidjet = [], inputPin = [], inputId = [];
 var description;
-//var inputDescr = new Array();
-inputPin[0] = "no";
-inputPin[1] = 0;//HIGH on boot D3
-
-inputPin[2] = 2;//HIGH on boot no interrupt
-inputPin[3] = 4;
-inputPin[4] = 5;
-//inputPin[6] = 6;//перезагрузка
-//inputPin[7] = 7;//перезагрузка
-//inputPin[8] = 8;//перезагрузка
-
-inputPin[5] = 10; //d3 no interrupt
-//inputPin[11] = 11;//перезагрузка
-inputPin[6] = 12;
-inputPin[7] = 13;
-inputPin[8] = 14;
-inputPin[9] = 15;//boot fail if pulled HIGH
-inputPin[10] = 16; //xpd
-inputPin[11] = 17; //adc
-inputPin[12] = 1;//txd
-inputPin[13] = 3;//
-
-//inputPin[12] = 9;//перезагрузка
-
-var outputPin = [];
-outputPin[0] = 4;
-outputPin[1] = 5;
-outputPin[2] = 10;
-outputPin[3] = 12;
-outputPin[4] = 13;
-outputPin[5] = 14;
-outputPin[6] = 15;
-outputPin[7] = 16;
-outputPin[8] = 17;
-
+inputPin = ["no", 0, 2, 4, 5, 10, 12, 13, 14, 15, 16, 17, 1, 3];
+var outputPin = [4, 5, 10, 12, 13, 14, 15, 16, 17];
 
 inputPinmode[0] = "no";
 inputPinmode[1] = "in";
@@ -82,14 +32,7 @@ inputPinmode[13] = "EncA";
 inputPinmode[14] = "EncB";
 inputPinmode[15] = "ads1117";
 inputPinmode[16] = "ds18b20";
-//inputPinmode[9] = "zero-cross вход";
-//inputPinmode[10] = "PWM AC";
 
-//inputPinmode[7] = "chart";
-
-inputPage[0] = 'unknown';
-inputPage[1] = 'Kitchen';
-inputPage[2] = 'Outdoor';
 
 inputWidjet[0] = 'unknown';
 inputWidjet[1] = 'switch';
@@ -99,27 +42,51 @@ inputWidjet[4] = 'progress-bar';
 inputWidjet[5] = 'chart';
 inputWidjet[6] = 'data';
 
-var one_string_saved = new Array();
-var string_page_saved = new Array();
-var string_descr_saved = new Array();
-var string_widget_saved = new Array();
-var string_pin_saved = new Array();
-var string_id_saved = new Array();
-var string_defaultVal_saved = new Array();
+
+const savedValues = {
+    one_string: [],
+    string_page: [],
+    string_descr: [],
+    string_widget: [],
+    string_pin: [],
+    string_id: [],
+    string_defaultVal: [],
+    string_delimeterVal: [],
+    string_IR: [],
+    analogDivider: null,
+    analogSubtracter: null,
+    router: null,
+    w433: null
+};
+
+
 var string_delimeterVal_saved = [];
 var string_IR_saved = [];
 var numberChosed = 0;
 var Activation;
 
+function getAvailablePins(mode) {
+    switch (mode) {
+        case "in":
+            return [5, 4, 14, 12, 13];
+        case "out":
+            return [16, 5, 4, 0, 2, 14, 12, 13, 15, 3, 1];
+        case "PWM":
+            return pwmPins;
+        case "adc":
+            return adcPins;
+        default:
+            return [];
+    }
+}
+
 function Activation_check() {
     readTextFile('/function?json={\"Activation\":\"0\"}', function (callback) {//проверить если активирован
         if (parseInt(callback) === 1) {//Activated
             Activation = 1;
-            // setHTML("btmBtns", getHTML("btmBtns") + license_code);
         } else {//не активирован
             Activation = 0;
             setActivationRequired();
-            //setActivation();
         }
 
         loadIR();
@@ -127,34 +94,11 @@ function Activation_check() {
 }
 
 function setActivationRequired() {
-    for (var i = 0; i < 12; i++) {
-        switch (i) {
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-            case 14:
-                //setHTML("one_string"+i,getHTML("one_string"+i)+"* activation required");
-                inputPinmode[i] = inputPinmode[i] + "* activation required";
-                break;
-        }
+    for (var i = 3; i < 12; i++) {
+        inputPinmode[i] += "* activation required";
     }
 }
 
-var jsonStr2 = {
-    "id": ["0", "1", "2", "3", "4", "5", "6", "7"],
-    "pin": [10, 5, 0, 17, 2, 15, 12, 13],
-    "page": ["Kitchen", "Kitchen", "Kitchen", "Kitchen", "Outdoor", "Kitchen", "Kitchen", "Kitchen"],
-    "descr": ["Light-0", "Light-1", "Dimmer", "ADC", "Garden light", "RED", "GREEN", "BLUE"],
-    "widget": ["toggle", "toggle", "range", "small-badge", "toggle", "range", "range", "range"]
-};
 var jsonStr = {};
 var jsonStrIR = {};
 var dataOther = {};
@@ -174,28 +118,21 @@ var openFile = function (event) {
 function receivedText(e) {
     lines = e.target.result;
     var newArr = JSON.parse(lines);
-    //set(newArr);
 }
 
 function load2() {
-    //loadIR();
     var data = {};
 
     readTextFile("pin_setup.txt", function (text) {
         if (text === null) {
-            //makeInputs();
             return;
         }
         try {
             data = JSON.parse(text);
-            //document.getElementById("test").innerHTML = JSON.stringify(data);
-            setHTML("test",JSON.stringify(data));
+            setHTML("test", JSON.stringify(data));
         } catch (e) {
-            setHTML("test",getHTML("test") + e + text);
-            //document.getElementById("test").innerHTML += e + text;
-            //makeInputs();
+            setHTML("test", getHTML("test") + e + text);
         }
-        //alert(jsonStr.numberChosed);
         jsonStr = data;
         makeInputs();
         loadBodyFetchData(jsonStr);//должен быть выше set, иначе меняет все значения value
@@ -220,7 +157,7 @@ function loadBodyFetchData(jsonStr) {
     }
     document.getElementsByTagName('body')[0].innerHTML = new_string;
 
-////////////////////////////////////
+    ////////////////////////////////////
 }
 
 function callback_Other(text) {
@@ -234,17 +171,13 @@ function callback_Other(text) {
 
 function loadIR() {
     var data = {};
-
     readTextFile("IRButtons.txt", function (text) {
         readTextFile("other_setup.txt", callback_Other);
-        if ((text === null)||(text===404)) {
-
+        if ((text === null) || (text === 404)) {
             return;
         }
-
-        if(!testJson(text))return;
+        if (!testJson(text)) return;
         try {
-
             data = JSON.parse(text);
         } catch (e) {
             document.getElementById("test").innerHTML += e;
@@ -252,57 +185,36 @@ function loadIR() {
         jsonStrIR = data;
         optionsIR_array = (jsonStrIR.name) ? jsonStrIR.name : optionsIR_array[0] = "none";
         optionsIR_array.unshift("none");
-        //makeIRsetup();
-        //readTextFile("other_setup.txt", callback_Other);
-
     });
-
-
 }
 
 function makeInputs() {
-
-//        numberChosed = jsonStr.numberChosed;
-    //if (jsonStr.
     var numberChosed;
     if (getVal("sel1") === -1) {
         jsonStr.numberChosed !== undefined ? numberChosed = jsonStr.numberChosed : 0;
     } else {
         numberChosed = getVal("sel1") !== null ? getVal("sel1") : 0;
     }
-//    alert(jsonStr.numberChosed);
     set(null);
 
     number_buttons = max_number_chosed;
-    var add_option;
-    var selected = "";
     var array_selected = [];
     for (i = 0; i <= number_buttons; i++) {
         array_selected[i] = i;
     }
-
-    //setHTML("sel1div", "<select class='form-control' id='sel1' onchange='makeInputs();'>" + add_option + "</select>");
     setHTML("sel1div", makeinOption(array_selected, "sel1", "makeInputs()"));
     setVal("sel1", numberChosed);
-    //setHTML("sel1",numberChosed)
 }
 
 function set(jsonStr) {
     numberChosed = getVal("sel1");
     if (jsonStr) {
-
         numberChosed = jsonStr.numberChosed;
         setVal("sel1", numberChosed);
     }
-
     saveAllStrings(numberChosed);
-
-
     var description = "";
-    var delimeterVal = 0;
     numberInputOptions = 2;
-
-
     var result_table =
         "<tr>" +
         "<td >one_st</td>" +
@@ -318,13 +230,11 @@ function set(jsonStr) {
         btnId = i1;
         result_table += "<tr id='tr" + btnId + "'>" +
             "<td id='Inputs_table" + btnId + "'></td>" +
-
             "<td id='Inputs_descr_table" + btnId + "'></td>" +
             "<td id='Inputs_widget_table" + btnId + "'></td>" +
             "<td id='Inputs_pin_table" + btnId + "'></td>" +
             "<td id='Inputs_IR_table" + btnId + "'></td>" +
             "<td id='Inputs_defaultVal_table" + btnId + "'></td>" +
-
             "<td id='condition_table" + btnId + "'></td>" +
             "<td id='MQTT_adress" + btnId + "'></td>" +
             "</tr>";
@@ -336,11 +246,7 @@ function set(jsonStr) {
 
 
     for (var i = 0; i < numberChosed; i++) {
-        // var options = "";
-        //var optionsPage = "";
-
         if (jsonStr) {
-            //inputPin = jsonStr.pin;
             inputId = jsonStr.id;
             description = jsonStr.descr[i];
             defaultVal = jsonStr.defaultVal[i];
@@ -352,8 +258,6 @@ function set(jsonStr) {
                     string_delimeterVal_saved[i] = 0;
                 }
             }
-
-            //inputPinmode=jsonStr.pinmode[i];
         } else {
             description = "button:" + i;
             defaultVal = 0;
@@ -362,43 +266,33 @@ function set(jsonStr) {
 
         var MQTT_adress;
         if (jsonStr) {
-
             if (dataOther) {
                 MQTT_adress = "MQTT topic: " + dataOther.deviceID + "/" + description + "/" + i + "\n";
                 MQTT_adress += "MQTT control topic: " + dataOther.deviceID + "/" + description + "/" + i + "/" + "status" + "\n";
                 MQTT_adress += "remote control HTTP: " + window.location.host + "/aRest?Json={pin:\"" + inputPin.indexOf(parseInt(jsonStr.pin[i])) + "\",\"val\":\"1\"}";
             }
         }
-        if (jsonStr) {
-            saveAllStrings(numberChosed);
-        }
 
-        //document.getElementById("Inputs_table" + i).innerHTML = "<select class='form-control' id='one_string" + i + "' onchange='choisedPinmode(" + i + ",true);'>" + optionsPinmode + "</select>";
+
         setHTML("Inputs_table" + i, makeinOption(inputPinmode, "one_string" + i, "choisedPinmode(" + i + ", true)"));
         setHTML("Inputs_descr_table" + i, "<input type='text' class='form-control' id='string_descr" + i + "' value='" + description + "'>");
-        //document.getElementById("Inputs_widget_table" + i).innerHTML += "<select class='form-control' id='string_widget" + i + "' onchange='makesmth2();'>" + optionsWidjet + "</select>";
         setHTML("Inputs_widget_table" + i, makeinOption(inputWidjet, 'string_widget' + i, false));
-        setHTML("Inputs_pin_table" + i, makeinOption(inputPin, 'string_pin' + i, false));
-        //document.getElementById("Inputs_pin_table" + i).innerHTML += "<select class='form-control' id='string_pin" + i + "' onchange='makesmth2();'>" + optionsPin + "</select>";
-        //setHTML("Inputs_IR_table" + i, "<select class='form-control' id='string_IR" + i + "''>" + optionsIR + "</select>");
         setHTML("Inputs_IR_table" + i, makeinOption(optionsIR_array, 'string_IR' + i, false));
-
+        setHTML("Inputs_pin_table" + i, makeinOption(inputPin, 'string_pin' + i, false));
         document.getElementById("Inputs_defaultVal_table" + i).innerHTML += "<input type='text' class='form-control' id='string_defaultVal" + i + "'value='" + defaultVal + "'</input>";
-        //setHTML("Inputs_delimeter_table" + i, "<input type='text' class='form-control' id='string_delimeterVal" + i + "'value='" + string_delimeterVal_saved[i] + "'</input>");
         if (i < 3) {
             document.getElementById("condition_table" + i).innerHTML += "<a  class='btn btn-primary btn-xs' href=/condition.htm?id='>:" + i + "</a><br>";
         }
         setHTML("MQTT_adress" + i, "<div title='" + MQTT_adress + "'><p>?</p></div>");
-
+        if (jsonStr) {
+            saveAllStrings(numberChosed);
+        }
     }
 
 
     if (jsonStr) {
-
         for (var i = 0; i < numberChosed; i++) {
             setVal("one_string" + i, inputPinmode[jsonStr.pinmode[i]]);
-
-            //alert("ok");
             setVal("string_widget" + i, inputWidjet[jsonStr.widget[i]]);
             setVal("string_pin" + i, jsonStr.pin[i] = jsonStr.pin[i] === 255 ? inputPin[0] : jsonStr.pin[i]);
         }
@@ -406,16 +300,11 @@ function set(jsonStr) {
     }
 
     loadAllStrings(numberChosed);
-
-    for (var i = 0; i < numberChosed; i++) {
-        // choisedPinmode(i, false);
-    }
-
-
     loadAllStrings(numberChosed);
+
+
 }
 
-//var IR_receive_output=0;
 function makeIRsetup() {
     var ir_string = "<table class='table'>";
     var AviailablePinsT = inputPin.slice();
@@ -423,7 +312,6 @@ function makeIRsetup() {
     var AviailablePinsR = inputPin.slice();
     AviailablePinsR.unshift(inputPin[-1]);
     AviailablePinsR.splice(AviailablePinsR.indexOf(0), 1);
-    //AviailablePins.splice(inputPin.indexOf(null),1);
     var optionsIR_receive_output = makeinOption_pin(AviailablePinsR, jsonStr.IR_rec ? jsonStr.IR_rec : 0);
     var optionsIR_output_output = makeinOption_pin(AviailablePinsT, jsonStr.IR_LED ? jsonStr.IR_LED : 0);
     ir_string += "<tr><td>IR receiver</td><td><select class='form-control' id='IR_receive_output'>" + optionsIR_receive_output + "</select></td></tr>";
@@ -460,7 +348,7 @@ var w433;
 function setRouterPin() {
     ////////////////////////////////////
     var Divider_table = document.getElementById("Divider_table");
-    if (Divider_table==null)return;
+    if (Divider_table == null) return;
     var array = inputPin;
     var selectList = document.createElement("select");
     var select433 = document.createElement("select");
@@ -506,17 +394,15 @@ function setRouterPin() {
     cell1_433.innerHTML = "w433 pin";
     ////////////////////////////////////
 }
-
 function choisedPinmode(i, makeInput) {
     if (document.getElementById("one_string" + i)) {
         if (makeInput) {
             makeInputs();
         }
-        //choised = document.getElementById("one_string" + i).value;
         choised = getVal("one_string" + i);
+        setHTML(`Inputs_pin_table${i}`, makeinOption(getAvailablePins(choised), `string_pin${i}`, false));
         switch (choised) {
             case inputPinmode[2]: //out
-
                 break;
             case inputPinmode[3]: //pwm
                 setVal("string_widget" + i, inputWidjet[3]); //range
@@ -528,8 +414,6 @@ function choisedPinmode(i, makeInput) {
                 if (inputWidjet[jsonStr.widget[i]]) {
                     setVal("string_widget" + i, inputWidjet[jsonStr.widget[i]]); //small-badge
                 }
-                //setDisable("string_widget" + i);
-                //setDisable("string_pin" + i);
                 break;
             case inputPinmode[5]: //low_pwm
                 if (document.getElementById("string_widget" + i)) {
@@ -544,7 +428,6 @@ function choisedPinmode(i, makeInput) {
                     value = "<a class='btn btn-block btn-primary' href='\IR_setup'>Настройка IR</a>";
                     setHTML("Inputs_descr_table" + i, value);
                 } else {
-
                     descr_new = "<select class='form-control' onchange='selectidIR(" + i + ")' id='string_descr" + i + "'></select>";
                     make_string_pin();
                     descr_new += "<a href='\IR_setup'>IR</a>";
@@ -567,23 +450,16 @@ function choisedPinmode(i, makeInput) {
                 break;
             case inputPinmode[11]: //IR
                 setVal("string_pin" + i, "no"); //17
-                //inputPin.splice(inputPin.indexOf(4),1);
-                //inputPin.splice(inputPin.indexOf(5),1);
                 break;
             case inputPinmode[12]: //IR
-                // setHTML("string_descr" + i, "ENTER MAC");
                 setVal("string_descr" + i, "ENTER MAC");
-                //inputPin.splice(inputPin.indexOf(4),1);
-                //inputPin.splice(inputPin.indexOf(5),1);
                 document.getElementById("output").appendChild(alert_message("enter ENTER MAC in description"));
                 break;
             case inputPinmode[15]: //ads
-                //alert(document.getElementById("string_defaultVal"+i).appendChild(alert_message("enter Number pin there")));
                 document.getElementById("output").appendChild(alert_message("enter Number pin in Default"));
                 break;
             case inputPinmode[16]: //ds18b20
-                //alert(document.getElementById("string_defaultVal"+i).appendChild(alert_message("enter Number pin there")));
-                document.getElementById("output").appendChild(alert_message("enter number by index in Default, connect ds18b20 to GPI02(D4)",30));
+                document.getElementById("output").appendChild(alert_message("enter number by index in Default, connect ds18b20 to GPI02(D4)", 30));
                 break;
         }
 
@@ -602,113 +478,45 @@ function setDisable(ID) {
 
 function selectidIR(i) { //сделать выбор изjsonStr.pin в string_descr5
     index = 0;
-
     index = document.getElementById("string_descr" + i).selectedIndex;
     setVal("string_defaultVal" + i, jsonStrIR.code[index]);
     document.getElementById("string_pin" + i).selectedIndex = document.getElementById("string_descr" + i).selectedIndex;
-
-
-}
-
-function make_string_pin() {
-    //getVal("val");
 }
 
 function saveAllStrings(numberChosed) {
-    //document.getElementById("test").innerHTML += numberChosed + "!!!!!!";
-    for (var i = 0; i < numberChosed; i++) {
-        if (document.getElementById("string_descr" + i)) {
-        }
-        if (document.getElementById("one_string" + i)) {
-            one_string_saved[i] = document.getElementById("one_string" + i).value;
-        }
-        if (document.getElementById("string_page" + i)) {
-            string_page_saved[i] = document.getElementById("string_page" + i).value;
-        }
-        if (document.getElementById("string_descr" + i)) {
-            if (document.getElementById("string_descr" + i).value === "undefined") {
-                //alert("ok");
-                return;
-            }
-            string_descr_saved[i] = document.getElementById("string_descr" + i).value;
-
-        } else {
-            //string_descr_saved[i] = "button:" + i;
-        }
-        if (document.getElementById("string_widget" + i)) {
-            string_widget_saved[i] = document.getElementById("string_widget" + i).value;
-        } else {
-            //string_widget_saved[i] = inputWidjet[2];
-        }
-        if (document.getElementById("string_pin" + i)) {
-            string_pin_saved[i] = (document.getElementById("string_pin" + i).value);
-
-
-        } else {
-            // string_pin_saved[i] =inputPin[0];
-        }
-        if (document.getElementById("string_id" + i)) {
-            string_id_saved[i] = document.getElementById("string_id" + i).value;
-        }
-        if (document.getElementById("string_defaultVal" + i)) {
-            string_defaultVal_saved[i] = parseInt(document.getElementById("string_defaultVal" + i).value);
-        } else {
-            //string_defaultVal_saved[i] = "0";
-        }
-
-        string_delimeterVal_saved[i] = getVal("string_delimeterVal" + i);
-        if (getVal("string_delimeterVal" + i) === -1) {
-            string_delimeterVal_saved[i] = 0;
-        }
-        string_IR_saved[i] = getVal("string_IR" + i);
-
+    for (let i = 0; i < numberChosed; i++) {
+        savedValues.one_string[i] = getVal(`one_string${i}`);
+        savedValues.string_page[i] = getVal(`string_page${i}`);
+        savedValues.string_descr[i] = getVal(`string_descr${i}`);
+        savedValues.string_widget[i] = getVal(`string_widget${i}`);
+        savedValues.string_pin[i] = getVal(`string_pin${i}`);
+        savedValues.string_id[i] = getVal(`string_id${i}`);
+        savedValues.string_defaultVal[i] = parseInt(getVal(`string_defaultVal${i}`));
+        savedValues.string_delimeterVal[i] = getVal(`string_delimeterVal${i}`) === -1 ? 0 : getVal(`string_delimeterVal${i}`);
+        savedValues.string_IR[i] = getVal(`string_IR${i}`);
     }
-    analogDivider = getVal("analogDivider");
-    analogSubtracter = getVal("analogSubtracter");
-    router = getVal("router");
-    w433 = getVal("w433");
-
+    savedValues.analogDivider = getVal("analogDivider");
+    savedValues.analogSubtracter = getVal("analogSubtracter");
+    savedValues.router = getVal("router");
+    savedValues.w433 = getVal("w433");
 }
 
 function loadAllStrings(numberChosed) {
-    var ok = true;
-    if (ok) {
-        for (var i = 0; i < numberChosed; i++) {
-            if ((document.getElementById("one_string" + i))) {
-                if (one_string_saved[i] === undefined) {
-                    return;
-                }
-
-                document.getElementById("one_string" + i).value = one_string_saved[i];
-            }
-            if ((document.getElementById("string_page" + i))) {
-                document.getElementById("string_page" + i).value = string_page_saved[i];
-            }
-            if ((document.getElementById("string_descr" + i))) {
-                document.getElementById("string_descr" + i).value = string_descr_saved[i];
-            }
-            if ((document.getElementById("string_widget" + i))) {
-                document.getElementById("string_widget" + i).value = string_widget_saved[i];
-            }
-            if ((document.getElementById("string_pin" + i))) {
-                document.getElementById("string_pin" + i).value = string_pin_saved[i];
-            }
-            if ((document.getElementById("string_id" + i))) {
-                //document.getElementById("string_id" + i).value = string_id_saved[i];
-            }
-            if ((document.getElementById("string_defaultVal" + i))) {
-                // alert("ok");
-                document.getElementById("string_defaultVal" + i).value = string_defaultVal_saved[i];
-            }
-            setVal("string_delimeterVal" + i, string_delimeterVal_saved[i]);
-            setVal("string_IR" + i, string_IR_saved[i]);
-
-        }
+    for (let i = 0; i < numberChosed; i++) {
+        setVal(`one_string${i}`, savedValues.one_string[i]);
+        setVal(`string_page${i}`, savedValues.string_page[i]);
+        setVal(`string_descr${i}`, savedValues.string_descr[i]);
+        setVal(`string_widget${i}`, savedValues.string_widget[i]);
+        setVal(`string_pin${i}`, savedValues.string_pin[i]);
+        setVal(`string_id${i}`, savedValues.string_id[i]);
+        setVal(`string_defaultVal${i}`, savedValues.string_defaultVal[i]);
+        setVal(`string_delimeterVal${i}`, savedValues.string_delimeterVal[i]);
+        setVal(`string_IR${i}`, savedValues.string_IR[i]);
     }
-    setVal("analogDivider", analogDivider);
-    setVal("analogSubtracter", analogSubtracter);
-    setVal("router", router);
-    setVal("w433", w433);
+    setVal("analogDivider", savedValues.analogDivider);
+    setVal("analogSubtracter", savedValues.analogSubtracter);
+    setVal("router", savedValues.router);
+    setVal("w433", savedValues.w433);
 }
 
 function makeinOption_pin(inputOption, choosed) {
