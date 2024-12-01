@@ -14,11 +14,8 @@ void callback_socket(char i, int payload_is) {
 #endif
   } else if (pinmode[i] == 3) {//pwm
     if (!license)return;
-    payload_is = defaultVal[i] == 1 ? 1024 - payload_is : payload_is;
-
+    payload_is = defaultVal[i] != 0 ? defaultVal[i] - payload_is : payload_is;
     analogWrite(pin[i], payload_is);
-    Serial.println(payload_is);
-    Serial.println(digitalRead(pin[i]));
     stat[i] = payload_is;
   }
   else if (pinmode[i] == 5) {//low_pwm
@@ -34,9 +31,7 @@ void callback_socket(char i, int payload_is) {
     #if defined(wakeOnLan)
     const char* mac_adress = (const char *)descr;
     wakeMyPC(mac_adress);
-    #endif
-
-    //stat[i]=stat[i]^1;
+#endif
   }
   else if (pinmode[i] == 11) {//Dimmer
     //DimmerVal = payload_is;
@@ -46,9 +41,7 @@ void callback_socket(char i, int payload_is) {
   pubStatusFULLAJAX_String(false);
 
 }
-//void loop_websocket() {
-//loop_pwm();
-//}
+
 void loop_pwm() {
   int pwm_long = pwm_delay_long * 240;
   for (unsigned char i = 0; i < nWidgets; i++) {

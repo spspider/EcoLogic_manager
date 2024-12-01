@@ -21,7 +21,7 @@
   "IR_recieve": true,
   "ws8211_loop": true,
   "save_stat": false,
-  "PWM_frequency": "40",
+  "PWM_frequency": "1000",
   "ir_loop": -1,
   "BOTtoken":"7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38"
 }

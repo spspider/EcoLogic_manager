@@ -382,13 +382,13 @@ function loadBlock(settings) {
     setVal("save_stat", data2.save_stat);
     setVal("PWM_frequency", data2.PWM_frequency);
     setVal("IR_recieve", data2.IR_recieve);
-    setHTML("PWMfreq", parseInt(data2.PWM_frequency * 100));
+    setHTML("PWMfreq", parseInt(data2.PWM_frequency));
     //handleServerResponse();
     //onLoad();
 }
 
 function FreqChange() {
-    setHTML("PWMfreq", parseInt(getVal("PWM_frequency")) * 100);
+    setHTML("PWMfreq", parseInt(getVal("PWM_frequency")));
     /*
     readTextFile("function?json={\"PWM_function\":" + parseInt(getVal("PWM_frequency")) + "}", function (callback) {
         //var data = JSON.parse(callback);
@@ -417,7 +417,7 @@ function save_status(submit, request) {
             submit_disabled(false);
         }, 1000);
     }
-    submit.value = 'Подождите...';
+    submit.value = 'Wait...';
     submit_disabled(true);
 }
 
