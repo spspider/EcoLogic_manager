@@ -1,45 +1,56 @@
-void callback_socket(char i, int payload_is) {
+void callback_socket(uint8_t i, int payload_is)
+{
   bool that_Ajax = false;
   bool saveEEPROM = false;
-  if (i == 127) { //выслать только статус
+  if (i == 127)
+  { // выслать только статус
     pubStatusFULLAJAX_String(false);
     return;
   }
 
-  if ((pinmode[i] == 2) || (pinmode[i] == 1)) { //out,in - saveEEPROM=false;
-    stat[i] = (payload_is);// ^ defaultVal[i]
+  if ((pinmode[i] == 2) || (pinmode[i] == 1))
+  {                         // out,in - saveEEPROM=false;
+    stat[i] = (payload_is); // ^ defaultVal[i]
     digitalWrite(pin[i], payload_is);
 #if defined(timerAlarm)
     check_if_there_timer_once(i);
 #endif
-  } else if (pinmode[i] == 3) {//pwm
-    if (!license)return;
+  }
+  else if (pinmode[i] == 3)
+  { // pwm
+    if (!license)
+      return;
     payload_is = defaultVal[i] != 0 ? defaultVal[i] - payload_is : payload_is;
     analogWrite(pin[i], payload_is);
     stat[i] = payload_is;
   }
-  else if (pinmode[i] == 5) {//low_pwm
-    if (!license)return;
-    //String x = payload_is;
+  else if (pinmode[i] == 5)
+  { // low_pwm
+    if (!license)
+      return;
+    // String x = payload_is;
     low_pwm[i] = payload_is;
-    stat[i] = (payload_is);// ^ defaultVal[i]
+    stat[i] = (payload_is); // ^ defaultVal[i]
   }
-  else if (pinmode[i] == 4) { //adc
+  else if (pinmode[i] == 4)
+  { // adc
   }
-  else if (pinmode[i] == 12) { //mac adress
-    if (!license)return;
-    #if defined(wakeOnLan)
-    const char* mac_adress = (const char *)descr;
+  else if (pinmode[i] == 12)
+  { // mac adress
+    if (!license)
+      return;
+#if defined(wakeOnLan)
+    const char *mac_adress = (const char *)descr;
     wakeMyPC(mac_adress);
 #endif
   }
-  else if (pinmode[i] == 11) {//Dimmer
-    //DimmerVal = payload_is;
-    //dimmer.setPower(DimmerVal);
+  else if (pinmode[i] == 11)
+  { // Dimmer
+    // DimmerVal = payload_is;
+    // dimmer.setPower(DimmerVal);
   }
-
-  pubStatusFULLAJAX_String(false);
-
+  pubStatusShortAJAX_String(i);
+  // pubStatusFULLAJAX_String(false);
 }
 
 void loop_pwm() {
@@ -69,8 +80,7 @@ void loop_pwm() {
         }
       } else {
         if (newtimePWM - oldtimePWM > (60 * 1000)) { // 60 секунд
-          analogWrite(pin[i], 286);//1.4V
-          //analogWrite(pin[i], 0);//1.4V
+          analogWrite(pin[i], 286);                  // 1.4V
           low_pwm_off = true;
           oldtimePWM = newtimePWM;
         }
@@ -91,41 +101,16 @@ void pubStatusFULLAJAX_String(bool save_eeprom) { //отправка на сер
   }
   stat1 += "}";
   String buffer = stat1;
-  //Serial.println(buffer);
   server.send(200, "text / json", buffer);
 }
+void pubStatusShortAJAX_String(uint8_t i)
+{
+  server.send(200, "text / plain", String(get_new_pin_value(i)));
+}
 
-/*
-  void pubStatusFULLAJAX_buffer(bool save_eeprom) { //отправка на сервер
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& json = jsonBuffer.createObject();
-  JsonArray& stat_array = json.createNestedArray("stat");
-  for (int i = 0; i < nWidgets; i = i + 1) {
-    //JsonObject& stat_array = networks.createNestedObject();
-    int that_stat = -123;
-    that_stat = stat[i];
-    if ((pinmode[i] == 1) || (pinmode[i] == 2)) {//int,out
-      that_stat = digitalRead(pin[i]);
-      stat[i] = that_stat;
-    }
-    else if ((pinmode[i] == 3) || (pinmode[i] == 5) ) { //pwm не знаю как сделать,статус не обновляется, как прочитать analogWrite
-
-    }
-    else if (pinmode[i] == 4) {//adc
-      int analog = (analogRead(pin[i])) ; //adc pin:A0
-      that_stat = (analog / analogDivider) + analogSubtracter;
-      stat[i] = that_stat;
-    }
-    else {
-
-    }
-
-    stat_array.add(String(that_stat));
-  }
-  Serial.print("nWidjets:" + String(nWidgets));
-  json.printTo(Serial);
-  String buffer;
-  json.printTo(buffer);
-  server.send(200, "text/json", buffer);
-  }
-*/
+// void pubStatusShortAJAX_String(uint8_t i)
+// {
+//   char buffer[6]; // Adjust the size based on the maximum length of the short int
+//   snprintf(buffer, sizeof(buffer), "%d", get_new_pin_value(i));
+//   server.send(200, "text/plain", buffer);
+// }

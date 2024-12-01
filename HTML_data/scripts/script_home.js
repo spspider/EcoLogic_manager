@@ -221,7 +221,6 @@ function SetNewStatus(Statusmessage) {
         return;
     }
 
-    var nameArr = parsetext.sTopic.split("/");
     var nameWidget = Pin_Setup.widget[id];
     var NewStatus = 0;
     if (document.getElementById(parsetext.sTopic)) {
@@ -486,7 +485,7 @@ function sendNewValue(button, id) {
 
     setHTML("input", sendJSON);
 
-    sendAJAX(button, sendJSON);
+    sendAJAX(button = button, sendJSON = sendJSON);
 
 }
 
@@ -499,34 +498,48 @@ function sendAJAX(submit, sendJSON) {
         }
         var respond_code = JSON.stringify({ "stat": stat_respond });
         console.log(respond_code);
-        RespondCode(respond_code);
+        RespondCode(respond_code, server, sendJSON);
     }
     else {
-        readTextFile(server, RespondCode);
+        // readTextFile(server, RespondCode);
+        readTextFile(server, (responseText) => RespondCode(responseText, server, sendJSON));
     }
     return false;
 }
 
-function RespondCode(responseText) {
-    //var responseText=JSON.parse(responseText1);
+function RespondCode(responseText, server, sendJSON) {
     if (responseText === null) {
         clearMyTimeout();
     }
-    setHTML("output", (responseText));
+    setHTML("output", responseText);
     try {
-        pasrse = JSON.parse(responseText);
-        var newstatus_text = {};
+        const parsedResponse = JSON.parse(responseText);
+        const newStatusText = {};
 
-        for (i = 0; i < pasrse.stat.length; i++) {
-            newstatus_text.sTopic = i + "/" + Pin_Setup.widget[i] + "/" + i;//parsetext.topic = parsetext.id + "/" + parsetext.widget + "/" + parsetext.id;
-            newstatus_text.status = parseFloat(pasrse.stat[i].toString());
-            newstatus_text.id = i;
-            newstatus_text.widjet = Pin_Setup.widget[i];
-            SetNewStatus(newstatus_text);
+        for (let i = 0; i < parsedResponse.stat.length; i++) {
+            newStatusText.sTopic = `${i}/${Pin_Setup.widget[i]}/${i}`;
+            newStatusText.status = parseFloat(parsedResponse.stat[i].toString());
+            newStatusText.id = i;
+            newStatusText.widget = Pin_Setup.widget[i];
+            SetNewStatus(newStatusText);
         }
-    } catch (e) {
-        setHTML("output", getHTML("output") + e);
+    } catch (e) {// in case of text plain value coming
+        const newStatusText = {};
+        try {
+            const request = JSON.parse(sendJSON);
+            newStatusText.id = request.t;
+            newStatusText.status = responseText
+            newStatusText.sTopic = `${request.t}/${Pin_Setup.widget[request.t]}/${request.t}`;
+            newStatusText.widget = Pin_Setup.widget[request.t];
+            SetNewStatus(newStatusText);
+        }
+        catch (e) {
+            setHTML(
+                "output",
+                getHTML("output") +
+                `<div> Server: ${server}<br>Request: ${sendJSON}</div>`
+            );
+        }
     }
 }
-
 
