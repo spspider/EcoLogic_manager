@@ -1,20 +1,17 @@
-// WifiManager 0.14.0
-//  4mb 1mb 1mb
-//  1mb 512kb 246kb
-//  arduino 2.6.3 -> 3.1.2
+
 //----------------------------------------defines-------------------------------//
 //  #define ws2811_include// активировать для ws2811
 #define will_use_serial
 // #define timerAlarm
 //  #define use_telegram
-#define pinMode
-#define ds18b20
+
+// #define ds18b20
 #define pubClient
-//#define wakeOnLan
-// #define dht
-// #define ads1115
-// #define emon
-// #define ws433
+// #define wakeOnLan
+//  #define dht
+//  #define ads1115
+//  #define emon
+//  #define ws433
 //------------------------------------------------------------------------------//
 
 // #include <Adafruit_GFX.h>
@@ -159,7 +156,6 @@ String BOTtoken = "";
 Adafruit_ADS1015 ads(0x48);
 #endif
 
-
 ///////////////////////////////
 void setup()
 {
@@ -189,7 +185,7 @@ void setup()
 #endif
 #if defined(wakeOnLan)
   setup_WOL();
-  #endif
+#endif
   setup_compass();
   // Настраиваем и запускаем SSDP интерфейс
   //   Serial.println("Start 3-SSDP");
@@ -253,8 +249,8 @@ void loop()
     check_for_changes();
 #endif
 #if defined(pubClient)
-//    subscr_loop_PLUS();
-pubClientOneSecEvent();
+    //    subscr_loop_PLUS();
+    pubClientOneSecEvent();
 #endif
     onesec_255++;
 #if defined(timerAlarm)

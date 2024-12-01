@@ -14,15 +14,13 @@ float get_new_pin_value(unsigned char i) {
     stat[i] = that_stat;
     return that_stat;
   }
-  if ((pinmode[i] == 2) || (pinmode[i] == 3) || (pinmode[i] == 5)) { //out
+  if ((pinmode[i] == 2))
+  { // out
     that_stat = digitalRead(pin[i]);
-    //stat[i] = that_stat;
     return that_stat;
   }
-  if (pinmode[i] == 4) {//adc
-    if (!license)return 127;
-    //that_stat = (analogRead(pin[i]) / analogDivider) + analogSubtracter; //adc pin:A0
-    //that_stat = (analogRead(17) - analogSubtracter) / analogDivider * 1.0F;
+  if ((pinmode[i] == 4) || (pinmode[i] == 3))
+  { // pwm, adc
     stat[i] = (int)that_stat;
     return that_stat;
   }
@@ -119,16 +117,6 @@ float get_new_pin_value(unsigned char i) {
 #endif
     return that_stat;
   }
-
-  /*
-    case 11:
-
-
-
-    break;
-  */
-
-  //  that_stat = (isnan(that_stat) || isnanf (that_stat)) ? stat[i] : that_stat;
   if ((isnan(that_stat)) || ( isinf (that_stat))) {
     that_stat =  stat[i];//0
     return that_stat;
