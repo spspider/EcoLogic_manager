@@ -524,8 +524,8 @@ function RespondCode(responseText, server, sendJSON) {
             SetNewStatus(newStatusText);
         }
     } catch (e) {// in case of text plain value coming
-        const newStatusText = {};
         try {
+            const newStatusText = {};
             const request = JSON.parse(sendJSON);
             newStatusText.id = request.t;
             newStatusText.status = responseText
