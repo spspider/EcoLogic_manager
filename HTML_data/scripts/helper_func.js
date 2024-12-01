@@ -45,24 +45,15 @@ function saveData(filename, data, returnCallback) {
 }
 
 function readTextFile(file, callback) {
-    //var rawFile = new XMLHttpRequest();
     var xmlHttp = createXmlHttpObject();
     xmlHttp.overrideMimeType("application/json");
     xmlHttp.open("GET", file, true);
     xmlHttp.timeout = 10000;
-    /*
-     xmlHttp.ontimeout = function () {
-     callback("no file");
-     }
-     */
     xmlHttp.onreadystatechange = function () {
 
         if (xmlHttp.readyState === 4) {
             if (xmlHttp.status === 200) {
-
                 callback(xmlHttp.responseText);
-
-
             } else {
                 //callback(null);
             }
