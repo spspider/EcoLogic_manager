@@ -7,8 +7,9 @@
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <link rel="stylesheet" type="text/css" href="scripts/style_generated.css">
     <!-- <link sync rel="stylesheet" type="text/css" href="style_pin_setup.css"> -->
-    <script sync type="text/javascript" src="scripts/helper_func.js"></script>
-    <script sync type="text/javascript" src="scripts/pin_setup_post.js"></script>
+    <script defer type="text/javascript" src="scripts/helper_func.js"></script>
+    <script defer type="text/javascript" src="scripts/pin_setup_post.js"></script>
+    <script defer type="text/javascript" src="scripts/pin_setup_gpt.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="public" />
     <style>
@@ -21,7 +22,6 @@
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="row" style="text-align:center;">
@@ -30,7 +30,7 @@
                     <h4>button setup</h4>
                     <div class="row"></div>
                     <div id='sel1div'> </div>
-                    <script sync type="text/javascript" src="scripts/pin_setup_gpt.js"></script>
+                    
                     </row>
                     <div class="row">
                         <div class="col-lg-6">
@@ -47,8 +47,6 @@
                                 <input type='text' class="form-control" name='PWM_interval' id="PWM_interval"
                                     value="{{PWM_interval}}" />
                             </div>
-
-
                             <div>
                                 power correction:
                                 <input type='text' class="form-control" name='PCorr' id="PCorr" value="{{PCorr}}" />
@@ -56,13 +54,11 @@
                         </div>
                     </div>
                 </form>
-                <input type='submit' class="btn btn-lg btn-primary btn-block" value='save' onclick="makePOST();" />
-
+                <input type='submit' class="btn btn-lg btn-primary btn-block" value='save' onclick="makeSave();" />
                 <br>
                 <div id='output'>...</div>
-                <script>setHTML("btmBtns", bottomButtons());</script>
                 <p id="btmBtns"></p>
-
+                <script></script>
             </div>
         </div>
 

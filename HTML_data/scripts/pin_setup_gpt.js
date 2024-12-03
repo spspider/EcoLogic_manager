@@ -193,3 +193,5 @@ function renderTable() {
 
 renderTable();
 
+btnbtns = document.getElementById('btmBtns');
+btnbtns.appendChild(bottomButtons2());
