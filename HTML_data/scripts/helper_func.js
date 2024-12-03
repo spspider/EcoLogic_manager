@@ -336,3 +336,26 @@ function bottomButtons() {
         " </div>";
     return btmBtns;
 }
+
+function bottomButtons2() {
+    const btmBtns = document.createElement('div');
+    btmBtns.className = 'btn-group btn-group-justified';
+    const buttons = [
+        { href: '/', text: 'cont' },
+        { href: '/wifi', text: 'Wifi' },
+        { href: '/other_setup', text: 'conn' },
+        { href: '/pin_setup', text: 'buttons' },
+        { href: '/condition', text: 'condition' },
+        { href: '/ws2811.html', text: 'ws2811' },
+        { href: '/help', text: '?' }
+    ];
+    buttons.forEach(button => {
+        const a = document.createElement('a');
+        a.className = 'btn btn-block btn-default';
+        a.type = 'button';
+        a.href = button.href;
+        a.textContent = button.text;
+        btmBtns.appendChild(a);
+    });
+    return btmBtns;
+}
