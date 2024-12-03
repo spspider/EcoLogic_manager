@@ -181,13 +181,19 @@ function renderTable() {
     // Save Button
     const saveButton = document.createElement('button');
     saveButton.textContent = 'Save';
-    saveButton.onclick = () => {
-        const blob = new Blob([JSON.stringify(tableData, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'pinout.txt';
-        a.click();
-    };
+    // saveButton.onclick = () => {
+    //     const blob = new Blob([JSON.stringify(tableData, null, 2)], { type: 'application/json' });
+    //     const a = document.createElement('a');
+    //     a.href = URL.createObjectURL(blob);
+    //     a.download = 'pinout.txt';
+    //     a.click();
+    // };
+    // function makeSave() {
+    //     const jsonStr2 = JSON.stringify(tableData, null, 2);
+    //     saveData("pin_setup.txt", jsonStr2, function (callback) {
+    //         document.getElementById("output").appendChild(alert_message(callback));
+    //     });
+    // }
     container.appendChild(saveButton);
 }
 
