@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Table with Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <script>
+        const jsonData = {
+            "numberChosed": 3,
+            "pinmode": [2, 2, 16],
+            "pin": [0, 16, 2],
+            "descr": ["roll_enable", "roll1_direction_0_down", "temp bedroom1"],
+            "widget": [1, 1, 5],
+            "IrBtnId": [255, 255, 255],
+            "defaultVal": [1, 1, 0]
+        };
+
+        function saveDataLocally(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        function loadDataLocally(key) {
+            return JSON.parse(localStorage.getItem(key));
+        }
+
+        function createTable(data) {
+            const table = document.createElement('table');
+            table.id = "widgetTable";
+
+            data.descr.forEach((description, index) => {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+
+                const widgetType = data.widget[index];
+                let widget;
+
+                switch (widgetType) {
+                    case 1: // Button
+                    case 2: // Button
+                        widget = document.createElement('button');
+                        widget.textContent = description;
+                        widget.onclick = () => handleWidgetClick(index, widgetType, widget);
+                        break;
+                    case 3: // Range
+                        widget = document.createElement('input');
+                        widget.type = 'range';
+                        widget.min = 0;
+                        widget.max = 1024;
+                        widget.value = data.defaultVal[index] || 0;
+                        widget.onchange = () => handleWidgetClick(index, widgetType, widget);
+                        break;
+                    case 4: // Progress Bar
+                        widget = document.createElement('progress');
+                        widget.max = 100;
+                        widget.value = data.defaultVal[index] || 0;
+                        break;
+                    case 5: // Chart
+                        widget = createChartWidget(description, index);
+                        break;
+                    case 6: // Data Show
+                        widget = document.createElement('div');
+                        widget.textContent = data.defaultVal[index] || "Output";
+                        break;
+                    default:
+                        widget = document.createTextNode('Unknown Widget');
+                }
+
+                cell.appendChild(widget);
+                row.appendChild(cell);
+                table.appendChild(row);
+            });
+
+            const timeoutRow = document.createElement('tr');
+            const timeoutCell = document.createElement('td');
+            const timeoutInput = document.createElement('input');
+            timeoutInput.type = 'number';
+            timeoutInput.value = loadDataLocally('timeout') || 10;
+            timeoutInput.onchange = () => saveDataLocally('timeout', timeoutInput.value);
+            timeoutCell.textContent = 'Update Interval (seconds): ';
+            timeoutCell.appendChild(timeoutInput);
+            timeoutRow.appendChild(timeoutCell);
+            table.appendChild(timeoutRow);
+
+            document.body.appendChild(table);
+
+            saveDataLocally('widgetData', data);
+        }
+
+        function createChartWidget(description, index) {
+            const chartContainer = document.createElement('div');
+            chartContainer.style.width = "400px";
+            chartContainer.style.height = "200px";
+            const canvas = document.createElement('canvas');
+            canvas.id = `chart-${index}`;
+            chartContainer.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [], // Time points
+                    datasets: [{
+                        label: description,
+                        data: [], // Values
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: 'Time' } },
+                        y: { title: { display: true, text: 'Value' } }
+                    }
+                }
+            });
+
+            // Store the chart reference globally for updating later
+            window[`chart_${index}`] = chart;
+            return chartContainer;
+        }
+
+        function updateChart(index, value) {
+            const chart = window[`chart_${index}`];
+            if (chart) {
+                const currentTime = new Date().toLocaleTimeString();
+                chart.data.labels.push(currentTime);
+                chart.data.datasets[0].data.push(value);
+
+                if (chart.data.labels.length > 20) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                }
+
+                chart.update();
+            }
+        }
+
+        function handleWidgetClick(index, type, widget) {
+            const value = type === 3 ? widget.value : widget.textContent === "0" ? 1 : 0;
+            const sendJSON = JSON.stringify({ t: index, v: value });
+
+            sendAJAX(widget, sendJSON);
+        }
+
+        function sendAJAX(button, sendJSON) {
+            const DEBUG = true;
+            const server = "/sendAJAX?json=" + sendJSON;
+
+            if (DEBUG) {
+                console.log("Sending JSON:", sendJSON);
+                const response = { stat: ["1023", "1", "512"] };
+                updateTable(response);
+            } else {
+                fetch(server)
+                    .then(response => response.json())
+                    .then(data => updateTable(data))
+                    .catch(console.error);
+            }
+        }
+
+        function updateTable(response) {
+            const table = document.getElementById('widgetTable');
+            const rows = table.getElementsByTagName('tr');
+
+            response.stat.forEach((value, index) => {
+                const cell = rows[index]?.cells[0]?.firstChild;
+                if (cell) {
+                    if (cell.tagName === 'INPUT' && cell.type === 'range') {
+                        cell.value = value;
+                    } else if (cell.tagName === 'DIV' || cell.tagName === 'PROGRESS') {
+                        cell.textContent = value;
+                        cell.value = value;
+                    } else if (cell.tagName === 'BUTTON') {
+                        cell.textContent = value;
+                    }
+
+                    if (cell.tagName === 'DIV' && cell.querySelector('canvas')) {
+                        updateChart(index, value);
+                    }
+                }
+            });
+        }
+
+        function periodicStatusCheck() {
+            const timeout = loadDataLocally('timeout') || 10;
+            const sendJSON = JSON.stringify({ t: 127, v: 0 });
+
+            setInterval(() => {
+                sendAJAX(null, sendJSON);
+            }, timeout * 1000);
+        }
+
+        window.onload = () => {
+            const data = loadDataLocally('widgetData') || jsonData;
+            createTable(data);
+            periodicStatusCheck();
+        };
+    </script>
+</body>
+
+</html>
