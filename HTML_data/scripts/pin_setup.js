@@ -7,14 +7,31 @@ const availablePins = {
     "ADC": [0],
 };
 
-const tableData = JSON.parse(localStorage.getItem('tableData')) || {
-    pinmode: [2, 2, 16],
-    pin: [0, 16, 2],
-    descr: ["roll_enable", "roll1_direction_0_down", "temp bedroom1"],
-    widget: [1, 1, 5],
-    IrBtnId: [255, 255, 255],
-    defaultVal: [1, 1, 0]
-};
+readTextFile("pin_setup.txt", function (result) {
+    const tableData = JSON.parse(result)
+})
+
+
+let tableData;
+
+function fetchTableDataAndUpdateUI() {
+    readTextFile("pin_setup.txt", function (result) {
+        if (result !== 404) {
+            tableData = JSON.parse(result);
+        } else {
+            tableData = {
+                pinmode: [2, 2, 16],
+                pin: [0, 16, 2],
+                descr: ["roll_enable", "roll1_direction_0_down", "temp bedroom1"],
+                widget: [1, 1, 5],
+                IrBtnId: [255, 255, 255],
+                defaultVal: [1, 1, 0]
+            };
+            console.error('Failed to fetch pin_setup.txt file. Using default values.');
+        }
+        renderTable();
+    });
+}
 
 function saveDataToLocalStorage() {
     localStorage.setItem('tableData', JSON.stringify(tableData));
@@ -185,7 +202,9 @@ function makeSave() {
         document.getElementById("output").appendChild(alert_message(callback));
     });
 }
-renderTable();
+// renderTable();
+
+fetchTableDataAndUpdateUI();
 
 btnbtns = document.getElementById('btmBtns');
 btnbtns.appendChild(bottomButtons2());
