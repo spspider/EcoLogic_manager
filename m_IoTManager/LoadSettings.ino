@@ -50,9 +50,9 @@ bool loadConfig(File jsonConfig)
 
   jsonDocument.containsKey("ws8211_loop") ? ws8211_loop = jsonDocument["ws8211_loop"] : ws8211_loop = 0;
   jsonDocument.containsKey("save_stat") ? save_stat = jsonDocument["save_stat"] : save_stat = 0;
-  jsonDocument.containsKey("PWM_frequency") ? PWM_frequency = jsonDocument["PWM_frequency"] : PWM_frequency = 1;
-  unsigned int freq = PWM_frequency; // from 100Hz to 40000
-  analogWriteFreq(freq);             // frequency for PWM
+  // jsonDocument.containsKey("PWM_frequency") ? PWM_frequency = jsonDocument["PWM_frequency"] : PWM_frequency = 1;
+  // unsigned int freq = PWM_frequency; // from 100Hz to 40000
+  // analogWriteFreq(freq);             // frequency for PWM
   // analogWriteRange(1023);
   jsonDocument.containsKey("IR_recieve") ? IR_recieve = jsonDocument["IR_recieve"] : IR_recieve = 0;
 
