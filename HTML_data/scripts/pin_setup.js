@@ -1,15 +1,26 @@
 ﻿const inputPinmode = ["no", "in", "out", "PWM", "ADC"];
 const inputWidget = ['unknown', 'switch', 'button', 'progress', 'progress-bar', 'chart', 'data'];
 const availablePins = {
-    "in": [5, 4, 14, 12, 13],
-    "out": [16, 5, 4, 0, 2, 14, 12, 13, 15, 3, 1],
-    "PWM": [4, 5, 12, 14, 15],
-    "ADC": [0],
+    "in": [5, 4, 14, 12, 13, 3, 17],
+    "out": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
+    "PWM": [4, 5, 0, 2, 12, 14, 13, 15, 1],
+    "ADC": [17],
 };
 
-readTextFile("pin_setup.txt", function (result) {
-    const tableData = JSON.parse(result)
-})
+const pinInfo = {
+    0: "D3, No interrupt, OK output. Connected to FLASH button, boot fails if pulled LOW. Pulled up.",
+    1: "TX, TX pin, OK output. HIGH at boot, debug output at boot, boot fails if pulled LOW.",
+    2: "D4, Pulled up, OK output. HIGH at boot, connected to on-board LED, boot fails if pulled LOW.",
+    3: "RX, OK input, RX pin. HIGH at boot.",
+    4: "D2, OK input, OK output. Often used as SDA (I2C).",
+    5: "D1, OK input, OK output. Often used as SCL (I2C).",
+    12: "D6, OK input, OK output. SPI (MISO).",
+    13: "D7, OK input, OK output. SPI (MOSI).",
+    14: "D5, OK input, OK output. SPI (SCLK).",
+    15: "D8, Pulled to GND, OK output. SPI (CS), Boot fails if pulled HIGH.",
+    16: "D0, No interrupt, No PWM or I2C support. HIGH at boot, used to wake up from deep sleep.",
+    17: "A0, Analog Input, Not available for Digital I/O."
+};
 
 
 let tableData;
@@ -89,10 +100,31 @@ function renderTable() {
             if (pin === tableData.pin[index]) option.selected = true;
             pinSelect.appendChild(option);
         });
+
         pinSelect.onchange = () => {
             tableData.pin[index] = parseInt(pinSelect.value);
             saveDataToLocalStorage();
         };
+        //the code for a hint:
+        pinSelect.addEventListener("mouseover", function (event) {
+            if (pinInfo[event.target.value]) {
+                const tooltip = document.createElement("div");
+                tooltip.className = "tooltip";
+                tooltip.textContent = pinInfo[event.target.value];
+                tooltip.style.position = "absolute";
+                tooltip.style.left = `${event.clientX + 10}px`;
+                tooltip.style.top = `${event.clientY + 10}px`;
+                document.body.appendChild(tooltip);
+            }
+        });
+
+        pinSelect.addEventListener("mouseout", function () {
+            const tooltips = document.getElementsByClassName("tooltip");
+            while (tooltips.length > 0) {
+                tooltips[0].parentNode.removeChild(tooltips[0]);
+            }
+        });
+        //end hint
         pinCell.appendChild(pinSelect);
         row.appendChild(pinCell);
 
@@ -183,7 +215,7 @@ function renderTable() {
     // Add Row Button
     const addRowButton = document.createElement('button');
     addRowButton.textContent = 'Add Row';
-    addRowButton.className = 'form-control';
+    addRowButton.className = "btn btn-lg btn-primary btn-block";
     addRowButton.onclick = () => {
         tableData.pinmode.push(0);
         tableData.pin.push(0);
