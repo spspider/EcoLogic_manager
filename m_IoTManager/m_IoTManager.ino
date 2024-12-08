@@ -5,7 +5,7 @@
 // #define timerAlarm
 //  #define use_telegram
 
-#define ds18b20
+// #define ds18b20
 #define pubClient
 // #define wakeOnLan
 // #define dht

@@ -2,8 +2,8 @@
 
 unsigned long newtimePWM, oldtimePWM;
 uint8_t oldtime = 0;
-char nWidgets = 9;
-const char nWidgetsArray = 9;
+char nWidgets = 10;
+const char nWidgetsArray = 10;
 short int stat[nWidgetsArray];
 //char widget[nWidgetsArray]; // inputWidjet[0] = 'unknown';1 = 'toggle';2 = 'simple-btn';4 = 'range';4 = 'small-badge';5 = 'chart';
 char descr[nWidgetsArray][10];
