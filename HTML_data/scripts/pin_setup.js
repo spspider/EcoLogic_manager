@@ -35,7 +35,7 @@ const availablePins = {
     "EncA": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
     "EncB": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
     "ads1115": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
-    "ds18b20": [5, 4, 14, 12, 13, 3, 17],
+    "ds18b20": [5, 4, 14, 12, 13, 3, 17, 2],
 };
 
 const pinInfo = {
@@ -290,13 +290,14 @@ function renderTable() {
         renderTable();
     };
     container.appendChild(addRowButton);
+    tableData.numberChosed = tableData.pinmode.length
 }
 function makeSave() {
     const jsonStr2 = JSON.stringify(tableData, null, 2);
     document.getElementById("output").appendChild(alert_message(jsonStr2));
-    // saveData("pin_setup.txt", jsonStr2, function (callback) {
-    //     document.getElementById("output").appendChild(alert_message(callback));
-    // });
+    saveData("pin_setup.txt", jsonStr2, function (callback) {
+        document.getElementById("output").appendChild(alert_message(callback));
+    });
 }
 // renderTable();
 
