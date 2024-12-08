@@ -154,6 +154,7 @@ void handleFileUpload()
       uploadFile.close();
     }
     DBG_OUTPUT_PORT.println(String("Upload: END, Size: ") + upload.totalSize);
+    replyOKWithMsg("OK");
   }
 }
 void deleteRecursive(String path)
