@@ -280,12 +280,14 @@ function renderTable() {
     addRowButton.textContent = 'Add Row';
     addRowButton.className = "btn btn-lg btn-primary btn-block";
     addRowButton.onclick = () => {
-        tableData.pinmode.push(0);
-        tableData.pin.push(0);
-        tableData.descr.push('');
-        tableData.widget.push(0);
-        tableData.IrBtnId.push(0);
-        tableData.defaultVal.push(0);
+        if (tableData.pinmode.length < 10) {
+            tableData.pinmode.push(0);
+            tableData.pin.push(0);
+            tableData.descr.push('');
+            tableData.widget.push(0);
+            tableData.IrBtnId.push(0);
+            tableData.defaultVal.push(0);
+        }
         saveDataToLocalStorage();
         renderTable();
     };
