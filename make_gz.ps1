@@ -33,7 +33,6 @@ $fileList = @(
     "IR_recieve.js",
     "other_setup.js",
     "pin_setup.js",
-    "pin_setup_post.js",
     "script_home.js",
     "style_generated.css",
     "wifi_setup.js",

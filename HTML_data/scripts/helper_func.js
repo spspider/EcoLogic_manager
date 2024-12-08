@@ -16,38 +16,9 @@ function createXmlHttpObject() {
 
 var Activation = -1;
 
-// function saveData(filename, data, returnCallback) {
-//     var xmlHttp = createXmlHttpObject();
-//     data = testJson(data) ? JSON.parse(data) : data;
-//     var file = new Blob([JSON.stringify(data)], {type: "text/plain;charset=utf-8"});
-//     var a = new FormData();
-//     a.append("data", file, filename);
-//     xmlHttp.open("POST", "/edit");
-//     xmlHttp.send(a);
-//     xmlHttp.onreadystatechange = function () {
-//         if (xmlHttp.readyState == 4) {
-//             if (xmlHttp.status != 200) {
-//                 returnCallback("ERROR[" + xmlHttp.status + "]: " + xmlHttp.responseText);
-//             } else {
-//                 returnCallback(xmlHttp.responseText);
-//             }
-//         }
-//     };
-//     xmlHttp.onloadend = function () {
-//         if (xmlHttp.status === 404) {
-//             returnCallback("404");
-//         }
-//         if (xmlHttp.status === 200) {
-//             returnCallback(JSON.stringify(data));
-//         }
-//     };
-//     //returnCallback(null);
-// }
 function saveData(filename, data, returnCallback) {
     var xmlHttp = createXmlHttpObject();
-
     try {
-        // Parse data if it's a JSON string
         if (testJson(data)) {
             data = JSON.parse(data);
         }
@@ -55,11 +26,9 @@ function saveData(filename, data, returnCallback) {
         returnCallback("JSON Parse Error: " + e.message);
         return;
     }
-
-    var file = new Blob([JSON.stringify(data)], {type: "text/plain;charset=utf-8"});
+    var file = new Blob([JSON.stringify(data)], { type: "text/plain;charset=utf-8" });
     var formData = new FormData();
     formData.append("data", file, filename);
-
     var hasCalledBack = false; // to make sure callback is called only once
     function handleResponse() {
         if (xmlHttp.readyState === 4) {
@@ -76,16 +45,16 @@ function saveData(filename, data, returnCallback) {
             }
         }
     }
-
     xmlHttp.onreadystatechange = handleResponse;
     xmlHttp.onloadend = function () {
-        if (xmlHttp.status !== 200 && !hasCalledBack) { // handle other statuses
-            returnCallback("HTTP Error Status: " + xmlHttp.status);
+        if (xmlHttp.status == 200) { // handle other statuses
+            returnCallback(xmlHttp.responseText);
             hasCalledBack = true;
         }
     };
 
     xmlHttp.open("POST", "/edit", true);
+    xmlHttp.timeout = 4000;
     xmlHttp.send(formData);
 }
 function readTextFile(file, callback) {
@@ -123,7 +92,7 @@ function readTextFiles_array(files, callback) {
     } else {
         // Read the first file in the array using readTextFile
         var file = files[0];
-        readTextFile(file, function(result) {
+        readTextFile(file, function (result) {
             if (result === 404) {
                 // Handle file not found error
             } else {
@@ -321,7 +290,7 @@ function send_code_back() {
         if (parseInt(callback) === 1) {
             alert("activated:");
         } else {
-            alert("wrong code:"+callback);
+            alert("wrong code:" + callback);
         }
     });
 };
