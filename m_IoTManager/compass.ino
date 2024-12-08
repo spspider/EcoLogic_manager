@@ -1,9 +1,6 @@
-int low_compass_fuel;
-void setup_compass() {
-
-}
-/*
-  void setup_compass() {
+#if defined(as5600)
+void setup_compass()
+{
   ///////////////compass/////////////
 
   Wire.begin();
@@ -13,8 +10,7 @@ void setup_compass() {
   //pinMode(pin[i], OUTPUT);
   compass.reset();
   Serial.println("Compass Ready");
-
-  }
+}
 
   float get_fuel_value() {
 
@@ -29,45 +25,48 @@ void setup_compass() {
   }
   return compass_read ;
   }
-*/
-float setFUllFuel(uint8_t full_fuel) {
-  //high_compass_fuel = compass.readHeading();
+#endif
+  float setFUllFuel(uint8_t full_fuel)
+  {
+    // high_compass_fuel = compass.readHeading();
+#if defined(as5600)
+    analogDivider = (encoder.getAngle() - analogSubtracter) / (full_fuel * 1.00F);
+#endif
+    savePinSetup();
 
- // analogDivider = (encoder.getAngle()  - analogSubtracter) / (full_fuel * 1.00F);
+    return analogDivider;
+  }
+  float setZeroFuel()
+  {
+#if defined(as5600)
+    analogSubtracter = encoder.getAngle();
+#endif
+    savePinSetup();
 
-  savePinSetup();
-
-  return analogDivider;
-}
-float setZeroFuel() {
-
- // analogSubtracter = encoder.getAngle() ;
-  savePinSetup();
-
-  return analogSubtracter;
-}
-
-bool savePinSetup() {
-  File buffer_read = SPIFFS.open("/pin_setup.txt", "r"); 
-  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
-  DeserializationError error = deserializeJson(jsonDocument, buffer_read);
-
-  if (error) {
-    Serial.print("Failed to parse JSON: ");
-    Serial.println(error.c_str());
-    return false;
+    return analogSubtracter;
   }
 
-  JsonObject json = jsonDocument.as<JsonObject>();
-  json["aDiv"] = analogDivider;
-  json["aSusbt"] = analogSubtracter;
+  bool savePinSetup()
+  {
+    File buffer_read = SPIFFS.open("/pin_setup.txt", "r");
+    DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+    DeserializationError error = deserializeJson(jsonDocument, buffer_read);
 
-  String buffer;
-  serializeJson(json, buffer);
-  //Serial.println(buffer);
-  saveCommonFiletoJson("pin_setup", buffer, 1);
+    if (error)
+    {
+      Serial.print("Failed to parse JSON: ");
+      Serial.println(error.c_str());
+      return false;
+    }
 
-  return true;
-}
+    JsonObject json = jsonDocument.as<JsonObject>();
+    json["aDiv"] = analogDivider;
+    json["aSusbt"] = analogSubtracter;
 
+    String buffer;
+    serializeJson(json, buffer);
+    // Serial.println(buffer);
+    saveCommonFiletoJson("pin_setup", buffer, 1);
 
+    return true;
+  }

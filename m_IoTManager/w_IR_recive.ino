@@ -21,9 +21,6 @@
 //#define TIMEOUT 15U  // Suits most messages, while not swallowing many repeats.
 //#endif  // DECODE_AC
 
-uint16_t RECV_PIN = 14;
-uint16_t SEND_PIN = 15;
-
 //включить для кондиционеров
 IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);//ON!!!
 //IRrecv irrecv(RECV_PIN);

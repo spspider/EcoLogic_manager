@@ -34,8 +34,8 @@ const availablePins = {
     "MAC address": [255],
     "EncA": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
     "EncB": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
-    "ads1115": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
-    "ds18b20": [5, 4, 14, 12, 13, 3, 17, 2],
+    "ads1115": [5, 4], // hardcoded, pins 5,4 will be used for SCL SCA
+    "ds18b20": [2], //should be hardcoded in scheme d7 - GPIO13, possible pins GPIO 2
 };
 
 const pinInfo = {
@@ -58,6 +58,7 @@ const pinModeInfo = {
     "in": "the input pin will be inverted, if it 0 - it will be triggered by gnd, if 1 - by 3.3V",
     "PWM": "in case if DefaultValue not 0, all value will be taken from actual value",
     "ADC": "will be ignorred",
+    "ads1115": "hardcoded, pins 5, 4 will be used for SCL SCA",
     "ds18b20": "Default Value - will be number of connected items",
 }
 const modeValues = {
