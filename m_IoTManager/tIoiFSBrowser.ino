@@ -667,12 +667,13 @@ void FunctionHTTP()
       server.send(200, "text/plain", "license=" + String(license, DEC));
     }
   }
-
+#if defined(as5600)
   if (jsonDocument.containsKey("EncoderIA"))
   {
     no_internet_timer = jsonDocument["rotations"];
     server.send(200, "text/plain", server.arg("json"));
   }
+#endif
 
   if (jsonDocument.containsKey("sendIR"))
   {

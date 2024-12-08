@@ -10,3 +10,8 @@ https://www.espressif.com/en/products/socs/esp8266ex/resources
 ![node-mcu](https://github.com/spspider/m_IoTManager/assets/19464941/4b343add-5d4f-47e1-866e-012ea1c30b3d)
 
 ![09083014](https://github.com/spspider/m_IoTManager/assets/19464941/c378b407-35a7-4897-b725-7ed149a06c65)
+
+
+
+publient - если не подключается, то интервал подключения
+IR - сделать, проверить где пин вход выход

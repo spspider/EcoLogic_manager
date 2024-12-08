@@ -6,7 +6,9 @@
 //  #define use_telegram
 
 // #define ds18b20
-#define pubClient
+// #define pubClient
+// #define ir_code
+// #define as
 // #define wakeOnLan
 // #define dht
 //  #define ads1115
@@ -16,6 +18,11 @@
 
 // #include <Adafruit_GFX.h>
 // #include <gfxfont.h>
+
+// -----------------------DEFINING PINS----------------------------------
+#define ONE_WIRE_BUS 2
+#define RECV_PIN 14 // IR recieve
+#define SEND_PIN 15 // IR send
 
 // #include <WiFiManager.h>     //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 #include <DNSServer.h>
@@ -27,7 +34,6 @@
 #if defined(ds18b20)
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#define ONE_WIRE_BUS 2
 OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
@@ -40,8 +46,10 @@ PubSubClient client(wclient); // for cloud broker - by hostname
 #endif
 #include <ESP8266WebServer.h> //Local WebServer used to
 //////////////////////////////////compass
-// #include <AS5600.h>
-// AS5600 encoder;
+#if defined(as5600)
+#include <AS5600.h>
+AS5600 encoder;
+#endif
 ////////////////////////////////////////////
 // serve the configuration portal
 #include <FS.h>
@@ -78,7 +86,7 @@ float PowerCorrection = 111.1;
 
 /* Don't set this wifi credentials. They are configurated at runtime and stored on EEPROM */
 bool try_MQTT_access = false;
-bool IOT_Manager_loop = 0;
+bool IOT_Manager_loop = false;
 int no_internet_timer = 0;
 bool internet = false;
 //////////////////CaptivePortalAdvanced
@@ -181,7 +189,9 @@ void setup()
 #if defined(wakeOnLan)
   setup_WOL();
 #endif
+#if defined(as5600)
   setup_compass();
+#endif
   // Настраиваем и запускаем SSDP интерфейс
   //   Serial.println("Start 3-SSDP");
   SSDP_init();
