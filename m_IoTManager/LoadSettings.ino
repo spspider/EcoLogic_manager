@@ -88,13 +88,11 @@ void Setup_pinmode(bool stat_loaded)
       { // in
         defaultVal[i] == 0 ? pinMode(pin[i], INPUT_PULLUP) : pinMode(pin[i], INPUT);
         stat[i] = (digitalRead(pin[i] ^ defaultVal[i]));
-        Serial.println("set input:" + String(pin[i], DEC) + " i:" + i);
       }
       if ((pinmode[i] == 2))
       { // out
         pinMode(pin[i], OUTPUT);
         digitalWrite(pin[i], stat[i]);
-        Serial.println("set output:" + String(pin[i], DEC) + " i:" + String(i, DEC) + " stat:" + stat[i] + " def:" + String(defaultVal[i], DEC));
       }
       if ((pinmode[i] == 3) || (pinmode[i] == 7))
       { // pwm,MQ7
@@ -109,12 +107,9 @@ void Setup_pinmode(bool stat_loaded)
       //   Serial.println("set low_pwm:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String(stat[i], DEC));
       // }
       if (pinmode[i] == 4)
-      { // adc// analogDivider analogSubtracter
-        // stat[i] = (analogRead(17) * 1.0F / analogDivider) + analogSubtracter; //adc pin:A0//
+      {
         stat[i] = (analogRead(17) * 1.0F - analogSubtracter) / analogDivider; // adc pin:A0//
-        // Serial.println("read adc:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String( stat[i], DEC));
       }
-
       if ((pinmode[i] == 6) || (pinmode[i] == 8))
       { // dht temp
 #if defined(dht)
@@ -136,8 +131,6 @@ void Setup_pinmode(bool stat_loaded)
 #endif
       }
     }
-
-    // get_new_pin_value(i);
   }
 }
 
@@ -251,7 +244,6 @@ bool updatepinsetup(File jsonrecieve)
   {
     pinmode[i] = jsonDocument["pinmode"][i];
     pin[i] = jsonDocument["pin"][i];
-    //widget[i] = jsonDocument["widget"][i];
     defaultVal[i] = jsonDocument["defaultVal"][i];
     IrButtonID[i] = jsonDocument["IrBtnId"][i];
     id[i] = i;
@@ -259,9 +251,9 @@ bool updatepinsetup(File jsonrecieve)
     strncpy(descr[i], jsonDocument["descr"][i], sizeof(descr[i]) - 1);
   }
 
-  analogDivider = jsonDocument["aDiv"];
-  analogSubtracter = jsonDocument["aSusbt"];
-  pwm_delay_long = jsonDocument["PWM_interval"];
+  analogDivider = jsonDocument.containsKey("aDiv") ? jsonDocument["aDiv"] : 1.0F;
+  analogSubtracter = jsonDocument.containsKey("aSusbt") ? jsonDocument["aSusbt"] : 0;
+  pwm_delay_long = jsonDocument.containsKey("PWM_interval") ? jsonDocument["PWM_interval"] : 60;
 
 #if defined(emon)
   PowerCorrection = jsonDocument.containsKey("PCorr") ? jsonDocument["PCorr"] : 111.1;

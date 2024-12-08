@@ -1,10 +1,41 @@
-﻿const inputPinmode = ["no", "in", "out", "PWM", "ADC"];
+﻿const inputPinmode = [
+    "no",
+    "in",
+    "out",
+    "PWM",
+    "ADC",
+    "low. PWM",
+    "DHT 1.1 Temp",
+    "power MQ7",
+    "DHT 1.1 Mist",
+    "remote http",
+    "power meter",
+    "as5600",
+    "MAC address",
+    "EncA",
+    "EncB",
+    "ads1115",
+    "ds18b20"
+];
+
 const inputWidget = ['unknown', 'switch', 'button', 'progress', 'progress-bar', 'chart', 'data'];
 const availablePins = {
+    "no": [255],
     "in": [5, 4, 14, 12, 13, 3, 17],
     "out": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
     "PWM": [4, 5, 0, 2, 12, 14, 13, 15, 1],
     "ADC": [17],
+    "low. PWM": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
+    "DHT 1.1 Temp": [5, 4, 14, 12, 13, 3, 17],
+    "DHT 1.1 Mist": [5, 4, 14, 12, 13, 3, 17],
+    "remote http": [255],
+    "power meter": [255],
+    "as5600": [5, 4, 14, 12, 13, 3, 17],
+    "MAC address": [255],
+    "EncA": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
+    "EncB": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
+    "ads1115": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
+    "ds18b20": [5, 4, 14, 12, 13, 3, 17],
 };
 
 const pinInfo = {
@@ -19,9 +50,21 @@ const pinInfo = {
     14: "D5, OK input, OK output. SPI (SCLK).",
     15: "D8, Pulled to GND, OK output. SPI (CS), Boot fails if pulled HIGH.",
     16: "D0, No interrupt, No PWM or I2C support. HIGH at boot, used to wake up from deep sleep.",
-    17: "A0, Analog Input, Not available for Digital I/O."
+    17: "A0, Analog Input, Not available for Digital I/O.",
+    255: "there is no pin, guess that is -1"
 };
-
+const pinModeInfo = {
+    "out": "you can write 0 or 1, in case of 0 - the output will not be inverted, in 1 - inverted",
+    "in": "the input pin will be inverted, if it 0 - it will be triggered by gnd, if 1 - by 3.3V",
+    "PWM": "in case if DefaultValue not 0, all value will be taken from actual value",
+    "ADC": "will be ignorred",
+    "ds18b20": "Default Value - will be number of connected items",
+}
+const modeValues = {
+    "in": { min: 0, max: 1 },
+    "out": { min: 0, max: 1 },
+    "ADC": { min: 0, max: 1024 }
+};
 
 let tableData;
 
@@ -51,10 +94,8 @@ function saveDataToLocalStorage() {
 function renderTable() {
     const container = document.getElementById('sel1div');
     container.innerHTML = '';
-
     const table = document.createElement('table');
     table.className = 'table'
-
     // Header Row
     const headers = ['Pin Mode', 'Pin', 'Description', 'Widget', 'IR', 'Default', 'Actions'];
     const headerRow = document.createElement('tr');
@@ -117,7 +158,6 @@ function renderTable() {
                 document.body.appendChild(tooltip);
             }
         });
-
         pinSelect.addEventListener("mouseout", function () {
             const tooltips = document.getElementsByClassName("tooltip");
             while (tooltips.length > 0) {
@@ -177,18 +217,42 @@ function renderTable() {
         // Default
         const defaultCell = document.createElement('td');
         const defaultInput = document.createElement('input');
+        const currentModeIndex = tableData.pinmode[index];
+        const currentMode = inputPinmode[currentModeIndex];
         defaultInput.className = 'form-control';
         defaultInput.type = 'number';
-        defaultInput.min = -1;
-        defaultInput.max = 1024;
+        let minValue = -1;
+        let maxValue = 1024;
+        if (modeValues.hasOwnProperty(currentMode)) {
+            maxValue = modeValues[currentMode].max;
+            minValue = modeValues[currentMode].min;
+        }
+        defaultInput.min = minValue;
+        defaultInput.max = maxValue;
         defaultInput.value = tableData.defaultVal[index];
         defaultInput.oninput = () => {
             tableData.defaultVal[index] = parseInt(defaultInput.value);
             saveDataToLocalStorage();
         };
+        defaultInput.addEventListener("mouseover", function (event) {
+            if (pinModeInfo[currentMode]) {
+                const tooltip = document.createElement("div");
+                tooltip.className = "tooltip";
+                tooltip.textContent = pinModeInfo[currentMode];
+                tooltip.style.position = "absolute";
+                tooltip.style.left = `${event.pageX + 10}px`;
+                tooltip.style.top = `${event.pageY + 10}px`;
+                document.body.appendChild(tooltip);
+            }
+        });
+        defaultInput.addEventListener("mouseout", function () {
+            const tooltips = document.getElementsByClassName("tooltip");
+            while (tooltips.length > 0) {
+                tooltips[0].parentNode.removeChild(tooltips[0]);
+            }
+        });
         defaultCell.appendChild(defaultInput);
         row.appendChild(defaultCell);
-
         // Actions
         const actionsCell = document.createElement('td');
         const deleteButton = document.createElement('button');
@@ -206,7 +270,6 @@ function renderTable() {
         };
         actionsCell.appendChild(deleteButton);
         row.appendChild(actionsCell);
-
         table.appendChild(row);
     });
 
@@ -230,9 +293,10 @@ function renderTable() {
 }
 function makeSave() {
     const jsonStr2 = JSON.stringify(tableData, null, 2);
-    saveData("pin_setup.txt", jsonStr2, function (callback) {
-        document.getElementById("output").appendChild(alert_message(callback));
-    });
+    document.getElementById("output").appendChild(alert_message(jsonStr2));
+    // saveData("pin_setup.txt", jsonStr2, function (callback) {
+    //     document.getElementById("output").appendChild(alert_message(callback));
+    // });
 }
 // renderTable();
 
