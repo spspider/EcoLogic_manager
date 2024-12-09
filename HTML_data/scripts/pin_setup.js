@@ -21,21 +21,21 @@
 const inputWidget = ['unknown', 'switch', 'button', 'progress', 'progress-bar', 'chart', 'data'];
 const availablePins = {
     "no": [255],
-    "in": [5, 4, 14, 12, 13, 3, 17],
-    "out": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
-    "PWM": [4, 5, 0, 2, 12, 14, 13, 15, 1],
-    "ADC": [17],
-    "low. PWM": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
-    "DHT 1.1 Temp": [5, 4, 14, 12, 13, 3, 17],
-    "DHT 1.1 Mist": [5, 4, 14, 12, 13, 3, 17],
+    "in": [255, 5, 4, 14, 12, 13, 3, 17],
+    "out": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
+    "PWM": [255, 4, 5, 0, 2, 12, 14, 13, 15, 1],
+    "ADC": [255, 17],
+    "low. PWM": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
+    "DHT 1.1 Temp": [255, 5, 4, 14, 12, 13, 3, 17],
+    "DHT 1.1 Mist": [255, 5, 4, 14, 12, 13, 3, 17],
     "remote http": [255],
     "power meter": [255],
-    "as5600": [5, 4, 14, 12, 13, 3, 17],
+    "as5600": [255, 5, 4, 14, 12, 13, 3, 17],
     "MAC address": [255],
-    "EncA": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
-    "EncB": [16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
-    "ads1115": [5, 4], // hardcoded, pins 5,4 will be used for SCL SCA
-    "ds18b20": [2], //should be hardcoded in scheme d7 - GPIO13, possible pins GPIO 2
+    "EncA": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
+    "EncB": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
+    "ads1115": [255, 5, 4], // hardcoded, pins 5,4 will be used for SCL SCA
+    "ds18b20": [255, 2], //should be hardcoded in scheme d7 - GPIO13, possible pins GPIO 2
 };
 
 const pinInfo = {
@@ -51,7 +51,7 @@ const pinInfo = {
     15: "D8, Pulled to GND, OK output. SPI (CS), Boot fails if pulled HIGH.",
     16: "D0, No interrupt, No PWM or I2C support. HIGH at boot, used to wake up from deep sleep.",
     17: "A0, Analog Input, Not available for Digital I/O.",
-    255: "there is no pin, guess that is -1"
+    255: "there is no pin, guess that is -1 or disable"
 };
 const pinModeInfo = {
     "out": "you can write 0 or 1, in case of 0 - the output will not be inverted, in 1 - inverted",
