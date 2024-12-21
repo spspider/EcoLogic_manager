@@ -5,7 +5,7 @@
 // #define timerAlarm
 //  #define use_telegram
 
-// #define ds18b20
+#define ds18b20
 // #define pubClient
 // #define ir_code
 // #define as
@@ -20,7 +20,7 @@
 // #include <gfxfont.h>
 
 // -----------------------DEFINING PINS----------------------------------
-#define ONE_WIRE_BUS 2
+#define ONE_WIRE_BUS 15 // RX pin
 #define RECV_PIN 14 // IR recieve
 #define SEND_PIN 15 // IR send
 
