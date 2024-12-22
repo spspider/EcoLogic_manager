@@ -35,7 +35,7 @@ const availablePins = {
     "EncA": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
     "EncB": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
     "ads1115": [255, 5, 4], // hardcoded, pins 5,4 will be used for SCL SCA
-    "ds18b20": [255, 2], //should be hardcoded in scheme d7 - GPIO13, possible pins GPIO 2
+    "ds18b20": [111], //should be hardcoded in scheme d7 - GPIO13, possible pins GPIO 2
 };
 
 const pinInfo = {
@@ -59,7 +59,7 @@ const pinModeInfo = {
     "PWM": "in case if DefaultValue not 0, all value will be taken from actual value",
     "ADC": "will be ignorred",
     "ads1115": "hardcoded, pins 5, 4 will be used for SCL SCA",
-    "ds18b20": "Default Value - will be number of connected items",
+    "ds18b20": "hardcoded pin, Default Value - will be number of connected items",
 }
 const modeValues = {
     "in": { min: 0, max: 1 },
