@@ -1,7 +1,7 @@
 
 //----------------------------------------defines-------------------------------//
 //  #define ws2811_include// активировать для ws2811
-#define will_use_serial
+// #define will_use_serial
 // #define timerAlarm
 //  #define use_telegram
 

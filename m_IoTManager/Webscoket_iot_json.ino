@@ -8,15 +8,7 @@ void callback_socket(uint8_t i, int payload_is)
     return;
   }
 
-  if ((pinmode[i] == 2) || (pinmode[i] == 1))
-  {                         // out,in - saveEEPROM=false;
-    stat[i] = (payload_is); // ^ defaultVal[i]
-    digitalWrite(pin[i], payload_is);
-#if defined(timerAlarm)
-    check_if_there_timer_once(i);
-#endif
-  }
-  else if (pinmode[i] == 3)
+  if (pinmode[i] == 3)
   { // pwm
     if (!license)
       return;
@@ -28,9 +20,8 @@ void callback_socket(uint8_t i, int payload_is)
   { // low_pwm
     if (!license)
       return;
-    // String x = payload_is;
     low_pwm[i] = payload_is;
-    stat[i] = (payload_is); // ^ defaultVal[i]
+    stat[i] = (payload_is);
   }
   else if (pinmode[i] == 4)
   { // adc
@@ -49,53 +40,82 @@ void callback_socket(uint8_t i, int payload_is)
     // DimmerVal = payload_is;
     // dimmer.setPower(DimmerVal);
   }
+  else if (pinmode[i] == 2)
+  { // out
+    stat[i] = (uint8_t)payload_is;
+    digitalWrite(pin[i], payload_is);
+#if defined(timerAlarm)
+    check_if_there_timer_once(i);
+#endif
+  }
+  else if (pinmode[i] == 1)
+  { // in
+    stat[i] = (uint8_t)payload_is;
+    digitalWrite(pin[i], payload_is);
+#if defined(timerAlarm)
+    check_if_there_timer_once(i);
+#endif
+  }
   pubStatusShortAJAX_String(i);
   // pubStatusFULLAJAX_String(false);
 }
 
-void loop_pwm() {
+void loop_pwm()
+{
   int pwm_long = pwm_delay_long * 240;
-  for (unsigned char i = 0; i < nWidgets; i++) {
-    if (pinmode[i] == 5) {//low_pwm
-      newtimePWM = millis();//таймер для 1 сек
-      if (!low_pwm_off) {
-        if (newtimePWM - oldtimePWM > (low_pwm[i] * (pwm_long / 1024))) { // если миллисекунды с старта больше записанного значения
-          digitalWrite(pin[i], 0);//далее - выключаем
+  for (unsigned char i = 0; i < nWidgets; i++)
+  {
+    if (pinmode[i] == 5)
+    {                        // low_pwm
+      newtimePWM = millis(); // таймер для 1 сек
+      if (!low_pwm_off)
+      {
+        if (newtimePWM - oldtimePWM > (low_pwm[i] * (pwm_long / 1024)))
+        {                          // если миллисекунды с старта больше записанного значения
+          digitalWrite(pin[i], 0); // далее - выключаем
           low_pwm_off = true;
         }
       }
-      if (newtimePWM - oldtimePWM > pwm_long) { // 1 sec//
-        digitalWrite(pin[i], 1);//включаем снова
+      if (newtimePWM - oldtimePWM > pwm_long)
+      {                          // 1 sec//
+        digitalWrite(pin[i], 1); // включаем снова
         oldtimePWM = newtimePWM;
         low_pwm_off = false;
       }
     }
-    if (pinmode[i] == 7) { //MQ7
-      newtimePWM = millis();//таймер для 1 сек
-      if (low_pwm_off) {
-        if (newtimePWM - oldtimePWM > (90 * 1000)) { //90 секунд
-          analogWrite(pin[i], 1024);//5V
+    if (pinmode[i] == 7)
+    {                        // MQ7
+      newtimePWM = millis(); // таймер для 1 сек
+      if (low_pwm_off)
+      {
+        if (newtimePWM - oldtimePWM > (90 * 1000))
+        {                            // 90 секунд
+          analogWrite(pin[i], 1024); // 5V
           low_pwm_off = false;
           oldtimePWM = newtimePWM;
         }
-      } else {
-        if (newtimePWM - oldtimePWM > (60 * 1000)) { // 60 секунд
-          analogWrite(pin[i], 286);                  // 1.4V
+      }
+      else
+      {
+        if (newtimePWM - oldtimePWM > (60 * 1000))
+        {                           // 60 секунд
+          analogWrite(pin[i], 286); // 1.4V
           low_pwm_off = true;
           oldtimePWM = newtimePWM;
         }
-
       }
     }
   }
 }
 
-void pubStatusFULLAJAX_String(bool save_eeprom) { //отправка на сервер _nobuffer
+void pubStatusFULLAJAX_String(bool save_eeprom)
+{ // отправка на сервер _nobuffer
   String stat1 = "{\"stat\":[";
-  for (char i = 0; i < nWidgets; i++) {
+  for (char i = 0; i < nWidgets; i++)
+  {
     float that_stat = get_new_pin_value(i);
     stat1 += "\"";
-    stat1 +=  String(that_stat, 2);
+    stat1 += String(that_stat, 2);
     stat1 += "\"";
     stat1 += (i < nWidgets - 1) ? "," : "]";
   }
