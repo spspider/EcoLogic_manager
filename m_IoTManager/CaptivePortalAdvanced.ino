@@ -169,7 +169,7 @@ void captive_loop()
 
     if (onesec > lastConnectTry + 60)
     {
-      if ((WiFi.status() == WL_DISCONNECTED) && ((wifi_softap_get_station_num() == 0)))
+      if ((WiFi.status() == WL_DISCONNECTED) && ((wifi_softap_get_station_num() != 0)))
       {
         WiFi.disconnect();
         Serial.println("Wrong connection");
