@@ -10,41 +10,27 @@ var running = false
 var defineFuel = 0;
 DEBUG = false
 
-function AdditionalButtons() {
-    var btmBtns =
-        "<div class='btn-group btn-group-justified'>" +
-        "<a class='btn btn-block btn-default' href='/function?json={\"setZeroFuel\":1}'>пустой бак</a>" +
-        // "<a class='btn btn-block btn-default' href='/function?json={\"setFUllFuel\":1}'>полный бак</a>" +
-        "<a class='btn btn-block btn-default' onclick=PromtVaule()>полный бак</a>" +
-        " </div>"
-    return btmBtns;
-}
-
-function PromtVaule() {
-    var x = prompt("заправка c пустого", "40");
-    readTextFile('/function?json={\"setFUllFuel\":' + x + '}', function (callback) {
-
-    });
-
-}
 
 async function firstload() {
     try {
         makeStartStopButton();
         setHTML("btmBtns", bottomButtons());
-        if (defineFuel === 1) setHTML("additional", AdditionalButtons());
 
-        // Load files sequentially
+        // Load pin_setup.txt and create buttons based on its content
         const pinSetupText = await loadFileAsync("pin_setup.txt");
-        if (pinSetupText) createButtons_pin_setup(JSON.parse(pinSetupText));
+        if (pinSetupText) {
+            createButtons_pin_setup(JSON.parse(pinSetupText));
+            // Load other_setup.txt and set up other settings after pin_setup.txt has been processed
+            const otherSetupText = await loadFileAsync("other_setup.txt");
+            if (otherSetupText && testJson(otherSetupText)) {
+                const otherSetup = JSON.parse(otherSetupText);
+                document.title = otherSetup.deviceID;
 
-        const otherSetupText = await loadFileAsync("other_setup.txt");
-        if (otherSetupText && testJson(otherSetupText)) {
-            const otherSetup = JSON.parse(otherSetupText);
-            document.title = otherSetup.deviceID;
+                // Handle license loading only after other_setup.txt has been processed
+                await loadLicense();
+            }
         }
-
-        await loadLicense();
+        // Final AJAX settings
         sendAJAX(this, JSON.stringify({ t: 127, v: 0 }));
     } catch (error) {
         console.error("Error in firstload:", error);
