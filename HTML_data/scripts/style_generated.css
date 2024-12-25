@@ -11,7 +11,7 @@ body {
     line-height: 1.428571429;
     color: #333;
     background-color: #E9F0F0;
-    width: 100%;
+    width: 97%;
         /* Default width for smaller screens */
 }
 
@@ -76,7 +76,6 @@ form {
 }
 
 .col-sm-offset-2 {
-
     min-height: 2px;
     background-color: #fff;
     box-shadow: 0 12px 15px rgba(0, 0, 0, 0.4);
@@ -96,6 +95,7 @@ form {
           width: auto;
           /* Allow the width to be determined by max-width */
       }
+    
   }
 
   @media (max-width: 760px) {
@@ -103,8 +103,8 @@ form {
             margin: 0;
         }
     .col-sm-offset-2 {
-        flex: 0 0 95%;
-        max-width: 95%;
+        flex: 0 0 89%;
+            max-width: 89%;
         margin-left: 0%;
         margin-right: 0%;
         box-sizing:unset;
