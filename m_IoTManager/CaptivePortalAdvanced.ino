@@ -1,9 +1,7 @@
-#include <lwip/napt.h>
-#include <lwip/dns.h>
-#include <WiFiClient.h>
-
-#include <EEPROM.h>
-// #include "WifiHttp.h"
+#if defined(USE_DNS_SERVER)
+const byte DNS_PORT = 53;
+DNSServer dnsServer;
+#endif
 
 #define NAPT 1000
 #define NAPT_PORT 10
@@ -13,10 +11,6 @@
 #define CONSOLE_PRINTF CONSOLE._PRINTF
 #define DEBUG_PRINTF CONSOLE_PRINTF
 
-#if defined(dnsServer)
-const byte DNS_PORT = 53;
-DNSServer dnsServer;
-#endif
 struct ip_addr *IPaddress;
 uint32 uintaddress;
 
@@ -30,7 +24,7 @@ bool connect = false;
 
 bool staReady = false; // Don't connect right away
 
-unsigned int lastConnectTry = 0;
+uint8_t lastConnectTry = 0;
 uint8_t status = WL_IDLE_STATUS;
 uint8_t FreeWIFIid[5];
 bool freeWIFIConnected = false;
@@ -45,7 +39,7 @@ void connect_as_AccessPoint()
   WiFi.mode(WIFI_OFF);    // Prevent use of SDK stored credentials
   WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(softAP_ssid + WiFi.macAddress(), softAP_password);
-#if defined(dnsServer)
+#if defined(USE_DNS_SERVER)
   dnsServer.setTTL(0);
   dnsServer.start(IANA_DNS_PORT, "*", apIP);
 #endif
@@ -186,7 +180,7 @@ void captive_loop()
           WiFi.disconnect();
           connect = true;
         }
-#if defined(dnsServer)
+#if defined(USE_DNS_SERVER)
         dnsServer.setTTL(600); // 10 minutes
         dnsServer.enableForwarder(myHostname, WiFi.dnsIP(0));
         if (dnsServer.isDNSSet())
@@ -249,7 +243,7 @@ void captive_loop()
 #endif
     }
   }
-#if defined(dnsServer)
+#if defined(USE_DNS_SERVER)
   dnsServer.processNextRequest();
 #endif
   server.handleClient();

@@ -9,7 +9,6 @@
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
 
-
 String getHttp(String request) {
   // wait for WiFi connection
   if ((WiFi.status() == WL_CONNECTED)) {
