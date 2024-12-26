@@ -6,6 +6,7 @@
 //  #define use_telegram
 
 #define ds18b20
+#define USE_DNS_SERVER
 // #define pubClient
 // #define ir_code
 // #define as
@@ -25,11 +26,12 @@
 #define SEND_PIN 15 // IR send
 
 // #include <WiFiManager.h>     //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
-#include <DNSServer.h>
 #include <ESP8266mDNS.h>
 #include <ESP8266WiFi.h>
+#include <DNSServer.h>
 #include <WiFiClient.h> //iotmanager
 #include <EEPROM.h>
+#include <ESP8266WebServer.h> //Local WebServer used to
 // ###############################
 #if defined(ds18b20)
 #include <OneWire.h>
@@ -44,7 +46,7 @@ WiFiClientSecure wclient;
 #include <PubSubClient.h>
 PubSubClient client(wclient); // for cloud broker - by hostname
 #endif
-#include <ESP8266WebServer.h> //Local WebServer used to
+
 //////////////////////////////////compass
 #if defined(as5600)
 #include <AS5600.h>
@@ -138,7 +140,7 @@ uint8_t pwm_delay_long = 10;
 uint8_t router = 255;
 // замок:
 unsigned char countdown_lock = 0;
-unsigned int onesec;
+uint8_t onesec;
 unsigned long millis_strart_one_sec;
 uint8_t onesec_255;
 
