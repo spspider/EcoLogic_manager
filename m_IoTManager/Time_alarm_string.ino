@@ -5,17 +5,17 @@ uint8_t type_a[Condition][Numbers];
 uint8_t act_a[Condition][Numbers];
 unsigned int  type_value[Condition][Numbers];
 
-
-char NumberIDs[Condition];
+uint8_t NumberIDs[Condition];
 bool alarm_is_active[Condition][Numbers];
 
 bool timer_alarm_action_switch = 0;
-unsigned char timer_alarm_action = 0, timer_alarm_action_max = 20;
+uint8_t timer_alarm_action = 0, timer_alarm_action_max = 20;
 
 void setup_alarm() {
 
-  for (char i1 = 0; i1 < Condition; i1++) {//пробегаемся по всем кнопкам
-    char thatCondition = i1;//idWidget кнопка
+  for (uint8_t i1 = 0; i1 < Condition; i1++)
+  {                             // пробегаемся по всем кнопкам
+    uint8_t thatCondition = i1; // idWidget кнопка
     NumberIDs[thatCondition] = 0;
     String NameFile = "Condition" + String(thatCondition, DEC);
     String jsonCondition = readCommonFiletoJson(NameFile);
@@ -94,7 +94,8 @@ void check_if_there_timer_once(uint8_t idWidget) {//проверка устан�
 void check_if_there_next_times() {//вызывается каждую секунду
 
   for (uint8_t idWidget = 0; idWidget < Condition; idWidget++) {//пробегаемся по всем кнопкам
-    for (unsigned char i = 0; i < Numbers; i++) {
+    for (uint8_t i = 0; i < Numbers; i++)
+    {
       if (En_a[idWidget][i]) {
         unsigned int nowsec = (second() + minute() * 60) + (hour() * 3600);
         if (type_a[idWidget][i] == 15) {
@@ -110,14 +111,14 @@ void check_if_there_next_times() {//вызывается каждую секун
   }
 }
 
-static unsigned char l_minute;
+static uint8_t l_minute;
 void loop_alarm() {
   if (minute() != l_minute) {
     l_minute = minute();
   }
 }
 void CheckInternet(String request) {
-  char timezone;
+  uint8_t timezone;
   String respond = getHttp(request);
 
   if (respond == "fail") { //интернета нет
@@ -198,7 +199,8 @@ void MakeIfTrue(uint8_t idWidget, uint8_t i) {
     alarm_is_active[idWidget][i] = false;
   }
 }
-void MakeIfFalse(char idWidget, char i) {
+void MakeIfFalse(uint8_t idWidget, uint8_t i)
+{
   if (!alarm_is_active[idWidget][i]) {
     if ((act_a[idWidget][i] != 5) ||  (act_a[idWidget][i] != 7) || (act_a[idWidget][i] != 8)) { // переключить условие//act_a[i1][i] != 4)(act_a[idWidget][i] != 7)||(act_a[idWidget][i] != 8))
       make_action(idWidget, i, true);
@@ -336,11 +338,10 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
       uint8_t values_back[max_values];
       parseStringToArray(actBtn_a_ch_string(that_condtion_widget, that_number_cond), values_back, max_values);
 
-
-      unsigned char typePinsDuration_int = values_back[0];
-      unsigned char  typePinsTimeChoise_int = values_back[1];
-      unsigned char typePinsrepeats_int = values_back[2];
-      unsigned char typeDelay_int = values_back[3];
+      uint8_t typePinsDuration_int = values_back[0];
+      uint8_t typePinsTimeChoise_int = values_back[1];
+      uint8_t typePinsrepeats_int = values_back[2];
+      uint8_t typeDelay_int = values_back[3];
       bool typeOpposite_int = values_back[4];
 
       Serial.print("продолжительность:"); Serial.println(typePinsDuration_int);
@@ -386,7 +387,7 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
 
 
       float payload = get_new_pin_value(that_condtion_widget);//узнаем какой уровень на пине который опрашиваем
-      unsigned char minTemp, maxTemp, button_;
+      uint8_t minTemp, maxTemp, button_;
       if (payload != 0) {
         char * pEnd;
         String inputString = actBtn_a_ch_string(that_condtion_widget, that_number_cond);

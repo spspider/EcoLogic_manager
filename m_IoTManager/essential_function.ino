@@ -1,6 +1,6 @@
 
 
-float get_new_pin_value(unsigned char i)
+float get_new_pin_value(uint8_t i)
 {
 
   float that_stat = (float)stat[i];
@@ -161,10 +161,10 @@ void makeAres_sim(String json)
   }
 
   JsonObject root = jsonDocument.as<JsonObject>();
-  char that_pin;
+  uint8_t that_pin;
   float that_val = 0.0F;
-  char control = 255;
-  char that_stat = 255;
+  uint8_t control = 255;
+  uint8_t that_stat = 255;
   String String_value = "";
 
   root.containsKey("pin") ? that_pin = root["pin"] : that_pin = 255;
@@ -177,8 +177,8 @@ void makeAres_sim(String json)
   {
   case 255:
   {
-    char i = 255;
-    for (char i1 = 0; i1 < nWidgets; i1++)
+    uint8_t i = 255;
+    for (uint8_t i1 = 0; i1 < nWidgets; i1++)
     {
       if (that_pin == pin[i1])
       {

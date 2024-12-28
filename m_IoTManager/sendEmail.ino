@@ -105,11 +105,11 @@ byte sendEmail(String message)
   wclient.print(deviceID);
   wclient.println();
 
-  unsigned char lenMessage = (message.length() / 50) + 1;
+  uint8_t lenMessage = (message.length() / 50) + 1;
   unsigned int FromIndexComma = 0;
   unsigned int toIndexComma = 0;
   /*
-    for (unsigned char i = 0; i < 10; i++) {
+    for (uint8_t i = 0; i < 10; i++) {
       FromIndexComma = message.indexOf(",", toIndexComma + 1);
       toIndexComma = message.substring(FromIndexComma + 1, message.length()).indexOf(",", FromIndexComma + 1);
       toIndexComma > 50 ? toIndexComma = 50 : true;
@@ -119,7 +119,7 @@ byte sendEmail(String message)
   */
   //String SubstringMessage = message;
 
-  for (unsigned char i = 0; i < lenMessage; i++) {
+  for (uint8_t i = 0; i < lenMessage; i++) {
     wclient.println();
     wclient.println(message.substring((i * 50), (i * 50 + 50)));
     wclient.println();

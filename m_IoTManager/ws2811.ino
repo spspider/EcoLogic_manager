@@ -39,23 +39,23 @@ CRGB leds[NUM_LEDS];
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
-unsigned char from_ws8211[NUM_CHARTS];
-unsigned char to_ws8211[NUM_CHARTS];
-unsigned char type_ws8211[NUM_CHARTS];
-unsigned char dir_ws8211[NUM_CHARTS];
-unsigned char sp_ws8211;
-unsigned char duration = 255;
-unsigned char fade = 20;
-unsigned char bright = 255;
-unsigned char fadetype = 3;
+uint8_t from_ws8211[NUM_CHARTS];
+uint8_t to_ws8211[NUM_CHARTS];
+uint8_t type_ws8211[NUM_CHARTS];
+uint8_t dir_ws8211[NUM_CHARTS];
+uint8_t sp_ws8211;
+uint8_t duration = 255;
+uint8_t fade = 20;
+uint8_t bright = 255;
+uint8_t fadetype = 3;
 bool running_led = true;
 
-unsigned char fade_sunrise[NUM_LEDS];
+uint8_t fade_sunrise[NUM_LEDS];
 
 unsigned  char col_ws8211[NUM_CHARTS];
 unsigned  char white_ws8211[NUM_CHARTS];
 unsigned  char br__ws8211[NUM_CHARTS];
-unsigned char delay_loop_8211 = 0;
+uint8_t delay_loop_8211 = 0;
 //unsigned  char white_white_col_[NUM_CHARTS];
 
 char num_ws8211 = 0;
@@ -111,20 +111,20 @@ bool LoadData_set_leds(char json[400]) {
     Serial.println(json);
     return false;
   }
-  unsigned char num_ = root["num"];
-  unsigned char wh = root["wh"];
-  unsigned char g1 = 255;
-  for (unsigned char i = 0; i < NUM_LEDS; i++) {
-    // unsigned char g1 = root["g1"][i];
-    //unsigned char g2 = root["g2"][i];//от
+  uint8_t num_ = root["num"];
+  uint8_t wh = root["wh"];
+  uint8_t g1 = 255;
+  for (uint8_t i = 0; i < NUM_LEDS; i++)
+  {
+    // uint8_t g1 = root["g1"][i];
+    // uint8_t g2 = root["g2"][i];//от
 
-    unsigned char g3 = root["g3"][i];//от
+    uint8_t g3 = root["g3"][i]; // от
     if (i > num_) {
       leds[i] = CHSV( 0, 0, 0);//hue,white,bright
     } else {
       leds[i] = CHSV( g1, wh, g3);//hue,white,bright
     }
-
   }
 
   FastLED.show();
@@ -145,7 +145,7 @@ bool LoadData(char json[200]) {
 
 
   //if (root["num"] <= NUM_CHARTS) {
-  unsigned char num_ = root["num"];
+  uint8_t num_ = root["num"];
   num_ws8211 = num_ <= NUM_CHARTS ? num_ : NUM_CHARTS;
   //num_ = root["num"] > NUM_CHARTS ? NUM_CHARTS : = root["num"];
   if ( root["num"] > NUM_CHARTS) {
@@ -172,13 +172,13 @@ bool LoadData(char json[200]) {
   FastLED.setBrightness(bright);
   //}
   for (char i = 0; i < num_ws8211; i++) {
-    unsigned char from_ = root["from"][i];//от
-    unsigned char to_ = root["to"][i];//к чему
-    unsigned char type_ = root["type"][i];//тип
-    unsigned char dir_ = root["dir"][i];//направление
-    unsigned char col_ = root["col"][i];//цвет
-    unsigned char white_col_ = root["wh"][i];//интенсивность белого
-    unsigned char br_ = root["br_"][i];//яркость
+    uint8_t from_ = root["from"][i];    // от
+    uint8_t to_ = root["to"][i];        // к чему
+    uint8_t type_ = root["type"][i];    // тип
+    uint8_t dir_ = root["dir"][i];      // направление
+    uint8_t col_ = root["col"][i];      // цвет
+    uint8_t white_col_ = root["wh"][i]; // интенсивность белого
+    uint8_t br_ = root["br_"][i];       // яркость
 
     white_ws8211[i] = white_col_ == 0 ? 255 : white_col_;
     br__ws8211[i] = br_ == 0 ? 192 : br_;
@@ -365,7 +365,7 @@ void load_pattern()
         pos[i] = reverseDirection(i);
         leds[pos[i]] = CHSV( gHue, white_ws8211[i], br__ws8211[i]);//бегающий огонь
 
-        unsigned char  calc_pos;
+        uint8_t calc_pos;
         calc_pos = (to_ws8211[i] - pos[i] + from_ws8211[i]);
         leds[calc_pos] = CHSV( gHue, white_ws8211[i], br__ws8211[i]); //бегающий огонь
         break;
@@ -437,7 +437,7 @@ void load_pattern()
       case 13://glow_to_max
         for (char i1 = from_ws8211[i]; i1 < to_ws8211[i]; i1++) {
 
-          unsigned char bright_pos = pos[i] * (255 / (to_ws8211[i] - from_ws8211[i]));
+          uint8_t bright_pos = pos[i] * (255 / (to_ws8211[i] - from_ws8211[i]));
           leds[i1] = CHSV( 0, 0, bright_pos);//бегающий огонь
         }
         break;
@@ -456,12 +456,15 @@ void load_pattern()
   //leds[num_leds_fade - pos] += CHSV( gHue, white_ws8211[i], br__ws8211[i]);
 
     if (inv) {
-    for ( unsigned char i = 0; i < NUM_LEDS; i++) { //9948
-      leds[i] = CHSV(0,0,255)-leds[i];    }
+      for (uint8_t i = 0; i < NUM_LEDS; i++)
+      { // 9948
+        leds[i] = CHSV(0, 0, 255) - leds[i];
+      }
   }
   
 }
-unsigned char reverseDirection(unsigned char i) {
+uint8_t reverseDirection(uint8_t i)
+{
 
   switch (dir_ws8211[i]) {
     case 0:
@@ -562,7 +565,7 @@ void loop_ws2811()
     //nextPattern();  // change patterns periodically
   }
 
-  //unsigned char one_period_speed = 2;//((sp_ws8211 * 16) / (192 / 2));
+  // uint8_t one_period_speed = 2;//((sp_ws8211 * 16) / (192 / 2));
   if (millis() > (sp_ws8211)+ millis_strart) {
     for (char i = 0; i < num_ws8211; i++) {
       if (pos[0] == 0) {

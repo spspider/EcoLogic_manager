@@ -176,7 +176,7 @@ void check_code_IR(String codeIR) {
 void loop_IR() {
   if (irrecv.decode(&results)) {
     String codeIR;
-    unsigned char len = results.rawlen;
+    uint8_t len = results.rawlen;
     if ((len > 100) && ((Page_IR_opened))) {
       /////ITs RAW/////////
       //unsigned int Signal_ON_0[250];

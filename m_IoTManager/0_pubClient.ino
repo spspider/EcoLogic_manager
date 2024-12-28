@@ -2,22 +2,22 @@
 
 unsigned long newtimePWM, oldtimePWM;
 uint8_t oldtime = 0;
-char nWidgets = 10;
-const char nWidgetsArray = 10;
+uint8_t nWidgets = 10;
+const uint8_t nWidgetsArray = 10;
 short int stat[nWidgetsArray];
-//char widget[nWidgetsArray]; // inputWidjet[0] = 'unknown';1 = 'toggle';2 = 'simple-btn';4 = 'range';4 = 'small-badge';5 = 'chart';
+// uint8_t widget[nWidgetsArray]; // inputWidjet[0] = 'unknown';1 = 'toggle';2 = 'simple-btn';4 = 'range';4 = 'small-badge';5 = 'uint8_tt';
 char descr[nWidgetsArray][10];
-char id[nWidgetsArray];
-unsigned char pin[nWidgetsArray];
+uint8_t id[nWidgetsArray];
+uint8_t pin[nWidgetsArray];
 short int defaultVal[nWidgetsArray];
-char IrButtonID[nWidgetsArray];
+uint8_t IrButtonID[nWidgetsArray];
 float analogDivider = 1.0F;
 short int analogSubtracter = 0;
 unsigned int low_pwm[nWidgetsArray];
 bool low_pwm_off = false;             // low_pwm
-unsigned char pinmode[nWidgetsArray]; // inputPinmode[0] = "no pin";inputPinmode[1] = "in";inputPinmode[2] = "out";inputPinmode[3] = "pwm";inputPinmode[4] = "adc";inputPinmode[5] = "low_pwm";inputPinmode[6] = "IR";inputPinmode[7] = "датчик газа MQ7";
+uint8_t pinmode[nWidgetsArray];       // inputPinmode[0] = "no pin";inputPinmode[1] = "in";inputPinmode[2] = "out";inputPinmode[3] = "pwm";inputPinmode[4] = "adc";inputPinmode[5] = "low_pwm";inputPinmode[6] = "IR";inputPinmode[7] = "датчик газа MQ7";
 
-unsigned char subscribe_loop = 0;
+uint8_t subscribe_loop = 0;
 uint8_t subscr_sec = 5; 
 uint8_t mqttspacing_oldtime;
 
@@ -56,7 +56,7 @@ void pubStatus(char t[], char *payload)
 
 void pubConfig()// that is how I publish config, you dont need to adhere same structure
 {
-  for (char i = 0; i < nWidgets; i++)
+  for (uint8_t i = 0; i < nWidgets; i++)
   {
     char sTopic_ch[20];
     snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d", deviceID, i);
@@ -64,7 +64,7 @@ void pubConfig()// that is how I publish config, you dont need to adhere same st
   }
 }
 
-void callback(char *topic, byte *payload, unsigned char length)// callback for recieving messages from subsriptions
+void callback(char *topic, byte *payload, uint8_t length) // callback for recieving messages from subsriptions
 {
   char *lastSlash = strrchr(topic, '/');
   char i = lastSlash != NULL ? *(lastSlash + 1) : '0';

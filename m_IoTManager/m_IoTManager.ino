@@ -105,7 +105,7 @@ char mqttServerName[60] = "m20.cloudmqtt.com";
 unsigned int mqttport = 16238;
 char mqttuser[15] = "spspider";
 char mqttpass[15] = "5506487";
-unsigned char type_mqtt = 1;
+uint8_t type_mqtt = 1;
 #endif
 
 /////////////IR
@@ -130,16 +130,16 @@ uint8_t w433send = 255;
 //////////////////////////////
 // String jsonConfig = "{}";
 ////////////TimeAlarmString/////////
-const unsigned char Numbers = 1;   // количество условий в каждой кнопке
-const unsigned char Condition = 1; // количество кнопок
-unsigned char save_stat_long = 0;  // only initialized once
+const uint8_t Numbers = 1;   // количество условий в каждой кнопке
+const uint8_t Condition = 1; // количество кнопок
+uint8_t save_stat_long = 0;  // only initialized once
 ///////////////////////////////////////
 uint8_t pwm_delay_long = 10;
 ///////////////////////////////////////////
 // char trying_attempt_mqtt = 0;
 uint8_t router = 255;
 // замок:
-unsigned char countdown_lock = 0;
+uint8_t countdown_lock = 0;
 uint8_t onesec;
 unsigned long millis_strart_one_sec;
 uint8_t onesec_255;
@@ -147,7 +147,7 @@ uint8_t onesec_255;
 bool license = 0;
 bool test_action = false;
 
-unsigned char PWM_frequency = 1;
+uint8_t PWM_frequency = 1;
 // telegram global
 #ifdef use_telegram
 String BOTtoken = "";
