@@ -24,7 +24,7 @@ void setup_telegram() {
   else
     Serial.println("\ntelegram Connection Not OK");
 
-  //  for (char i = 0; i < char(nWidgets); i++) {
+  //  for (uint8_t i = 0; i < char(nWidgets); i++) {
   //    if (pinmode[i] == 2) {
   //      Serial.println("adding button");
   //
@@ -38,7 +38,8 @@ void setup_telegram() {
   //      myKbd.addRow();
   //    }
   //  }
-  for (char i = 0; i < char(nWidgets); i++) {
+  for (uint8_t i = 0; i < char(nWidgets); i++)
+  {
     if (pinmode[i] == 2) {
       char descr_on[10];
       snprintf(descr_on, sizeof(descr_on), "%s:on", descr[i]);  // Shortened length

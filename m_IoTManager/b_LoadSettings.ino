@@ -66,7 +66,7 @@ bool loadConfig(File jsonConfig)
 #endif
 
   //  String jsonConfig_string = readCommonFiletoJson("pin_setup");
-  if (updatepinsetup(SPIFFS.open("/pin_setup.txt", "r")))
+  if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r")))
   {
     Serial.println("Widgets Loaded");
   }
@@ -136,7 +136,7 @@ void Setup_pinmode(bool stat_loaded)
 
 String readCommonFiletoJson(String file)
 {
-  File configFile = SPIFFS.open("/" + file + ".txt", "r");
+  File configFile = fileSystem->open("/" + file + ".txt", "r");
   if (!configFile)
   {
     // если файл не найден
@@ -169,11 +169,11 @@ bool saveCommonFiletoJson(String pagename, String json, boolean write_add)
   {
     // char* openString;
     // strcat(openString,"/");
-    configFile = SPIFFS.open("/" + pagename + ".txt", "w");
+    configFile = fileSystem->open("/" + pagename + ".txt", "w");
   }
   else if (write_add == 0)
   {
-    configFile = SPIFFS.open("/" + pagename + ".txt", "a");
+    configFile = fileSystem->open("/" + pagename + ".txt", "a");
   }
   if (!configFile)
   {
@@ -274,19 +274,19 @@ bool load_stat()
   }
 
   DynamicJsonDocument jsonDocument_stat(2048); // Adjust the capacity as needed
-  File stat1 = SPIFFS.open("/stat.txt", "r");
+  File stat1 = fileSystem->open("/stat.txt", "r");
 
   DeserializationError error = deserializeJson(jsonDocument_stat, stat1);
   if (error)
   {
     Serial.println("PARSE FAIL!!");
-    //     for (char i = 0; i < nWidgets; i++) {
+    //     for (uint8_t i = 0; i < nWidgets; i++) {
     //       stat[i] = 0;
     //     }
     return false;
   }
 
-  for (char i = 0; i < nWidgets; i++)
+  for (uint8_t i = 0; i < nWidgets; i++)
   {
     short int stat_js = jsonDocument_stat["stat"][i];
     if (stat_js)
@@ -302,7 +302,7 @@ bool load_stat()
 
 void callback_from_stat()
 {
-  for (char i = 0; i < nWidgets; i++)
+  for (uint8_t i = 0; i < nWidgets; i++)
   {
     callback_socket(i, stat[i]);
     // Serial.println(stat_js);

@@ -1,7 +1,7 @@
 void loop_websocket()
 {
 
-  int pwm_long = pwm_delay_long * 240;
+  unsigned long pwm_long = pwm_delay_long * 240;
   for (uint8_t i = 0; i < nWidgets; i++)
   {
     if (pinmode[i] == 5)

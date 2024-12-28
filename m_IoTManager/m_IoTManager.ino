@@ -1,10 +1,11 @@
 
 //----------------------------------------defines-------------------------------//
 //  #define ws2811_include// активировать для ws2811
-// #define will_use_serial
+#define will_use_serial
 // #define timerAlarm
 //  #define use_telegram
-
+// #define USE_SPIFFS
+#define USE_LITTLEFS
 // #define ds18b20
 // #define USE_DNS_SERVER
 // #define pubClient
@@ -22,8 +23,8 @@
 
 // -----------------------DEFINING PINS----------------------------------
 #define ONE_WIRE_BUS 0 // D3 pin
-#define RECV_PIN 14 // IR recieve
-#define SEND_PIN 15 // IR send
+#define RECV_PIN 14    // IR recieve
+#define SEND_PIN 15    // IR send
 
 // #include <WiFiManager.h>     //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 #include <ESP8266mDNS.h>
@@ -40,6 +41,22 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
 #endif
+// ########spiffs
+
+#if defined USE_SPIFFS
+#include <FS.h>
+const char *fsName = "SPIFFS";
+FS *fileSystem = &SPIFFS;
+SPIFFSConfig fileSystemConfig = SPIFFSConfig();
+#endif
+#if defined USE_LITTLEFS
+#include <LittleFS.h>
+const char *fsName = "LittleFS";
+FS *fileSystem = &LittleFS;
+LittleFSConfig fileSystemConfig = LittleFSConfig();
+#endif
+// ##end spiffs
+
 // ###############################
 WiFiClientSecure wclient;
 #if defined(pubClient)
@@ -164,6 +181,12 @@ Adafruit_ADS1015 ads(0x48);
 ///////////////////////////////
 void setup()
 {
+#if defined(USE_LITTLEFS)
+  if (!LittleFS.begin())
+  {
+    LittleFS.format();
+  };
+#endif
   wclient.setInsecure(); // Disables certificate verification for testing purposes
 #if defined(will_use_serial)
   Serial.begin(115200);
@@ -181,7 +204,7 @@ void setup()
     license = 1;
   }
 
-  if (loadConfig(SPIFFS.open("/other_setup.txt", "r")))
+  if (loadConfig(fileSystem->open("/other_setup.txt", "r")))
   {
   }
   captive_setup();
@@ -204,7 +227,7 @@ void setup()
     setup_IR();
   }
 #endif
-  //////////////////////////////////////
+//////////////////////////////////////
 #if defined(ws433)
   setup_w433();
 #endif
@@ -250,24 +273,24 @@ void loop()
   {
     onesec++;
 #ifdef use_telegram
-    loop_telegram();
+      loop_telegram();
 #endif
 #if defined(timerAlarm)
-    check_for_changes();
+      check_for_changes();
 #endif
 #if defined(pubClient)
-    //    subscr_loop_PLUS();
-    pubClientOneSecEvent();
+      //    subscr_loop_PLUS();
+      pubClientOneSecEvent();
 #endif
-    onesec_255++;
+      onesec_255++;
 #if defined(timerAlarm)
-    check_if_there_next_times();
+      check_if_there_next_times();
 #endif
 #if defined(ws2811_include)
-    one_sec();
+      one_sec();
 #endif
-    one_sec_lock();
-    millis_strart_one_sec = millis();
-    yield();
+      one_sec_lock();
+      millis_strart_one_sec = millis();
+      yield();
   }
 }

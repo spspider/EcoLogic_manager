@@ -53,7 +53,7 @@ void setup_IR()
   }
 }
 void updateIR() {
-  File irJson = SPIFFS.open("/IRButtons.txt", "r");
+  File irJson = fileSystem->open("/IRButtons.txt", "r");
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
 
   DeserializationError error = deserializeJson(jsonDocument, irJson);
@@ -69,7 +69,8 @@ void updateIR() {
   }
   IRCodeId_numbers = numberChosed;
 
-  for (char i = 0; i < numberChosed; i++) {
+  for (uint8_t i = 0; i < numberChosed; i++)
+  {
     const char* IRCode = jsonDocument["code"][i].as<const char*>();
     if (IRCode) {
       strncpy(IRCodeString[i], IRCode, sizeof(IRCodeString[i]) - 1);
@@ -97,14 +98,15 @@ void send_IR_code(const char* full_code_char) {
   String full_code = String(full_code_char);
   if (full_code.length() < 2) {//цифра вместо кода
 //    String jsonSend = readCommonFiletoJson("IrRaw_Code" + full_code);
-    File jsonSend = SPIFFS.open("/IrRaw_Code" + full_code + ".txt", "r");
-    DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
-    DeserializationError error = deserializeJson(jsonDocument, jsonSend);
-    if (error) {
-      Serial.print(F("deserializeJson() failed with code send_IR_code"));
-      Serial.println(error.c_str());
-      return;
-    }
+File jsonSend = fileSystem->open("/IrRaw_Code" + full_code + ".txt", "r");
+DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+DeserializationError error = deserializeJson(jsonDocument, jsonSend);
+if (error)
+{
+  Serial.print(F("deserializeJson() failed with code send_IR_code"));
+  Serial.println(error.c_str());
+  return;
+}
     int codeLen = jsonDocument["len"];
     if (codeLen > 250) return;
     uint16_t Signal_ON_0[250];
@@ -141,10 +143,12 @@ void send_IR(char ButtonNumber) {
 
 
 void check_code_IR(String codeIR) {
-  for (char i = 0; i < IRCodeId_numbers; i++) {
+  for (uint8_t i = 0; i < IRCodeId_numbers; i++)
+  {
     //if (IRCodeString[i] == codeIR) {//совпадение найдено
     if (strcmp(IRCodeString[i], codeIR.c_str()) == 0) {
-      for (char i1 = 0; i1 < nWidgets; i1++) {
+      for (uint8_t i1 = 0; i1 < nWidgets; i1++)
+      {
         if (IrButtonID[i1] == i) {
           Serial.println("FIND IR:" + String(descr[i1]) + " IrButtonID[i1]:" + String(IrButtonID[i1], DEC) + " i:" + String(i, DEC));
           stat[i1] ^= 1;
