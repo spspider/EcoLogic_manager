@@ -5,8 +5,8 @@
 // #define timerAlarm
 //  #define use_telegram
 
-#define ds18b20
-#define USE_DNS_SERVER
+// #define ds18b20
+// #define USE_DNS_SERVER
 // #define pubClient
 // #define ir_code
 // #define as
@@ -246,7 +246,7 @@ void loop()
     loop_alarm();
   }
 #endif
-  if (millis() > 1000L + millis_strart_one_sec)
+  if ((unsigned long)(millis() - millis_strart_one_sec) >= 1000L)
   {
     onesec++;
 #ifdef use_telegram
@@ -268,5 +268,6 @@ void loop()
 #endif
     one_sec_lock();
     millis_strart_one_sec = millis();
+    yield();
   }
 }
