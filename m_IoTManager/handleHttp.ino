@@ -166,8 +166,7 @@ void handleWifiSave() {
 
 
 void save_wifiList(String s, String p) {
-  File WifiList = SPIFFS.open("/wifilist.txt", "r");
-
+  File WifiList = fileSystem->open("/wifilist.txt", "r");
   s.toCharArray(ssid, sizeof(ssid) - 1);
   p.toCharArray(password, sizeof(password) - 1);
 
@@ -255,7 +254,7 @@ bool load_ssid_pass() {
   if (n > 0) {
     //        String WifiList = readCommonFiletoJson("wifilist");
 
-    File WifiList = SPIFFS.open("/wifilist.txt", "r");
+    File WifiList = fileSystem->open("/wifilist.txt", "r");
 
     DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
     DeserializationError error = deserializeJson(jsonDocument, WifiList);
@@ -308,7 +307,8 @@ void handleNotFound() {
 
 /** Is this an IP? */
 boolean isIp(String str) {
-  for (int i = 0; i < str.length(); i++) {
+  for (unsigned int i = 0; i < str.length(); i++)
+  {
     int c = str.charAt(i);
     if (c != '.' && (c < '0' || c > '9')) {
       return false;

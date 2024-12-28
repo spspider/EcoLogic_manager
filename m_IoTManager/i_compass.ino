@@ -48,7 +48,7 @@ void setup_compass()
 
   bool savePinSetup()
   {
-    File buffer_read = SPIFFS.open("/pin_setup.txt", "r");
+    File buffer_read = fileSystem->open("/pin_setup.txt", "r");
     DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
     DeserializationError error = deserializeJson(jsonDocument, buffer_read);
 

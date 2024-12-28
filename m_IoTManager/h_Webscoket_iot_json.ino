@@ -111,7 +111,7 @@ void loop_pwm()
 void pubStatusFULLAJAX_String(bool save_eeprom)
 { // отправка на сервер _nobuffer
   String stat1 = "{\"stat\":[";
-  for (char i = 0; i < nWidgets; i++)
+  for (uint8_t i = 0; i < nWidgets; i++)
   {
     float that_stat = get_new_pin_value(i);
     stat1 += "\"";

@@ -20,7 +20,7 @@
 byte sendEmail(String message)
 {
   ///////////load email
-  File load_other_setup = SPIFFS.open("/other_setup.txt", "r");
+  File load_other_setup = fileSystem->open("/other_setup.txt", "r");
   DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, load_other_setup);
 

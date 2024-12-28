@@ -8,7 +8,7 @@ PicoMQTT::Client mqtt;
 
 bool setup_picoMqtt() {
 
-  File load_other_setup = SPIFFS.open("/other_setup.txt", "r");
+  File load_other_setup = fileSystem->open("/other_setup.txt", "r");
   DynamicJsonDocument jsonDocument(2048);
   DeserializationError error = deserializeJson(jsonDocument, load_other_setup);
   if (error) {

@@ -1,11 +1,6 @@
-#include <FS.h>
-const char *fsName = "SPIFFS";
-FS *fileSystem = &SPIFFS;
-SPIFFSConfig fileSystemConfig = SPIFFSConfig();
 
 static bool fsOK;
 String unsupportedFiles = String();
-#define USE_SPIFFS
 File uploadFile;
 
 static const char TEXT_PLAIN[] PROGMEM = "text/plain";
@@ -43,10 +38,6 @@ void replyServerError(String msg)
 }
 
 #ifdef USE_SPIFFS
-/*
-   Checks filename for character combinations that are not supported by FSBrowser (alhtough valid on SPIFFS).
-   Returns an empty String if supported, or detail of error(s) if unsupported
-*/
 String checkForUnsupportedPath(String filename)
 {
   String error = String();
@@ -206,12 +197,7 @@ void handleFileDelete()
 
 bool FileDelete(String path)
 {
-  if (!SPIFFS.exists(path))
-    return false;
-  SPIFFS.remove(path);
-  Serial.print("File deleted");
-  Serial.println(path);
-  path = String();
+  deleteRecursive(path);
   return true;
 }
 String lastExistingParent(String path)
@@ -889,9 +875,9 @@ void Captive_server_init()
   server.on("/generate_204", handleRoot); // Android captive portal. Maybe not needed. Might be handled by notFound handler.
   server.on("/fwlink", handleRoot);       // Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
 
-  server.serveStatic("/font", SPIFFS, "/font", "max-age=86400");
-  server.serveStatic("/js", SPIFFS, "/js", "max-age=86400");
-  server.serveStatic("/css", SPIFFS, "/css", "max-age=86400");
+  // server.serveStatic("/font", SPIFFS, "/font", "max-age=86400");
+  // server.serveStatic("/js", SPIFFS, "/js", "max-age=86400");
+  // server.serveStatic("/css", SPIFFS, "/css", "max-age=86400");
 
   // server.onNotFound ( handleNotFound );
   Serial.println("HTTP server started");

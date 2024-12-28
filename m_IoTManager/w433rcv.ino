@@ -21,7 +21,7 @@ void saveocde_to_file(String code) {
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
   // Load existing data from file
 //  String existingData = readCommonFiletoJson("w433");
-  File existingData = SPIFFS.open("/w433.txt", "r");
+  File existingData = fileSystem->open("/w433.txt", "r");
   DeserializationError error = deserializeJson(jsonDocument, existingData);
   if (error) {
     Serial.print(F("deserializeJson() failed with saveocde_to_file code "));
@@ -43,7 +43,7 @@ void saveocde_to_file(String code) {
 void check_code_w433(String codeIR) {
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
 
-  File irlist = SPIFFS.open("/IRButtons.txt", "r");
+  File irlist = fileSystem->open("/IRButtons.txt", "r");
   DeserializationError error = deserializeJson(jsonDocument, irlist);
   if (error) {
     Serial.print(F("deserializeJson() failed with code check_code_w433"));
@@ -52,13 +52,15 @@ void check_code_w433(String codeIR) {
   }
 
   char numbers_i = jsonDocument.containsKey("num") ? jsonDocument["num"] : 0;
-  
-  for (char i = 0; i < numbers_i; i++) {
+
+  for (uint8_t i = 0; i < numbers_i; i++)
+  {
     String code = jsonDocument["code"][i].as<String>();
     if (code == codeIR) { //found
       String name_i = jsonDocument["name"][i].as<String>();
       //write logic to do action
-      for (char i1 = 0; i1 < char(nWidgets); i1++) {
+      for (uint8_t i1 = 0; i1 < char(nWidgets); i1++)
+      {
         if (String(descr[i1]) == name_i) {
           Serial.print("do action:");
           Serial.println(name_i);
