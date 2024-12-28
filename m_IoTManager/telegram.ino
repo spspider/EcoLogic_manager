@@ -125,7 +125,8 @@ void loop_telegram() {
       snprintf(fullanswer, sizeof(fullanswer), "%s\nnot found,\nusing:\n0:1 - number:value\n", messageText);
     }
 
-    for (unsigned char i = 0; i < nWidgets; i++) {
+    for (uint8_t i = 0; i < nWidgets; i++)
+    {
       char valueStr[10];
       dtostrf(get_new_pin_value(i), 2, 2, valueStr);  // Use `dtostrf` for float conversion
       snprintf(fullanswer + strlen(fullanswer), sizeof(fullanswer) - strlen(fullanswer), "%s: %s\n", descr[i], valueStr);
@@ -135,44 +136,44 @@ void loop_telegram() {
 //    delay(500);
   }
 }
-//void loop_telegram() { // String way
-//  // a variable to store telegram message data
-//  TBMessage msg;
-//  //    if there is an incoming message...
-//  if (CTBotMessageText == myBot.getNewMessage(msg)) {
-//    String fullanswer = "";
-//    // ...forward it to the sender
-//    String messageText = msg.text;
-//    char colonIndex = messageText.indexOf(':');
-//    // Extract the substrings before and after the colon
-//    if (colonIndex != -1) {
-//      // Extract the substrings before and after the colon
-//      String part1 = messageText.substring(0, colonIndex);
-//      String part2 = messageText.substring(colonIndex + 1);
-//      char Topic = (char) part1.toInt();
-//      //      Serial.print("Topic:");
-//      //      Serial.println(Topic, DEC);
-//      //      Serial.print("value:");
-//      //      Serial.println(part2);
+// void loop_telegram() { // String way
+//   // a variable to store telegram message data
+//   TBMessage msg;
+//   //    if there is an incoming message...
+//   if (CTBotMessageText == myBot.getNewMessage(msg)) {
+//     String fullanswer = "";
+//     // ...forward it to the sender
+//     String messageText = msg.text;
+//     char colonIndex = messageText.indexOf(':');
+//     // Extract the substrings before and after the colon
+//     if (colonIndex != -1) {
+//       // Extract the substrings before and after the colon
+//       String part1 = messageText.substring(0, colonIndex);
+//       String part2 = messageText.substring(colonIndex + 1);
+//       char Topic = (char) part1.toInt();
+//       //      Serial.print("Topic:");
+//       //      Serial.println(Topic, DEC);
+//       //      Serial.print("value:");
+//       //      Serial.println(part2);
 //
-//      callback_socket(Topic, part2.toInt());
-//    } else {
-//      fullanswer += messageText + "\n";
-//      fullanswer += "\nnot found,\nusing:\n0:1 - number:value";
-//    }
+//       callback_socket(Topic, part2.toInt());
+//     } else {
+//       fullanswer += messageText + "\n";
+//       fullanswer += "\nnot found,\nusing:\n0:1 - number:value";
+//     }
 //
-//    //////////////////STRING WORKING//////////////
+//     //////////////////STRING WORKING//////////////
 //
-//    // Assuming nWidgets is defined somewhere
-//    for (unsigned char i = 0; i < nWidgets; i++) {
-//      String valueStr = String(get_new_pin_value(i), 2);
-//      fullanswer += String(descr[i]) + ": " + valueStr + "\n";
-//    }
-//    /////////////////////////////////////////
+//     // Assuming nWidgets is defined somewhere
+//     for (uint8_t i = 0; i < nWidgets; i++) {
+//       String valueStr = String(get_new_pin_value(i), 2);
+//       fullanswer += String(descr[i]) + ": " + valueStr + "\n";
+//     }
+//     /////////////////////////////////////////
 //
-//    myBot.sendMessage(msg.sender.id, fullanswer);
-//    delay(500);
-//  }
+//     myBot.sendMessage(msg.sender.id, fullanswer);
+//     delay(500);
+//   }
 //
-//}
+// }
 #endif

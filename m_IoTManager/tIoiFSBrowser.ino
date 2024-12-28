@@ -518,7 +518,7 @@ void handleAJAX()
     Serial.println(error.c_str());
     return;
   }
-  uint8_t Topic_is = jsonDocument["t"].as<unsigned char>(); //
+  uint8_t Topic_is = jsonDocument["t"].as<uint8_t>(); //
   int newValue = jsonDocument["v"];
   callback_socket(Topic_is, newValue);
 }

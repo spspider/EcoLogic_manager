@@ -63,7 +63,7 @@ void callback_socket(uint8_t i, int payload_is)
 void loop_pwm()
 {
   int pwm_long = pwm_delay_long * 240;
-  for (unsigned char i = 0; i < nWidgets; i++)
+  for (uint8_t i = 0; i < nWidgets; i++)
   {
     if (pinmode[i] == 5)
     {                        // low_pwm

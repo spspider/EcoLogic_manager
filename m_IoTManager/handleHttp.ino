@@ -190,7 +190,8 @@ void save_wifiList(String s, String p) {
   if (num == 0) {
     jsonDocument["num"] = 1;
   }
-  for (unsigned char i = 0; i < num; i++) {
+  for (uint8_t i = 0; i < num; i++)
+  {
     char nameWifi[20];
     char passWifi[20];
 
@@ -230,9 +231,8 @@ void save_wifiList(String s, String p) {
   saveCredentials();
 }
 
-
 /*
-  String *read_wifiList(unsigned char index) {
+  String *read_wifiList(uint8_t index) {
   String WifiList = readCommonFiletoJson("wifilist");
   DynamicJsonBuffer jsonBuffer;
   JsonObject& rootjs = jsonBuffer.parseObject(WifiList);

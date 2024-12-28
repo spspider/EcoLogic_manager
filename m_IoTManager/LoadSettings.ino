@@ -221,7 +221,7 @@ bool updatepinsetup(File jsonrecieve)
     return false;
   }
 
-  unsigned char numberChosed = jsonDocument["numberChosed"];
+  uint8_t numberChosed = jsonDocument["numberChosed"];
   if (numberChosed == 0)
   {
     Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FAIL!! numberChosed = 0");
