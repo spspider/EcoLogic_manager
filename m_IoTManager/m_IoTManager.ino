@@ -32,7 +32,10 @@
 #include <DNSServer.h>
 #include <WiFiClient.h> //iotmanager
 #include <EEPROM.h>
-#include <ESP8266WebServer.h> //Local WebServer used to
+#include <ESP8266WebServer.h>        //Local WebServer used to
+#include <ESP8266HTTPUpdateServer.h> //OTA needs
+
+ESP8266HTTPUpdateServer httpUpdater; // OTA
 // ###############################
 #if defined(ds18b20)
 #include <OneWire.h>
@@ -80,8 +83,9 @@ AS5600 encoder;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#if defined(timeLibraryUsing)
 #include <TimeLib.h>
+#endif
 ESP8266WebServer server(80);
 // ESP8266WebServer server = new ESP8266Webserver(80);
 
@@ -138,7 +142,7 @@ bool save_stat = false;
 bool IR_recieve = false;
 bool loop_alarm_active = true;
 bool check_internet = true;
-short unsigned int mqttspacing = 60;
+uint8_t mqttspacing = 60;
 ///////////////////433
 #if defined(ws433)
 char w433rcv = 255;
@@ -159,6 +163,7 @@ uint8_t router = 255;
 uint8_t countdown_lock = 0;
 uint8_t onesec;
 unsigned long millis_strart_one_sec;
+unsigned long millis_offset = 0;
 uint8_t onesec_255;
 
 bool license = 0;
@@ -219,7 +224,9 @@ void setup()
 #endif
   // Настраиваем и запускаем SSDP интерфейс
   //   Serial.println("Start 3-SSDP");
+#if defined(USE_SSDP)
   SSDP_init();
+#endif
 
 #if defined(ir_code)
   if (IR_recieve)
@@ -233,45 +240,51 @@ void setup()
 #endif
   // setup_wg();
   /////////////////////////////////////
-  callback_from_stat();
+  // callback_from_stat();
 
 #if defined(ds18b20)
   sensors.begin(); // Start up the library
 #endif
 }
+void resetMillis()
+{
+  millis_offset = millis();
+}
+unsigned long getMillis()
+{
+  return millis() - millis_offset;
+}
 void loop()
 {
   captive_loop();
-  test_loop();
-  loop_websocket();
+#if defined(ir_code)
   if (IR_recieve)
   {
-#if defined(ir_code)
     loop_IR();
-#endif
   }
+#endif
 #if defined(ws433)
   if (w433rcv != 255)
   {
     loop_w433();
   }
 #endif
+#if defined(ws2811_include)
   if (ws8211_loop == true)
   {
-#if defined(ws2811_include)
     loop_ws2811(); // include ws2811.in
-#endif
   }
+#endif
 #if defined(timerAlarm)
   if (loop_alarm_active)
   {
-
     loop_alarm();
   }
 #endif
-  if ((unsigned long)(millis() - millis_strart_one_sec) >= 1000L)
+  if ((unsigned long)(getMillis() - millis_strart_one_sec) > 1000L)
   {
-    onesec++;
+    {
+      onesec++;
 #ifdef use_telegram
       loop_telegram();
 #endif
@@ -289,8 +302,12 @@ void loop()
 #if defined(ws2811_include)
       one_sec();
 #endif
-      one_sec_lock();
-      millis_strart_one_sec = millis();
-      yield();
+      millis_strart_one_sec = getMillis();
+    }
+    yield();
+  }
+  if (getMillis() > 18000000L)
+  {
+    ESP.restart();
   }
 }
