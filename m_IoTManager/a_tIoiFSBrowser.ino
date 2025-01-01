@@ -321,6 +321,7 @@ void handle_sendEmail()
 
 void handle_setTime()
 {
+#if defined(timeLibraryUsing)
   char timezone;
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
 
@@ -388,6 +389,7 @@ void handle_setTime()
   serializeJson(json, buffer);
   Serial.println(buffer);
   server.send(200, "text/json", buffer);
+#endif
 }
 
 void handleFileList()

@@ -1,6 +1,5 @@
 //This variables left in another file, so they are out of scope
 
-unsigned long newtimePWM, oldtimePWM;
 uint8_t oldtime = 0;
 uint8_t nWidgets = 10;
 const uint8_t nWidgetsArray = 10;

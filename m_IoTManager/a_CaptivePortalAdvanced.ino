@@ -159,7 +159,7 @@ void captive_loop()
   // }
   {
 
-    uint8_t s = WiFi.status();
+    uint8_t s = (uint8_t)WiFi.status();
 
     if (onesec > lastConnectTry + 60)
     {
@@ -210,7 +210,6 @@ void captive_loop()
       status = s;
       if (s == WL_CONNECTED)
       {
-
         try_MQTT_access = true; // можно попытаться подключиться к интернету
         /* Just connected to WLAN */
         Serial.println("Connected to ");
@@ -219,7 +218,7 @@ void captive_loop()
         Serial.println(WiFi.localIP());
         server.send(200, "text/plain", toStringIp(WiFi.localIP()));
         save_wifiList(String(ssid), String(password));
-        setup_ota();
+        httpUpdater.setup(&server); // setupOTA
         MDNS.addService("http", "tcp", ipport);
         if (geo_enable)
           sendLocationData();

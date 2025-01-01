@@ -1,4 +1,6 @@
+#if defined(timeLibraryUsing)
 #include <TimeLib.h>
+#endif
 #if defined(timerAlarm)
 bool En_a[Condition][Numbers];
 uint8_t type_a[Condition][Numbers];
@@ -156,6 +158,7 @@ void CheckInternet(String request)
 
     //"2018-08-23T07:43";
     String currentDateTime = rootjs["currentDateTime"];
+#if defined(timeLibraryUsing)
     if (timeStatus() == timeNotSet)
     {
       setTime(
@@ -172,6 +175,7 @@ void CheckInternet(String request)
       timezone = hour() - currentDateTime.substring(11, 13).toInt();
       Serial.println("timezone:" + String(timezone, DEC));
     }
+#endif
     Serial.println("Интернет есть");
   }
 }
