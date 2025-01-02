@@ -158,33 +158,82 @@ String readCommonFiletoJson(String file)
   configFile.close();
   return jsonConfig;
 }
+
+void writeFile(fs::FS &fs, const char *path, const char *message)
+{
+  Serial.printf("Writing file: %s\r\n", path);
+
+  File file = fs.open(path, "w");
+  if (!file)
+  {
+    Serial.println("- failed to open file for writing");
+    return;
+  }
+  if (file.print(message))
+  {
+    Serial.println("- file written");
+  }
+  else
+  {
+    Serial.println("- write failed");
+  }
+  file.close();
+}
+void appendFile(fs::FS &fs, const char *path, const char *message)
+{
+  Serial.printf("Appending to file: %s\r\n", path);
+
+  File file = fs.open(path, "a");
+  if (!file)
+  {
+    Serial.println("- failed to open file for appending");
+    return;
+  }
+  if (file.print(message))
+  {
+    Serial.println("- message appended");
+  }
+  else
+  {
+    Serial.println("- append failed");
+  }
+  file.close();
+}
 bool saveCommonFiletoJson(String pagename, String json, boolean write_add)
 {
-  // w-перезапись, а  - добавление
-  // char* pagename_ch;
-  // pagename.toCharArray(pagename_ch,sizeof(pagename_ch));
-  //   char *write_add_char = (write_add == true) ? 'w' : 'a';
-  File configFile;
+#if defined(USE_LITTLEFS)
+  String filePath = "/" + pagename + ".txt";
   if (write_add == 1)
   {
-    // char* openString;
-    // strcat(openString,"/");
-    configFile = fileSystem->open("/" + pagename + ".txt", "w");
+    writeFile(LittleFS, filePath.c_str(), json.c_str());
+    return true;
   }
-  else if (write_add == 0)
+  else
   {
-    configFile = fileSystem->open("/" + pagename + ".txt", "a");
-  }
-  if (!configFile)
-  {
-    Serial.println("Failed to open " + pagename + ".txt for writing");
-    return false;
+    appendFile(LittleFS, filePath.c_str(), json.c_str());
+    return true;
   }
   Serial.println("#############################SAVE: " + String(write_add, DEC));
-  Serial.println(json);
-  configFile.print(json);
-  configFile.close();
-  return true;
+#endif
+  // File configFile;
+  // if (write_add == 1)
+  // {
+  //   configFile = fileSystem->open("/" + pagename + ".txt", "w");
+  // }
+  // else if (write_add == 0)
+  // {
+  //   configFile = fileSystem->open("/" + pagename + ".txt", "a");
+  // }
+  // if (!configFile)
+  // {
+  //   Serial.println("Failed to open " + pagename + ".txt for writing");
+  //   return false;
+  // }
+  // Serial.println("#############################SAVE: " + String(write_add, DEC));
+  // Serial.println(json);
+  // configFile.print(json);
+  // configFile.close();
+  // return true;
 }
 
 /////////////////////CONDITION////////////////////////////////////////////////////

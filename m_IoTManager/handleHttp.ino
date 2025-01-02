@@ -164,11 +164,9 @@ void handleWifiSave() {
   connectWifi(ssid, password);
 }
 
-
-void save_wifiList(String s, String p) {
+void save_wifiList(const char *ssid, const char *password)
+{
   File WifiList = fileSystem->open("/wifilist.txt", "r");
-  s.toCharArray(ssid, sizeof(ssid) - 1);
-  p.toCharArray(password, sizeof(password) - 1);
 
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, WifiList);
@@ -222,9 +220,9 @@ void save_wifiList(String s, String p) {
   }
 
   if (write_array) {
-    String buffer;
+    char buffer[100];
     serializeJson(jsonDocument, buffer);
-    saveCommonFiletoJson("wifilist", buffer, 1);
+    writeFile(LittleFS, "wifilist.txt", buffer);
   }
 
   saveCredentials();
