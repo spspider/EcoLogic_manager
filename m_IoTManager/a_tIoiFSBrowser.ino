@@ -882,5 +882,4 @@ void Captive_server_init()
   // server.serveStatic("/css", SPIFFS, "/css", "max-age=86400");
 
   // server.onNotFound ( handleNotFound );
-  Serial.println("HTTP server started");
 }

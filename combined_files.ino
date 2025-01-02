@@ -377,7 +377,7 @@ void captive_loop()
         Serial.print("IP address: ");
         Serial.println(WiFi.localIP());
         server.send(200, "text/plain", toStringIp(WiFi.localIP()));
-        save_wifiList(String(ssid), String(password));
+        save_wifiList(ssid, password);
         setup_ota();
         MDNS.addService("http", "tcp", ipport);
         if (geo_enable)
@@ -914,12 +914,9 @@ void handleWifiSave() {
   connectWifi(ssid, password);
 }
 
-
-void save_wifiList(String s, String p) {
+void save_wifiList(const char *s, const char *p)
+{
   File WifiList = SPIFFS.open("/wifilist.txt", "r");
-
-  s.toCharArray(ssid, sizeof(ssid) - 1);
-  p.toCharArray(password, sizeof(password) - 1);
 
   DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, WifiList);
@@ -979,7 +976,6 @@ void save_wifiList(String s, String p) {
 
   saveCredentials();
 }
-
 
 /*
   String *read_wifiList(unsigned char index) {
