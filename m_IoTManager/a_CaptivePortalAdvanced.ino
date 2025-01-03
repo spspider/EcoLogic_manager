@@ -57,7 +57,7 @@ void connect_as_AccessPoint()
 void captive_setup()
 { // starting void
   Captive_server_init();
-  // connect = true;
+  connect = true;
   server_init();
   server.begin();
 }
@@ -181,7 +181,7 @@ void captive_loop()
         }
 #endif
       }
-      else if ((wifi_softap_get_station_num() == 0) && (WiFi.status() == WL_DISCONNECTED) || (WiFi.status() == WL_IDLE_STATUS))
+      else if ((wifi_softap_get_station_num() == 0) && (WiFi.status() == WL_DISCONNECTED) || ((wifi_softap_get_station_num() == 0) && (WiFi.status() == WL_IDLE_STATUS)))
       {
         WiFi.disconnect();
         Serial.println("Connecting as AP, due WL_DISCONNECTED");
