@@ -306,8 +306,8 @@ void loop()
     }
     yield();
   }
-  if (getMillis() > 18000000L)
-  {
-    ESP.restart();
-  }
+  // if (getMillis() > 18000000L)
+  // {
+  //   ESP.restart();
+  // }
 }
