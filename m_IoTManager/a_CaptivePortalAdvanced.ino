@@ -46,16 +46,17 @@ void connect_as_AccessPoint()
   {
     Serial.println("Failed to start SoftAP.");
   }
-#if defined(USE_DNS_SERVER)
-  dnsServer.setTTL(0);
-  dnsServer.start(IANA_DNS_PORT, "*", apIP);
-#endif
+
   delay(500); // Without delay I've seen the IP address blank
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
 }
 void captive_setup()
 { // starting void
+#if defined(USE_DNS_SERVER)
+  dnsServer.setTTL(0);
+  dnsServer.start(DNS_PORT, "*", apIP);
+#endif
   Captive_server_init();
   connect = true;
   server_init();
@@ -126,11 +127,16 @@ void captive_loop()
   {
     status = WL_IDLE_STATUS;
     connect = false;
+    Serial.println("connect: true");
     if (load_ssid_pass())
     {
       Serial.println("SSID loaded");
+      connectWifi(ssid, password);
     }
-    connectWifi(ssid, password);
+    else
+    {
+      connect_as_AccessPoint();
+    }
     lastConnectTry = onesec;
   }
 #if defined(pubClient)
@@ -168,8 +174,8 @@ void captive_loop()
       Serial.println(WiFi.status());
       if ((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() == 0))
       {
+        WiFi.disconnect();
         Serial.println("Connecting as Wifi client due AP not connected");
-
         connect = true;
 
 #if defined(USE_DNS_SERVER)
@@ -181,13 +187,17 @@ void captive_loop()
         }
 #endif
       }
-      else if ((wifi_softap_get_station_num() == 0) && (WiFi.status() == WL_DISCONNECTED) || ((wifi_softap_get_station_num() == 0) && (WiFi.status() == WL_IDLE_STATUS)))
+      else if ((wifi_softap_get_station_num() == 0) && ((WiFi.status() == WL_DISCONNECTED) || (WiFi.status() == WL_IDLE_STATUS) || (WiFi.status() == WL_NO_SSID_AVAIL)))
       {
+        // else if ((wifi_softap_get_station_num() == 0) && (WiFi.status() == WL_DISCONNECTED) || ((wifi_softap_get_station_num() == 0) && (WiFi.status() == WL_IDLE_STATUS)))
+        // {
         WiFi.disconnect();
         Serial.println("Connecting as AP, due WL_DISCONNECTED");
         lastConnectTry = onesec;
         connect_as_AccessPoint();
         relayRouter();
+        internet = false;
+        try_MQTT_access = false;
       }
       else if (!internet && geo_enable)
       {
@@ -216,7 +226,22 @@ void captive_loop()
         server.send(200, "text/plain", toStringIp(WiFi.localIP()));
         save_wifiList(ssid, password);
         httpUpdater.setup(&server); // setupOTA
-        MDNS.addService("http", "tcp", ipport);
+
+        // Setup MDNS responder
+        if (!MDNS.begin(myHostname))
+        {
+          Serial.println("Error setting up MDNS responder!");
+        }
+        else
+        {
+          Serial.println("mDNS responder started");
+          MDNS.addService("http", "tcp", 80);
+        }
+
+        // else if (s == WL_NO_SSID_AVAIL)
+        // {
+        //   WiFi.disconnect();
+        // }
         if (geo_enable)
           sendLocationData();
 #if defined(timerAlarm)
@@ -236,11 +261,13 @@ void captive_loop()
         connect_as_AccessPoint();
         relayRouter();
       }
-      else if (s == WL_CONNECTED)
-        MDNS.update();
 #if defined(timerAlarm)
       setup_alarm();
 #endif
+    }
+    if (s == WL_CONNECTED)
+    {
+      MDNS.update();
     }
   }
 #if defined(USE_DNS_SERVER)
