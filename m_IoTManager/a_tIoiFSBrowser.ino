@@ -868,11 +868,13 @@ void Captive_server_init()
     if (WiFi.getMode() == WIFI_STA) {//как клиент
       handleFileRead("/wifi_setup.htm");
     } else {
-      handleWifi();
+      // handleWifi();
+      handleWifiLight();
     } });
   server.on("/wifi", []()
             { handleFileRead("/wifi_setup.htm"); });
   server.on("/wifiList", handleWifilist);
+  server.on("/wififull", handleWifiFull);
   server.on("/wifisave", handleWifiSave);
   server.on("/generate_204", handleRoot); // Android captive portal. Maybe not needed. Might be handled by notFound handler.
   server.on("/fwlink", handleRoot);       // Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.

@@ -104,11 +104,41 @@ void handleWifilist()
   server.send(200, "text/json", buffer);
 }
 
-void handleWifi()
+void handleWifiLight()
 {
   String Page = sendHead();
   Page += F(
-      "<h1>Wifi config</h1>"
+      "<h1>Wifi Config</h1>"
+      "<style>"
+      "body { font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; background: #f9f9f9; color: #333; }"
+      "h1 { color: #444; }"
+      "#message { margin-top: 20px; font-size: 18px; color: #666; }"
+      "</style>"
+      "<div id='message'>Waiting...</div>"
+      "<script>"
+      "setTimeout(() => { window.location.href = '/wififull'; }, 500);"
+      "</script>");
+  server.send(200, "text/html", Page);
+  server.client().stop(); // Stop is needed because we sent no content length
+}
+
+void handleWifiFull()
+{
+  String Page = sendHead();
+  Page += F(
+      "<h1>Wifi Config</h1>"
+      "<style>"
+      "body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f9f9f9; color: #333; }"
+      "h1 { text-align: center; color: #444; }"
+      "table { width: 90%; margin: 10px auto; border-collapse: collapse; }"
+      "th, td { padding: 10px; text-align: left; border: 1px solid #ddd; }"
+      "th { background: #f0f0f0; }"
+      "input, button { width: calc(100% - 20px); margin: 10px auto; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }"
+      "input[type='submit'] { background: #4CAF50; color: white; border: none; cursor: pointer; }"
+      "input[type='submit']:hover { background: #45a049; }"
+      "a { color: #4CAF50; text-decoration: none; }"
+      "a:hover { text-decoration: underline; }"
+      "</style>"
       "<script>function populateSSID(ssid) {document.getElementById(\"network\").value = ssid;}</script>");
   if (server.client().localIP() == apIP)
   {
@@ -121,7 +151,7 @@ void handleWifi()
   Page +=
       String(F(
           "\r\n<br />"
-          "<table><tr><th align='left'>SoftAP config</th></tr>"
+          "<table><tr><th>SoftAP Config</th></tr>"
           "<tr><td>SSID ")) +
       String(softAP_ssid) +
       F("</td></tr>"
@@ -130,7 +160,7 @@ void handleWifi()
       F("</td></tr>"
         "</table>"
         "\r\n<br />"
-        "<table><tr><th align='left'>WLAN config</th></tr>"
+        "<table><tr><th>WLAN Config</th></tr>"
         "<tr><td>SSID ") +
       String(ssid) +
       F("</td></tr>"
@@ -139,7 +169,7 @@ void handleWifi()
       F("</td></tr>"
         "</table>"
         "\r\n<br />"
-        "<table><tr><th align='left'>WLAN list (refresh if any missing)</th></tr>");
+        "<table><tr><th>WLAN List (refresh if any missing)</th></tr>");
   Serial.println("scan start");
   int n = WiFi.scanNetworks();
   Serial.println("scan done");
@@ -147,7 +177,6 @@ void handleWifi()
   {
     for (int i = 0; i < n; i++)
     {
-      //      Page += String(F("\r\n<tr><td>SSID ")) + WiFi.SSID(i) + ((WiFi.encryptionType(i) == ENC_TYPE_NONE) ? F(" ") : F(" *")) + F(" (") + WiFi.RSSI(i) + F(")</td></tr>");
       Page += String(F("\r\n<tr><td><a href='#' onclick='populateSSID(\"")) + WiFi.SSID(i) + String(F("\")'>")) + WiFi.SSID(i) + ((WiFi.encryptionType(i) == ENC_TYPE_NONE) ? F(" ") : F(" *")) + F(" (") + WiFi.RSSI(i) + F(")</a></td></tr>");
     }
   }
@@ -157,15 +186,17 @@ void handleWifi()
   }
   Page += F(
       "</table>"
-      "\r\n<br /><form method='POST' action='wifisave'><h4>Connect to network:</h4>"
-      "<input type='text' id='network' placeholder='network' name='n'/>"
-      "<br /><input type='password' placeholder='password' name='p'/>"
-      "<br /><input type='submit' value='Connect/Disconnect'/></form>"
-      "<p>You may want to <a href='/'>return to the home page</a>.</p>"
+      "\r\n<br /><form method='POST' action='wifisave'><h4>Connect to Network:</h4>"
+      "<input type='text' id='network' placeholder='Network' name='n'/>"
+      "<input type='password' placeholder='Password' name='p'/>"
+      "<input type='submit' value='Connect/Disconnect'/>"
+      "</form>"
+      "<p><a href='/'>Return to Home Page</a></p>"
       "</body></html>");
   server.send(200, "text/html", Page);
   server.client().stop(); // Stop is needed because we sent no content length
 }
+
 void handleWifiSave()
 {
   Serial.println("wifi save");
