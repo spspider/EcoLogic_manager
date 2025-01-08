@@ -308,7 +308,7 @@ bool load_ssid_pass()
   // }
   // }
 
-  return false; // No match found
+  return true; // No match found
 }
 
 void handleNotFound()

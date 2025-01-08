@@ -186,16 +186,18 @@ Adafruit_ADS1015 ads(0x48);
 ///////////////////////////////
 void setup()
 {
+#if defined(will_use_serial)
+  Serial.begin(115200);
+#endif
 #if defined(USE_LITTLEFS)
+  Serial.println("LittleFS init");
   if (!LittleFS.begin())
   {
     LittleFS.format();
   };
 #endif
   wclient.setInsecure(); // Disables certificate verification for testing purposes
-#if defined(will_use_serial)
-  Serial.begin(115200);
-#endif
+
   delay(10);
   Serial.println();
   Serial.println();
