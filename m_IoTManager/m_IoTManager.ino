@@ -160,11 +160,10 @@ uint8_t pwm_delay_long = 10;
 // char trying_attempt_mqtt = 0;
 uint8_t router = 255;
 // замок:
-uint8_t countdown_lock = 0;
-uint8_t onesec;
+
 unsigned long millis_strart_one_sec;
 unsigned long millis_offset = 0;
-uint8_t onesec_255;
+uint8_t onesec_255, onesec, lastConnectTry = 0;
 
 bool license = 0;
 bool test_action = false;
@@ -306,6 +305,8 @@ void loop()
 #endif
       millis_strart_one_sec = getMillis();
     }
+    // int interim = onesec - lastConnectTry;
+    // Serial.print(interim, DEC);
     yield();
   }
   // if (getMillis() > 18000000L)
