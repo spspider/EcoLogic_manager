@@ -755,7 +755,6 @@ void server_init()
   server.on("/WaitIR", []() { // получаем методом AJAX включаем IR
     Page_IR_opened = true;
   });
-  server.on("/open", HTTP_GET, handleOpenLockForTime);
   /*
     server.on("/SaveIR", []() {//!!!!!!!!!!!!!!!!!!можно переделать
       handle_saveIR();
@@ -834,28 +833,6 @@ void server_init()
     json = String(); });
 }
 
-void handleOpenLockForTime()
-{
-  // open_lock();
-  // countdown_lock = //server.arg("t").charAt(0);
-  countdown_lock = server.arg("t").toInt();
-  sendMyheader();
-  String Page = sendHead();
-  if (countdown_lock != 0)
-  {
-    Page += F("<p>замок открыт на:");
-    Page += (server.arg("t"));
-    Page += F("минут</p>");
-  }
-  else
-  {
-    // lock_door();
-    Page += F("<h1>замок закрыт</h1>");
-  }
-  Page += F("<p><br><a href='/open?t=0'><button>закрыть</button></a></p>");
-  server.send(200, "text/html", Page);
-  Serial.println(countdown_lock, DEC);
-}
 void Captive_server_init()
 {
   // server.on("/mode", []()
