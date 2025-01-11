@@ -22,8 +22,8 @@ const inputWidget = ['unknown', 'switch', 'button', 'progress', 'progress-bar', 
 const availablePins = {
     "no": [255],
     "in": [255, 5, 4, 14, 12, 13, 3, 17],
-    "out": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
-    "PWM": [255, 4, 5, 0, 2, 12, 14, 13, 15, 1],
+    "out": [255, 16, 5, 4, 0, 14, 12, 13, 15, 1, 3],
+    "PWM": [255, 4, 5, 0, 12, 14, 13, 15, 1],
     "ADC": [255, 17],
     "low. PWM": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
     "DHT 1.1 Temp": [255, 5, 4, 14, 12, 13, 3, 17],
@@ -32,17 +32,17 @@ const availablePins = {
     "power meter": [255],
     "as5600": [255, 5, 4, 14, 12, 13, 3, 17],
     "MAC address": [255],
-    "EncA": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
-    "EncB": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
+    "EncA": [255, 16, 5, 4, 0, 14, 12, 13, 15, 1],
+    "EncB": [255, 16, 5, 4, 0, 14, 12, 13, 15, 1],
     "ads1115": [255, 5, 4], // hardcoded, pins 5,4 will be used for SCL SCA
-    "ds18b20": [111], //should be hardcoded in scheme d7 - GPIO13, possible pins GPIO 2
+    "ds18b20": [2], //should be hardcoded in scheme d7 - GPIO13, possible pins GPIO 2
 };
 
 const pinInfo = {
     0: "D3, No interrupt, OK output. Connected to FLASH button, boot fails if pulled LOW. Pulled up.",
     1: "TX, TX pin, OK output. HIGH at boot, debug output at boot, boot fails if pulled LOW.",
     2: "D4, Pulled up, OK output. HIGH at boot, connected to on-board LED, boot fails if pulled LOW.",
-    3: "RX, OK input, RX pin. HIGH at boot.",
+    3: "RX, OK input, OK output. RX pin. HIGH at boot.",
     4: "D2, OK input, OK output. Often used as SDA (I2C).",
     5: "D1, OK input, OK output. Often used as SCL (I2C).",
     12: "D6, OK input, OK output. SPI (MISO).",
