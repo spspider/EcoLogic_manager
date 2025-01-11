@@ -6,7 +6,7 @@
 //  #define use_telegram
 // #define USE_SPIFFS
 #define USE_LITTLEFS
-// #define ds18b20
+#define ds18b20
 #define USE_DNS_SERVER
 // #define pubClient
 // #define ir_code
@@ -22,7 +22,7 @@
 // #include <gfxfont.h>
 
 // -----------------------DEFINING PINS----------------------------------
-#define ONE_WIRE_BUS 0 // D3 pin
+#define ONE_WIRE_BUS 2 // D4 pin ds18b20
 #define RECV_PIN 14    // IR recieve
 #define SEND_PIN 15    // IR send
 
