@@ -49,7 +49,7 @@ void connect_as_AccessPoint()
   delay(500); // Without delay I've seen the IP address blank
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
-  lastConnectTry = onesec;
+  lastConnectTry = onesec = 0;
 }
 void captive_setup()
 { // starting void
@@ -177,7 +177,7 @@ void captive_loop()
       WiFi.disconnect();
       Serial.println("Connecting as Wifi client due AP not connected");
       // connect = true;
-      lastConnectTry = onesec;
+      lastConnectTry = onesec = 0;
       captive_setup();
 #if defined(USE_DNS_SERVER)
       dnsServer.setTTL(600); // 10 minutes
@@ -195,7 +195,7 @@ void captive_loop()
       // {
       WiFi.disconnect();
       Serial.println("Connecting as AP, due WL_DISCONNECTED");
-      lastConnectTry = onesec;
+      lastConnectTry = onesec = 0;
       connect_as_AccessPoint();
       relayRouter();
       internet = false;
@@ -211,7 +211,7 @@ void captive_loop()
       Serial.print("stations connected as AP:");
       Serial.println(wifi_softap_get_station_num());
     }
-    lastConnectTry = onesec;
+    lastConnectTry = onesec = 0;
   }
   if (status != s)
   { // WLAN status change
