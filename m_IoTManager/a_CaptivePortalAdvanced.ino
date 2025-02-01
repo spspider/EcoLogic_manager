@@ -55,6 +55,7 @@ void captive_setup()
 { // starting void
 #if defined(USE_DNS_SERVER)
   dnsServer.setTTL(0);
+  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
 #endif
   Captive_server_init();
@@ -180,7 +181,7 @@ void captive_loop()
       lastConnectTry = onesec = 0;
       captive_setup();
 #if defined(USE_DNS_SERVER)
-      dnsServer.setTTL(600); // 10 minutes
+      // dnsServer.setTTL(600); // 10 minutes
       dnsServer.enableForwarder(myHostname, WiFi.dnsIP(0));
       if (dnsServer.isDNSSet())
       {
