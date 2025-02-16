@@ -130,7 +130,7 @@ function PinSetupLoaded(data) {
 
 document.addEventListener("DOMContentLoaded", firstload);
 var PinSetup = {};
-
+var Other_setup = {}
 async function loadFileAsync(filePath) {
   return new Promise((resolve) => {
     readTextFile(filePath, (text) => resolve(text || null));
@@ -143,9 +143,8 @@ async function firstload() {
   PinSetup = await loadFileAsync("pin_setup.txt");
   if (PinSetup) {
     PinSetupLoaded(PinSetup)
+    Other_setup = JSON.parse(await loadFileAsync("other_setup.txt"));
     generateHomeAssistantConfig()
-    // Other_setup = await loadFileAsync("other_setup.txt");
-    // console.log(JSON.stringify(Other_setup))
   }
 
 }
@@ -156,11 +155,10 @@ function PinSetupLoaded(data) {
   }
   PinSetup = JSON.parse(data);
 }
-
 function generateHomeAssistantConfig() {
   const ip = window.location.host;
   const ip_name = ip.split('.')[3].replace(/[^a-zA-Z0-9]/g, '');
-  let config = `######################################  ${ip_name}  ####################################\n`;
+  let config = `######################################  ${Other_setup.deviceID} ${ip}  ####################################\n`;
 
   let restCommands = '';
   let switches = '';
@@ -171,31 +169,32 @@ function generateHomeAssistantConfig() {
 
   PinSetup.pinmode.forEach((mode, index) => {
     const pin = PinSetup.pin[index];
-    const description = PinSetup.descr[index];
+    const description = Other_setup.deviceID + " " + PinSetup.descr[index];
     const widget = PinSetup.widget[index];
     const defaultVal = PinSetup.defaultVal[index];
+    const clearDescription = description.toLowerCase().replace(/[^a-z0-9]/g, "");
 
     switch (mode) {
       case 2: // Switch
-        const switchConfig = generateSwitchConfig(description, index, defaultVal, ip, ip_name);
+        const switchConfig = generateSwitchConfig(description, clearDescription, index, defaultVal, ip, ip_name);
         restCommands += switchConfig.restCommands;
         switches += switchConfig.switches;
         break;
       case 1: // Sensor
       case 16: // Template Data Sensor
-        templates += generateTemplateSensorConfig(description, index, ip, ip_name);
+        templates += generateTemplateSensorConfig(description, clearDescription, index, ip, ip_name);
         break;
       case 20: // Sensor
-        sensors += generateSensorConfig(description, index, ip, ip_name);
+        sensors += generateSensorConfig(description, clearDescription, index, ip, ip_name);
         break;
       case 6: // Temperature Sensor
-        sensors += generateTemperatureSensorConfig(description, index, ip, ip_name);
+        sensors += generateTemperatureSensorConfig(description, clearDescription, index, ip, ip_name);
         break;
       case 7: // Humidity Sensor
-        sensors += generateHumiditySensorConfig(description, index, ip, ip_name);
+        sensors += generateHumiditySensorConfig(description, clearDescription, index, ip, ip_name);
         break;
       case 3: // Range
-        const rangeConfig = generateRangeConfig(description, index, ip, ip_name);
+        const rangeConfig = generateRangeConfig(description, clearDescription, index, ip, ip_name);
         restCommands += rangeConfig.restCommands;
         inputNumbers += rangeConfig.inputNumbers;
         automations += rangeConfig.automations;
@@ -209,22 +208,22 @@ function generateHomeAssistantConfig() {
   setHTML("bodyNode", config);
 }
 
-function generateSwitchConfig(description, index, defaultVal, ip, ip_name) {
+function generateSwitchConfig(description, clearDescription, index, defaultVal, ip, ip_name) {
   const onValue = defaultVal === 1 ? 0 : 1;
   const offValue = defaultVal === 1 ? 1 : 0;
   return {
     restCommands: `
-      ${description.toLowerCase()}_on:
+      ${clearDescription}_on:
         url: "http://${ip}/sendAJAX?json={\\"t\\":${index},\\"v\\":${onValue}}"
         method: GET
-      ${description.toLowerCase()}_off:
+      ${clearDescription}_off:
         url: "http://${ip}/sendAJAX?json={\\"t\\":${index},\\"v\\":${offValue}}"
         method: GET
     `,
     switches: `
       - platform: template
         switches:
-          ${description.replace(/_/g, ' ').toLowerCase()}:
+          ${clearDescription}:
             friendly_name: "${description.replace(/_/g, ' ')}"
             value_template: >
               {% if states('sensor.esp8266_status${ip_name}') != 'unavailable' %}
@@ -234,16 +233,16 @@ function generateSwitchConfig(description, index, defaultVal, ip, ip_name) {
                 False
               {% endif %}
             turn_on:
-              service: rest_command.${description.toLowerCase()}_on
+              service: rest_command.${clearDescription}_on
             turn_off:
-              service: rest_command.${description.toLowerCase()}_off
+              service: rest_command.${clearDescription}_off
             icon_template: mdi:lightbulb-outline
-            unique_id: "${ip_name}${description.toLowerCase()}"
+            unique_id: "${ip_name}${clearDescription}"
     `
   };
 }
 
-function generateTemplateSensorConfig(description, index, ip, ip_name) {
+function generateTemplateSensorConfig(description, clearDescription, index, ip, ip_name) {
   return `
   - sensor:
       - name: "${description}(${ip_name})"
@@ -258,7 +257,7 @@ function generateTemplateSensorConfig(description, index, ip, ip_name) {
 `;
 }
 
-function generateSensorConfig(description, index, ip, ip_name) {
+function generateSensorConfig(description, clearDescription, index, ip, ip_name) {
   return `
     - platform: rest
       resource: "http://${ip}/sendAJAX?json=%7B%22t%22:${index},%22v%22:0%7D"
@@ -266,7 +265,7 @@ function generateSensorConfig(description, index, ip, ip_name) {
       method: GET
       sensors:
         - name: "${description}"
-          unique_id: ${ip_name}${description.toLowerCase().replace(/\s+/g, '_')}
+          unique_id: ${ip_name}${clearDescription}
           state_class: measurement
           value_template: "{{ value_json | float(default=0) }}"
   `;
@@ -280,14 +279,14 @@ function generateTemperatureSensorConfig(description, index, ip, ip_name) {
       method: GET
       sensors:
         - name: "${description}"
-          unique_id: ${description.toLowerCase().replace(/\s+/g, '_')}
+          unique_id: ${clearDescription}
           state_class: measurement
           unit_of_measurement: "°C"
           value_template: "{{ value_json | float(default=0) }}"
   `;
 }
 
-function generateHumiditySensorConfig(description, index, ip, ip_name) {
+function generateHumiditySensorConfig(description, clearDescription, index, ip, ip_name) {
   return `
     - platform: rest
       resource: "http://${ip}/sendAJAX?json=%7B%22t%22:${index},%22v%22:0%7D"
@@ -295,22 +294,22 @@ function generateHumiditySensorConfig(description, index, ip, ip_name) {
       method: GET
       sensors:
         - name: "${description}"
-          unique_id: ${description.toLowerCase().replace(/\s+/g, '_')}
+          unique_id: ${clearDescription}
           state_class: measurement
           unit_of_measurement: "%"
           value_template: "{{ value_json | float(default=0) }}"
   `;
 }
 
-function generateRangeConfig(description, index, ip, ip_name) {
+function generateRangeConfig(description, clearDescription, index, ip, ip_name) {
   return {
     restCommands: `
-      set_${description.toLowerCase()}:
+      set_${clearDescription}:
         url: "http://${ip}/sendAJAX?json={\\"t\\":${index},\\"v\\":{{ value }}}"
         method: GET
     `,
     inputNumbers: `
-      ${description.toLowerCase()}_slider:
+      ${clearDescription}_slider:
         name: ${description} Slider
         min: 0
         max: 1024
@@ -320,11 +319,11 @@ function generateRangeConfig(description, index, ip, ip_name) {
       - alias: "Set ${description} Value"
         trigger:
           platform: state
-          entity_id: input_number.${description.toLowerCase()}_slider
+          entity_id: input_number.${clearDescription}_slider
         action:
-          - service: rest_command.set_${description.toLowerCase()}
+          - service: rest_command.set_${clearDescription}
             data:
-              value: "{{ states('input_number.${description.toLowerCase()}_slider') }}"
+              value: "{{ states('input_number.${clearDescription}_slider') }}"
 
       - alias: "Update ${description} from Sensor"
         trigger:
@@ -334,10 +333,10 @@ function generateRangeConfig(description, index, ip, ip_name) {
           - variables:
               sensor_value_array: "{{ states('sensor.esp8266_status${ip_name}') | from_json }}"
               sensor_value: "{{ sensor_value_array.stat[${index}] | int }}"
-          - condition: "{{ states('input_number.${description.toLowerCase()}_slider') | int != sensor_value }}"
+          - condition: "{{ states('input_number.${clearDescription}_slider') | int != sensor_value }}"
           - service: input_number.set_value
             data:
-              entity_id: input_number.${description.toLowerCase()}_slider
+              entity_id: input_number.${clearDescription}_slider
               value: "{{ sensor_value }}"
     `
   };
