@@ -40,7 +40,7 @@ IP address 192.168.1.150 - should be taken from device address using javscript
 where "backyard_light_on" is taken from pin_setup.txt, in my example that is "relay1" (this name taken from "descr" array)
 
 also it should generate template
-
+switch:
   - platform: template
     switches:
       backyard_light:
@@ -158,8 +158,9 @@ function PinSetupLoaded(data) {
 }
 
 function generateHomeAssistantConfig() {
-  let config = '';
   const ip = window.location.host; // Assuming IP is static for demonstration
+  const ip_name = ip.split('.')[3].replace(/[^a-zA-Z0-9]/g, '');
+  let config = `######################################  ${ip_name}  ####################################`;
 
   PinSetup.pinmode.forEach((mode, index) => {
     const pin = PinSetup.pin[index];
@@ -169,55 +170,64 @@ function generateHomeAssistantConfig() {
 
     switch (mode) {
       case 2: // Switch
-        config += generateSwitchConfig(description, index, defaultVal, ip);
+        config += generateSwitchConfig(description, index, defaultVal, ip, ip_name);
         break;
       case 1: // Sensor
-      case 16: // Sensor
-        config += generateSensorConfig(description, index, ip);
+      case 16: // data Sensor
+        config += generateDataSensorConfig(description, index, ip, ip_name);
+        break;
+      case 20: // Sensor
+        config += generateSensorConfig(description, index, ip, ip_name);
         break;
       case 6: // Temperature Sensor
-        config += generateTemperatureSensorConfig(description, index, ip);
+        config += generateTemperatureSensorConfig(description, index, ip, ip_name);
         break;
       case 7: // Humidity Sensor
-        config += generateHumiditySensorConfig(description, index, ip);
+        config += generateHumiditySensorConfig(description, index, ip, ip_name);
         break;
       case 3: // Range
-        config += generateRangeConfig(description, index, ip);
+        config += generateRangeConfig(description, index, ip, ip_name);
         break;
     }
 
   });
-  config += generateFullSensorConfig(ip);
+  config += generateFullSensorConfig(ip, ip_name);
   setHTML("bodyNode", config);
 }
 
-function generateSwitchConfig(description, index, defaultVal, ip) {
+function generateSwitchConfig(description, index, defaultVal, ip, ip_name) {
   const onValue = defaultVal === 1 ? 0 : 1;
   const offValue = defaultVal === 1 ? 1 : 0;
   return `
 rest_command:
-  ${description}_on:
+  ${description.toLowerCase()}_on:
     url: "http://${ip}/sendAJAX?json={\\"t\\":${index},\\"v\\":${onValue}}"
     method: GET
-  ${description}_off:
+  ${description.toLowerCase()}_off:
     url: "http://${ip}/sendAJAX?json={\\"t\\":${index},\\"v\\":${offValue}}"
     method: GET
-
-- platform: template
-  switches:
-    ${description}:
-      friendly_name: "${description.replace(/_/g, ' ')}"
-      value_template: "{{ False }}"
-      turn_on:
-        service: rest_command.${description}_on
-      turn_off:
-        service: rest_command.${description}_off
-      icon_template: mdi:lightbulb-outline
-      unique_id: "${description}"
-`;
+switch:
+  - platform: template
+    switches:
+      ${description.replace(/_/g, ' ').toLowerCase()}:
+        friendly_name: "${description.replace(/_/g, ' ')}"
+        value_template: >
+          {% if states('sensor.esp8266_status${ip_name}') != 'unavailable' %}
+            {% set value = states('sensor.esp8266_status${ip_name}') | from_json %}
+            {{ int(value.stat[${index}]) == ${defaultVal ^ 1}  }}
+          {% else %}
+            False
+          {% endif %}
+        turn_on:
+          service: rest_command.${description.toLowerCase()}_on
+        turn_off:
+          service: rest_command.${description.toLowerCase()}_off
+        icon_template: mdi:lightbulb-outline # update icon template
+        unique_id: "${ip_name}${description.toLowerCase()}"
+  `;
 }
 
-function generateSensorConfig(description, index, ip) {
+function generateSensorConfig(description, index, ip, ip_name) {
   return `
 rest:
   - resource: "http://${ip}/sendAJAX?json=%7B%22t%22:${index},%22v%22:0%7D"
@@ -225,13 +235,29 @@ rest:
     method: GET
     sensor:
       - name: "${description}"
-        unique_id: ${description.toLowerCase().replace(/\s+/g, '_')}
+        unique_id: ${ip_name}${description.toLowerCase().replace(/\s+/g, '_')}
         state_class: measurement
         value_template: "{{ value_json | float(default=0) }}"
 `;
 }
 
-function generateHumiditySensorConfig(description, index, ip) {
+function generateDataSensorConfig(description, index, ip, ip_name) {
+  return `
+template:
+  - sensor:
+      - name: "${description}(${ip_name})"
+        unit_of_measurement: ""
+        state: >
+          {% set sensor_value_array = states('sensor.esp8266_status${ip_name}') | from_json %}
+          {% if sensor_value_array.stat is defined and sensor_value_array.stat[${index}] is defined %}
+            {{ sensor_value_array.stat[${index}] | float }}
+          {% else %}
+            unavailable
+          {% endif %}
+`;
+}
+
+function generateHumiditySensorConfig(description, index, ip, ip_name) {
   return `
 rest:
   - resource: "http://${ip}/sendAJAX?json=%7B%22t%22:${index},%22v%22:0%7D"
@@ -245,7 +271,7 @@ rest:
         value_template: "{{ value_json | float(default=0) }}"
 `;
 }
-function generateRangeConfig(description, index, ip) {
+function generateRangeConfig(description, index, ip, ip_name) {
   return `
 rest_command:
   set_${description.toLowerCase()}:
@@ -253,39 +279,52 @@ rest_command:
     method: GET
 
 input_number:
-  ${description}_slider:
+  ${description.toLowerCase()}_slider:
     name: ${description} Slider
     min: 0
-    max: 1024
+    max: 1024  # define range maximum value
     step: 1
 
 automation:
   - alias: "Set ${description} Value"
     trigger:
       platform: state
-      entity_id: input_number.${description}_slider
+      entity_id: input_number.${description.toLowerCase()}_slider
     action:
       - service: rest_command.set_${description.toLowerCase()}
         data:
-          value: "{{ states('input_number.${description}_slider') }}"
+          value: "{{ states('input_number.${description.toLowerCase()}_slider') }}"
+
+  - alias: "Update ${description} from Sensor"
+    trigger:
+      platform: state
+      entity_id: sensor.esp8266_status${ip_name}
+    action:
+      - variables:
+          sensor_value_array: "{{ states('sensor.esp8266_status${ip_name}') | from_json }}"
+          sensor_value: "{{ sensor_value_array.stat[${index}] | int }}"
+      - condition: "{{ states('input_number.${description.toLowerCase()}_slider') | int != sensor_value }}"
+      - service: input_number.set_value
+        data:
+          entity_id: input_number.${description.toLowerCase()}_slider
+          value: "{{ sensor_value }}"           
 `;
 }
 
-function generateFullSensorConfig(ip) {
+function generateFullSensorConfig(ip, ip_name) {
   return `
-rest:
-- resource: "http://${ip}/sendAJAX?json=%7B%22t%22:127,%22v%22:0%7D"
-  scan_interval: 60
-  method: GET
-  sensor:
-    - name: "${ip}"
-      unique_id: ${ip}
-      value_template: >
-        {% if value_json is defined and value_json.stat is defined %}
-          {{ value_json.stat | join(',') }}
-        {% else %}
-          Unavailable
-        {% endif %}
+sensor:
+  - platform: rest
+    name: esp8266_status${ip_name}
+    resource: "http://${ip}/sendAJAX?json=%7B%22t%22:127,%22v%22:0%7D" # t=127 is status and here is respond, {"stat":["1.00","1.00","1.00","0.00","1.00","37.19","0.00"]}
+    scan_interval: 10  # change if you want make it slowe or faster
+    method: GET
+    value_template: >
+      {% if value_json is defined and value_json.stat is defined %}
+        {{ value }}
+      {% else %}
+        Unavailable
+      {% endif %}
 `;
 }
 /*
