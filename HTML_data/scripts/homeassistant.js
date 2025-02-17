@@ -347,7 +347,7 @@ function generateFullSensorConfig(ip, ip_name) {
     - platform: rest
       name: esp8266_status${ip_name}
       resource: "http://${ip}/sendAJAX?json=%7B%22t%22:127,%22v%22:0%7D"
-      scan_interval: 10
+      scan_interval: 60
       method: GET
       value_template: >
         {% if value_json is defined and value_json.stat is defined %}
