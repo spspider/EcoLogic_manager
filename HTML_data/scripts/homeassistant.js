@@ -182,7 +182,7 @@ function generateHomeAssistantConfig() {
         break;
       case 1: // Sensor
       case 16: // Template Data Sensor
-        templates += generateTemplateSensorConfig(description, clearDescription, index, ip, ip_name);
+        templates += generateTemplateSensorConfig(description, clearDescription, index, ip, ip_name, Other_setup);
         break;
       case 20: // Sensor
         sensors += generateSensorConfig(description, clearDescription, index, ip, ip_name);
@@ -245,7 +245,7 @@ function generateSwitchConfig(description, clearDescription, index, defaultVal, 
 function generateTemplateSensorConfig(description, clearDescription, index, ip, ip_name) {
   return `
   - sensor:
-      - name: "${description}(${ip_name})"
+      - name: "${description}"
         unit_of_measurement: ""
         state: >
           {% set sensor_value_array = states('sensor.esp8266_status${ip_name}') | from_json %}
@@ -310,7 +310,7 @@ function generateRangeConfig(description, clearDescription, index, ip, ip_name) 
     `,
     inputNumbers: `
       ${clearDescription}_slider:
-        name: ${description} Slider
+        name: ${description}
         min: 0
         max: 1024
         step: 1
