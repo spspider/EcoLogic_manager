@@ -7,7 +7,7 @@
 // #define USE_SPIFFS
 #define USE_LITTLEFS
 #define ds18b20
-#define USE_DNS_SERVER
+// #define USE_DNS_SERVER
 // #define pubClient
 // #define ir_code
 // #define as
