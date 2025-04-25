@@ -7,7 +7,8 @@
 // #define USE_SPIFFS
 #define USE_LITTLEFS
 #define ds18b20
-// #define USE_DNS_SERVER
+//#define USE_DNS_SERVER
+#define USE_UDP
 // #define pubClient
 // #define ir_code
 // #define as
@@ -44,6 +45,14 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
 #endif
+
+#if defined(USE_UDP)
+#include <WiFiUdp.h>
+WiFiUDP Udp;
+const int UDP_PORT = 4210; // UDP port
+char incomingPacket[255];
+#endif
+
 // ########spiffs
 
 #if defined USE_SPIFFS
@@ -201,6 +210,10 @@ void setup()
   Serial.println();
   Serial.println();
   setup_FS();
+#if defined(USE_UDP)
+  Udp.begin(UDP_PORT);
+  Serial.println("UDP listening on port " + String(UDP_PORT));
+#endif
   MD5Builder md5;
   md5.begin();
   md5.add(WiFi.macAddress() + "password");
@@ -313,4 +326,20 @@ void loop()
   // {
   //   ESP.restart();
   // }
+
+#if defined(USE_UDP)
+  int packetSize = Udp.parsePacket();
+  if (packetSize)
+  {
+    int len = Udp.read(incomingPacket, 255);
+    if (len > 0)
+      incomingPacket[len] = '\0';
+
+    // Пример: "6:589"
+    uint8_t topic = atoi(strtok(incomingPacket, ":"));
+    int value = atoi(strtok(NULL, ":"));
+
+    callback_socket(topic, value);
+  }
+#endif
 }
