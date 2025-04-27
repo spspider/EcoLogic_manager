@@ -1,8 +1,8 @@
 //This variables left in another file, so they are out of scope
 
 uint8_t oldtime = 0;
-uint8_t nWidgets = 10;
-const uint8_t nWidgetsArray = 10;
+uint8_t nWidgets = N_WIDGECTS;
+const uint8_t nWidgetsArray = N_WIDGECTS;
 short int stat[nWidgetsArray];
 // uint8_t widget[nWidgetsArray]; // inputWidjet[0] = 'unknown';1 = 'toggle';2 = 'simple-btn';4 = 'range';4 = 'small-badge';5 = 'uint8_tt';
 char descr[nWidgetsArray][10];

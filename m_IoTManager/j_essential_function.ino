@@ -27,7 +27,7 @@ float get_new_pin_value(uint8_t i)
   }
   if (pinmode[i] == 6)
   { // dht Temp
-#if defined(dht)
+#if defined(USE_DHT)
     if (!license)
       return 127;
     float temperature = dht.getTemperature();
@@ -52,7 +52,7 @@ float get_new_pin_value(uint8_t i)
   }
   if (pinmode[i] == 8)
   { // dht Humidity
-#if defined(dht)
+#if defined(USE_DHT)
     if (!license)
       return 127;
     float humidity = dht.getHumidity();
@@ -108,9 +108,9 @@ float get_new_pin_value(uint8_t i)
 #endif
   }
   if (pinmode[i] == 16)
-  { // ds18b20
+  { // USE_DS18B20
     // Serial.print ("stat[i]", stat[i]);
-#if defined(ds18b20)
+#if defined(USE_DS18B20)
     sensors.requestTemperatures();
     float tempC = sensors.getTempCByIndex(defaultVal[i]);
     if ((tempC != DEVICE_DISCONNECTED_C) && (tempC != 0))
@@ -120,7 +120,7 @@ float get_new_pin_value(uint8_t i)
       return that_stat;
     }
 #endif
-#if !defined(ds18b20)
+#if !defined(USE_DS18B20)
     that_stat = -1111;
     return that_stat;
 #endif

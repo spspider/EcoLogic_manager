@@ -87,6 +87,13 @@ function fetchTableDataAndUpdateUI() {
         renderTable();
     });
 }
+let max_number_chosed = 12;
+function loadlimits() {
+    readTextFile("/function?json={\"pin_setup_limits\":\"1\"}", function (callback) {
+        max_number_chosed = (callback !== 404 && isNaN(parseInt(callback))) ? 8 : parseInt(callback) || 12;
+        if (callback) callback();
+    });
+}
 
 function saveDataToLocalStorage() {
     localStorage.setItem('tableData', JSON.stringify(tableData));
@@ -281,7 +288,7 @@ function renderTable() {
     addRowButton.textContent = 'Add Row';
     addRowButton.className = "btn btn-lg btn-primary btn-block";
     addRowButton.onclick = () => {
-        if (tableData.pinmode.length < 10) {
+        if (tableData.pinmode.length < max_number_chosed) {
             tableData.pinmode.push(0);
             tableData.pin.push(0);
             tableData.descr.push('');
@@ -304,7 +311,7 @@ function makeSave() {
 }
 // renderTable();
 
-fetchTableDataAndUpdateUI();
+loadlimits(fetchTableDataAndUpdateUI);
 
 btnbtns = document.getElementById('btmBtns');
 btnbtns.appendChild(bottomButtons2());

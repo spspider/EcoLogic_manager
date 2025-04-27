@@ -112,8 +112,8 @@ void Setup_pinmode(bool stat_loaded)
       }
       if ((pinmode[i] == 6) || (pinmode[i] == 8))
       { // dht temp
-#if defined(dht)
-        dht.setup(pin[i]); // data pin
+#if defined(USE_DHT)
+        dht.setup(pin[i], DHTesp::DHT11); // data pin
         Serial.println("DHT:" + String(pin[i], DEC));
 #endif
       }
