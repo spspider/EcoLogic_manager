@@ -6,17 +6,17 @@
 //  #define use_telegram
 // #define USE_SPIFFS
 #define USE_LITTLEFS
-#define ds18b20
+#define USE_DS18B20
 //#define USE_DNS_SERVER
 #define USE_UDP
 // #define pubClient
 // #define ir_code
 // #define as
 // #define wakeOnLan
-// #define dht
-//  #define ads1115
-//  #define emon
-//  #define ws433
+#define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
+//  #define ads1115 # CHANGE TO USE_ADS1115
+//  #define emon # CHANGE TO USE_EMON
+//  #define ws433 # CHANGE TO USE_WS433
 //------------------------------------------------------------------------------//
 
 // #include <Adafruit_GFX.h>
@@ -26,6 +26,7 @@
 #define ONE_WIRE_BUS 2 // D4 pin ds18b20
 #define RECV_PIN 14    // IR recieve
 #define SEND_PIN 15    // IR send
+#define N_WIDGECTS 12
 
 // #include <WiFiManager.h>     //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 #include <ESP8266mDNS.h>
@@ -38,7 +39,7 @@
 
 ESP8266HTTPUpdateServer httpUpdater; // OTA
 // ###############################
-#if defined(ds18b20)
+#if defined(USE_DS18B20)
 #include <OneWire.h>
 #include <DallasTemperature.h>
 OneWire oneWire(ONE_WIRE_BUS);
@@ -102,7 +103,7 @@ extern "C"
 {
 #include <user_interface.h>
 }
-#if defined(dht)
+#if defined(USE_DHT)
 #include "DHTesp.h"
 DHTesp dht;
 #endif
@@ -256,7 +257,7 @@ void setup()
   /////////////////////////////////////
   // callback_from_stat();
 
-#if defined(ds18b20)
+#if defined(USE_DS18B20)
   sensors.begin(); // Start up the library
 #endif
 }
