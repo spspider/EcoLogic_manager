@@ -91,7 +91,7 @@ let max_number_chosed = 12;
 function loadlimits() {
     readTextFile("/function?json={\"pin_setup_limits\":\"1\"}", function (callback) {
         max_number_chosed = (callback !== 404 && isNaN(parseInt(callback))) ? 8 : parseInt(callback) || 12;
-        if (callback) callback();
+        if (callback) fetchTableDataAndUpdateUI();
     });
 }
 
@@ -293,7 +293,7 @@ function renderTable() {
             tableData.pin.push(0);
             tableData.descr.push('');
             tableData.widget.push(0);
-            tableData.IrBtnId.push(0);
+            tableData.IrBtnId.push(255);
             tableData.defaultVal.push(0);
         }
         saveDataToLocalStorage();
@@ -311,7 +311,7 @@ function makeSave() {
 }
 // renderTable();
 
-loadlimits(fetchTableDataAndUpdateUI);
+loadlimits();
 
 btnbtns = document.getElementById('btmBtns');
 btnbtns.appendChild(bottomButtons2());
