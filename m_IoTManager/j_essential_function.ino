@@ -132,7 +132,7 @@ float get_new_pin_value(uint8_t i)
     if (!license)
       return 127;
       // double Irms ;
-#if defined(emon)
+#if defined(USE_EMON)
     that_stat = (float)emon1.calcIrms(1480); // Calculate Irms only
     that_stat = (that_stat * 1.0F / analogDivider) + analogSubtracter;
 #endif
