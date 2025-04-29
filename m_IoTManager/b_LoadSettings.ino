@@ -120,7 +120,7 @@ void Setup_pinmode(bool stat_loaded)
       if (pinmode[i] == 10)
       { // powerMeter
         // pinMode(pin[i], OUTPUT);
-#if defined(emon)
+#if defined(USE_EMON)
         emon1.current(17, PowerCorrection); // PowerCorrection=111.1
 #endif
       }
@@ -304,7 +304,7 @@ bool updatepinsetup(File jsonrecieve)
   analogSubtracter = jsonDocument.containsKey("aSusbt") ? jsonDocument["aSusbt"] : 0;
   pwm_delay_long = jsonDocument.containsKey("PWM_interval") ? jsonDocument["PWM_interval"] : 60;
 
-#if defined(emon)
+#if defined(USE_EMON)
   PowerCorrection = jsonDocument.containsKey("PCorr") ? jsonDocument["PCorr"] : 111.1;
 #endif
 

@@ -15,7 +15,7 @@
 // #define wakeOnLan
 #define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
 //  #define ads1115 # CHANGE TO USE_ADS1115
-//  #define emon # CHANGE TO USE_EMON
+#define USE_EMON
 //  #define ws433 # CHANGE TO USE_WS433
 //------------------------------------------------------------------------------//
 
@@ -109,7 +109,7 @@ DHTesp dht;
 #endif
 ////////////////////
 /// emon//
-#if defined(emon)
+#if defined(USE_EMON)
 #include "EmonLib.h" // Include Emon Library
 EnergyMonitor emon1; // Create an instance
 float PowerCorrection = 111.1;
