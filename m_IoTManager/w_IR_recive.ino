@@ -41,14 +41,10 @@ decode_results results;
 
 void setup_IR()
 {
-  if (RECV_PIN != 255) {
     irrecv.setUnknownThreshold(MIN_UNKNOWN_SIZE);
     Serial.println("Setup IR");
     irrecv.enableIRIn(); // Start the receiver
     updateIR();
-  } else {
-    //Serial.println("Setup IR Fail RECV_PIN =-1");
-  }
   if (SEND_PIN != -1) {
   }
 }
