@@ -10,7 +10,7 @@
 //#define USE_DNS_SERVER
 #define USE_UDP
 // #define pubClient
-#define ir_code
+#define USE_IRUTILS
 // #define as
 // #define wakeOnLan
 #define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
@@ -25,7 +25,7 @@
 // -----------------------DEFINING PINS----------------------------------
 #define ONE_WIRE_BUS 2 // D4 pin ds18b20
 #define RECV_PIN 5     // IR recieve d1
-#define SEND_PIN 15    // IR send
+#define SEND_PIN 15    // IR send d8
 #define N_WIDGECTS 12
 
 // #include <WiFiManager.h>     //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
@@ -243,7 +243,7 @@ void setup()
   SSDP_init();
 #endif
 
-#if defined(ir_code)
+#if defined(USE_IRUTILS)
   if (IR_recieve)
   {
     setup_IR();
@@ -272,7 +272,7 @@ unsigned long getMillis()
 void loop()
 {
   captive_loop();
-#if defined(ir_code)
+#if defined(USE_IRUTILS)
   if (IR_recieve)
   {
     loop_IR();

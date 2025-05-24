@@ -152,6 +152,8 @@ function loadBody() {
     bodyNode +=
         "<table class='table' style='width:100%'>" +
         "<tr><td>" +
+    "Description: " +
+    "</td><td>" +
     "MQTT subscribe topic: " +
         "</td><td>" +
     "MQTT command topic: " +
@@ -169,6 +171,7 @@ function loadBody() {
 
         HTTP_control_read = "<a href=/aRest?Json={stat:" + i + "}>" + window.location.host + "/aRest?Json={stat:" + i + "}</a>";
         bodyNode +=
+            "<td>" + PinSetup.descr[i] + "</td>" +
             "<td>" +
             "<code>" +
         MQTT_subscribe +

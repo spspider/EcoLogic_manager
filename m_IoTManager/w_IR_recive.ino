@@ -4,7 +4,7 @@
    Version 0.1 Sept, 2015
    Based on Ken Shirriff's IrsendDemo Version 0.1 July, 2009, Copyright 2009 Ken Shirriff, http://arcfn.com
 */
-#if defined(ir_code)
+#if defined(USE_IRUTILS)
 
 #include <IRremoteESP8266.h>
 #include <IRrecv.h>
@@ -45,8 +45,6 @@ void setup_IR()
     Serial.println("Setup IR");
     irrecv.enableIRIn(); // Start the receiver
     updateIR();
-  if (SEND_PIN != -1) {
-  }
 }
 void updateIR() {
   File irJson = fileSystem->open("/IRButtons.txt", "r");
@@ -148,7 +146,7 @@ void check_code_IR(String codeIR) {
         if (IrButtonID[i1] == i) {
           Serial.println("FIND IR:" + String(descr[i1]) + " IrButtonID[i1]:" + String(IrButtonID[i1], DEC) + " i:" + String(i, DEC));
           stat[i1] ^= 1;
-          save_stat_void();
+//          save_stat_void();
           digitalWrite(pin[i1], stat[i1] );
           //stat[i1] = new_state;
           delay(300);
@@ -218,7 +216,7 @@ void loop_IR() {
       buff1 = 0;
       codeIR = String(charBuff1);
       if (!Page_IR_opened) {
-#if defined(ir_code)
+#if defined(USE_IRUTILS)
         check_code_IR(codeIR);
 #endif
       }
