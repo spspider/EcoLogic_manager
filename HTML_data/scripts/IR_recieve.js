@@ -2,93 +2,22 @@ document.addEventListener("DOMContentLoaded", load);
 var IRjson = {code: [], name: [], rawID: [], rawCode: [], rawCodeLen: []};
 var progress;
 var CODE = {};
-//  var ModifiedJson;
+
 function load() {
     //alert(typeof HelperLoaded);
     //IRjson = {code: [], name: [], rawID: [], rawCode: [], rawCodeLen: []};
     load2();
     setHTML("btmBtns",bottomButtons());
- }
-var a = {
-    "Ё": "YO",
-    "Й": "I",
-    "Ц": "TS",
-    "У": "U",
-    "К": "K",
-    "Е": "E",
-    "Н": "N",
-    "Г": "G",
-    "Ш": "SH",
-    "Щ": "SCH",
-    "З": "Z",
-    "Х": "H",
-    "Ъ": "'",
-    "ё": "yo",
-    "й": "i",
-    "ц": "ts",
-    "у": "u",
-    "к": "k",
-    "е": "e",
-    "н": "n",
-    "г": "g",
-    "ш": "sh",
-    "щ": "sch",
-    "з": "z",
-    "х": "h",
-    "ъ": "'",
-    "Ф": "F",
-    "Ы": "I",
-    "В": "V",
-    "А": "a",
-    "П": "P",
-    "Р": "R",
-    "О": "O",
-    "Л": "L",
-    "Д": "D",
-    "Ж": "ZH",
-    "Э": "E",
-    "ф": "f",
-    "ы": "i",
-    "в": "v",
-    "а": "a",
-    "п": "p",
-    "р": "r",
-    "о": "o",
-    "л": "l",
-    "д": "d",
-    "ж": "zh",
-    "э": "e",
-    "Я": "Ya",
-    "Ч": "CH",
-    "С": "S",
-    "М": "M",
-    "И": "I",
-    "Т": "T",
-    "Ь": "'",
-    "Б": "B",
-    "Ю": "YU",
-    "я": "ya",
-    "ч": "ch",
-    "с": "s",
-    "м": "m",
-    "и": "i",
-    "т": "t",
-    "ь": "'",
-    "б": "b",
-    "ю": "yu"
-};
-
-function transliterate(word) {
-    return word.split('').map(function (char) {
-        return a[char] || char;
-    }).join("");
 }
+
 function load2() {
-
-
     try {
         readTextFile("IRButtons.txt", function (text) {
-
+            if (!text) { // If file is missing or empty
+                IRjson = { code: [], name: [], rawID: [], rawCode: [], rawCodeLen: [] };
+                makeIRList(IRjson);
+                return;
+            }
             try {
                 //IRjson={};
 
@@ -154,15 +83,14 @@ function deleteRow(i) {
 
 
 function makeIRList(IRjson) {
-    //document.getElementById("table").innerHTML = "<tbody id='body_table'><tbody>";
     var result = "",
         table_res = "";
     table_res = "<tr>" +
-        "<td>номер</td>" +
-        "<td>код</td>" +
-        "<td>имя</td>" +
+        "<td>Number</td>" +
+        "<td>Code</td>" +
+        "<td>Name</td>" +
         // "<td>rawID</td>" +
-        "<td>удалить</td>" +
+        "<td>Delete</td>" +
         "</tr>";
 
     if (IRjson) {
@@ -184,11 +112,7 @@ function makeIRList(IRjson) {
             }
         }
     }
-
-    //table_res="<tr><td></td><td><input type='text' id='IRcode' class='form-control'></td><td><input type='text' id='IRcodуName' class='form-control'></td><td></td></tr>";
     document.getElementById("table").innerHTML = table_res;
-
-    //document.getElementById("codelist").innerHTML = result;
 }
 function WaitIR(submit) {
     progress = document.createElement("div");
@@ -219,67 +143,11 @@ function WaitIR(submit) {
     setTimeout(function () {
         take_progress_zero(submit);
         submit.value = old_submit;
-        //submit_disabled(false);
 
     }, 5000);
-    //send_request(submit, server);
-    submit.value = 'нажмите кнопку...';
-    //submit_disabled(true);
+    submit.value = 'Press the button...';
 }
-/*
- function send_request(submit, server) {
- request = new XMLHttpRequest();
- request.open("GET", server, true);
- request.send();
- request.addEventListener("IRRecieve", recieveIR, false);
- request.timeout = 10000; // time in milliseconds
 
- save_status(submit, request, server);
-
- }
-
- function save_status(submit, request, server) {
- old_submit = submit.value;
- request.onreadystatechange = function () {
-
- if (request.readyState === 4) {
- if (request.status === 200) {
- submit.value = "OK! взять IR";
-
- sendReguestCode(request.responseText);
- //var progress = document.getElementById("progress_IR");
- progress.style.width = 0 + "%";
- //progress.style.width = 100 + "%";
- //send_request(submit, server);
- take_progress_zero(submit);
- } else {
- progress.style.width = 0 + "%";
- //send_request(submit, server);
- take_progress_zero(submit);
- }
- }
- setTimeout(function () {
- take_progress_zero(submit);
-
- submit.value = old_submit;
- submit_disabled(false);
- //progress.remove();
- //progress.style.width=0+"%";
- //my_div.removeChild(progress);
- //progress.style.
-
- }, 5000);
- }
- request.ontimeout = function (e) {
- submit.value = old_submit;
- result_IR_prompt.value = "time end";
- take_progress_zero(submit);
- //save_status(submit, request);
- };
- submit.value = 'нажмите кнопку...';
- submit_disabled(true);
- }
- */
 function take_progress_zero(submit) {
     submit.value = "Wait...";
     var progress = document.getElementById("progress_IR");
@@ -287,68 +155,27 @@ function take_progress_zero(submit) {
 
 }
 
-/*
- function readTextFile(file, callback) {
- //var rawFile = new XMLHttpRequest();
- var xmlHttp = createXmlHttpObject();
- xmlHttp.overrideMimeType("application/json");
- xmlHttp.open("GET", file, true);
- xmlHttp.timeout = 1000;
- xmlHttp.ontimeout = function () {
- callback({"response": 0});
- }
- xmlHttp.onreadystatechange = function () {
-
- if (xmlHttp.readyState === 4) {
- if (xmlHttp.status === 200) {
- callback(xmlHttp.responseText);
- } else {
- callback({"response": 0});
- }
- }
-
- }
-
-
- xmlHttp.send(null);
- }
- */
 function saveCommonCode(FileName, JsonFile) {
     saveData(FileName, JsonFile);
 
-    /*
-     JsonFile["fileName"] = FileName;
-     try {
-     var json_upload = "spec=0&fileName=" + FileName + "&json=" + JSON.stringify(JSON.parse(JsonFile));
-     //setVal("test", json_upload);
-     xmlHttp.open("POST", '/CommonSave', true);
-     xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-     xmlHttp.send(json_upload);
-     xmlHttp.onloadend = function () {
-     //document.getElementById("test").innerHTML += JSON.stringify(IRjson);
-
-     };
-     if (xmlHttp.readyState === 4) {
-     //saveCode();
-     }
-     }
-     catch (e) {
-     alert(e);
-     }
-     */
 }
 function AddNewButton() {
+    // Ensure IRjson and its arrays are always initialized
+    if (!IRjson || typeof IRjson !== 'object') {
+        IRjson = { code: [], name: [], rawID: [], rawCode: [], rawCodeLen: [] };
+    }
+    if (!Array.isArray(IRjson.code)) IRjson.code = [];
+    if (!Array.isArray(IRjson.name)) IRjson.name = [];
+    if (!Array.isArray(IRjson.rawID)) IRjson.rawID = [];
+    if (!Array.isArray(IRjson.rawCode)) IRjson.rawCode = [];
+    if (!Array.isArray(IRjson.rawCodeLen)) IRjson.rawCodeLen = [];
 
     var savedCode = getVal("IRcode");
-    var NameIR = getVal("IRcodуName");
-    if (IRjson===null){
-        IRjson={code: [], name: [], rawID: [], rawCode: [], rawCodeLen: []};
-    }
+    var NameIR = getVal("IRcodyName");
+
     if (savedCode.length > 30) {
         try {
             var Parsedata = JSON.parse(CODE);
-            //setVal("test", Parsedata.raw);
-            //Parsedata.c
             IRjson["rawCode"] == null ? IRjson["rawCode"] = [] : true;
             IRjson["rawCodeLen"] == null ? IRjson["rawCodeLen"] = [] : true;
 
@@ -361,20 +188,16 @@ function AddNewButton() {
                 IRjson["rawCodeLen"].push(Parsedata.len);
                 saveCommonCode("IrRaw_Code" + idRaw + ".txt", CODE);
             }
-            else {
-            }
         } catch (e) {
-
+            // handle error silently
         }
     }
 
     if ((savedCode.length < 20) && (savedCode.length > 1)) {
         IRjson.code.push(savedCode);
         IRjson.name.push(NameIR);
-
     }
 
-    //IRjson=JSON.stringify(IRjson);
     makeIRList(IRjson);
     //document.getElementById("demo").innerHTML += JSON.stringify(IRjson);
 }
@@ -391,13 +214,6 @@ function saveCode() {
     setVal("test", json_upload);
     saveData("IRButtons.txt", SendCodeJson);
 
-    /* xmlHttp.open("POST", '/SaveIR', true);
-     xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-     xmlHttp.send(json_upload);
-     xmlHttp.onloadend = function () {
-     //document.getElementById("test").innerHTML += JSON.stringify(IRjson);
-     };
-     */
 }
 function saveData(filename, data) {
 
