@@ -10,6 +10,7 @@
 #include <IRrecv.h>
 #include <IRsend.h>
 #include <IRutils.h>
+#include <ESP8266HTTPClient.h>
 
 #define MIN_UNKNOWN_SIZE 12
 #define CAPTURE_BUFFER_SIZE 250
@@ -177,7 +178,6 @@ void loop_IR() {
     uint8_t len = results.rawlen;
     if ((len > 100) && ((Page_IR_opened))) {
       /////ITs RAW/////////
-      //unsigned int Signal_ON_0[250];
       String sendJSON;
       sendJSON = "{\"raw\":\"true\",\"len\":";
       sendJSON += results.rawlen;
@@ -199,9 +199,7 @@ void loop_IR() {
         if (i % 2 == 0)  sendJSON += " ";  // Extra if it was even.
       }
       sendJSON += "]}";
-      //json["c"] = Signal_ON_0;
       Serial.println(sendJSON);
-      //saveCommonFiletoJson("IR_reciever", sendJSON, 1);
       yield();  // Feed the WDT (again)
       server.send(200, "text/plain", sendJSON);
       yield();  // Feed the WDT (again)
@@ -215,6 +213,7 @@ void loop_IR() {
       yield();  // Feed the WDT (again)
       buff1 = 0;
       codeIR = String(charBuff1);
+      sendIRCode(strtoul(charBuff1, nullptr, 16));
       if (!Page_IR_opened) {
         check_code_IR(codeIR);
       }
@@ -224,70 +223,9 @@ void loop_IR() {
       }
       //irrecv.resume();
     }
-    
-    // Receive the next value IRRecieve
-    //Serial.println(results.rawlen);
-    //    yield();  // Feed the WDT (again)
+
   }
 
 }
-/*
-  void loop_IR2() {
-
-  if (!IR_loop) {//если выключен IR, то
-    //last_millis = millis();//обновляем последнее время
-  }
-  // if (WebSocketConnected) {
-  // else if (IR_loop) {
-  if (irrecv.decode(&results)) {
-    String codeIR;
-    if ((results.value != overflow) && (buff1 != 0)) {
-      if (buff1 != results.value) {
-        char charBuff1[21];
-        sprintf(charBuff1, "%X", buff1);
-        char charBuff[21];
-        sprintf(charBuff, "%X", results.value);
-        Serial.println(charBuff1);
-        Serial.println(charBuff);
-        codeIR = String(charBuff1);
-        buff1 = 0;
-        if (!Page_IR_opened) {
-          check_code_IR(codeIR);
-        }
-        else {
-          server.send(200, "text/plain", codeIR);
-        }
-      }
-      else {
-        char charBuff1[21];
-        sprintf(charBuff1, "%X", buff1);
-        Serial.println(charBuff1);
-        buff1 = 0;
-      }
-      buff1 = 0;
-    }
-    if (buff1 == 0) {
-      buff1 = results.value;
-      irrecv.resume();
-    }
-    if (results.value == overflow) {
-      //Serial.print("overflow");
-      char charBuff1[21];
-      sprintf(charBuff1, "%X", buff1);
-      buff1 = 0;
-      Serial.println(charBuff1);
-    }
-
-    //Serial.print("Str:");
-
-    //char buff[21];
-    // copy to buffer
-    //sprintf(buff, "%X", results.value);
-    //Serial.println(buff);
-    irrecv.resume();  // Receive the next value
-  }
-  // }
-  }
-*/
 
 #endif

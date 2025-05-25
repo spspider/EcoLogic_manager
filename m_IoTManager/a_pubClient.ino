@@ -20,6 +20,8 @@ uint8_t subscribe_loop = 0;
 uint8_t subscr_sec = 5; 
 uint8_t mqttspacing_oldtime;
 
+
+
 #if defined(pubClient)
 
 char *setStatus(char *s)

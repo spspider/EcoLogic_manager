@@ -79,7 +79,7 @@
                             <br />
                         </div>
                     </div>
-                    <br />
+                    <hr>
                     <div class="row">
                         <div class="col-sm-6">
                             Device port:
@@ -102,12 +102,12 @@
                                 Save buttons:
                                 <input type='checkbox' class="form-control" name='save_stat' id="save_stat" value="" />
                             </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div>
-                                    IR Service:
+                        </div>
+                        <div class="col-sm-6">
+                            <div>
+                                IR Service:
                                 <input type='checkbox' class="form-control" name='ir_loop' id="ir_loop" value="" />
-                                </div>
+                            </div>
 
                             <div>
                                 433Mhz Service:
@@ -138,6 +138,7 @@
                         </div>
                         <br>
                     </div>
+                    <hr>
                     <div class="row">
                         <div class="col-sm-6">
                             <h4>Telegram setup</h4>
@@ -146,6 +147,14 @@
                                 <input type='text' class="form-control" name='BOTtoken' id="BOTtoken" value="{{BOTtoken}}" />
                             </div>
                             <br>
+                        </div>
+                        <div class="col-sm-6">
+                            <strong>Node-RED Server</strong>
+                            <div>
+                                <p>Node-RED Server Address:</p>
+                                <input type='text' class="form-control" name='nodered_address' id="nodered_address"
+                                    placeholder='http://192.168.1.100:1880' value="{{nodered_address}}" />
+                            </div>
                         </div>
                     </div>
                     <input type='button' class="btn btn-lg btn-primary btn-block" value='Save' onclick="CatchForm();" />
