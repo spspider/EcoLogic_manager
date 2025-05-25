@@ -171,7 +171,7 @@ function AddNewButton() {
     if (!Array.isArray(IRjson.rawCodeLen)) IRjson.rawCodeLen = [];
 
     var savedCode = getVal("IRcode");
-    var NameIR = getVal("IRcodyName");
+    var NameIR = getVal("IRcodName");
 
     if (savedCode.length > 30) {
         try {
@@ -199,6 +199,9 @@ function AddNewButton() {
     }
 
     makeIRList(IRjson);
+    // Clear the IRcodName field after adding a new button
+    var nameField = document.getElementById('IRcodName');
+    if (nameField) nameField.value = '';
     //document.getElementById("demo").innerHTML += JSON.stringify(IRjson);
 }
 

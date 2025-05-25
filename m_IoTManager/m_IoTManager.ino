@@ -193,6 +193,10 @@ Adafruit_ADS1015 ads(0x48);
 #endif
 
 ///////////////////////////////
+#if defined(USE_IRUTILS)
+char nodered_address[32] = {0};
+#endif
+
 void setup()
 {
 #if defined(will_use_serial)
