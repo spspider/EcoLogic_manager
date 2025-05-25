@@ -216,9 +216,7 @@ void loop_IR() {
       buff1 = 0;
       codeIR = String(charBuff1);
       if (!Page_IR_opened) {
-#if defined(USE_IRUTILS)
         check_code_IR(codeIR);
-#endif
       }
       else {
         server.send(200, "text/plain", codeIR);
@@ -226,11 +224,12 @@ void loop_IR() {
       }
       //irrecv.resume();
     }
-
+    
     // Receive the next value IRRecieve
     //Serial.println(results.rawlen);
     //    yield();  // Feed the WDT (again)
   }
+
 }
 /*
   void loop_IR2() {
