@@ -66,7 +66,7 @@ void pubStatusShortAJAX_String(uint8_t i) {
   server.send(200, "text / plain", String(get_new_pin_value(i)));
 }
 #if defined(USE_IRUTILS)
-void sendIRCode(uint32_t code) {
+void sendIRCode_toServer(uint32_t code) {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http_client_code;
     WiFiClient client_code;

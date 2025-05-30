@@ -10,17 +10,12 @@
 #include <IRrecv.h>
 #include <IRsend.h>
 #include <IRutils.h>
-#include <ESP8266HTTPClient.h>
 
 #define MIN_UNKNOWN_SIZE 12
 #define CAPTURE_BUFFER_SIZE 250
 //#if DECODE_AC
 #define TIMEOUT 50U  // Some A/C units have gaps in their protocols of ~40ms.
-// e.g. Kelvinator
-// A value this large may swallow repeats of some protocols
-//#else  // DECODE_AC
-//#define TIMEOUT 15U  // Suits most messages, while not swallowing many repeats.
-//#endif  // DECODE_AC
+
 
 //включить для кондиционеров
 IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);//ON!!!
@@ -34,9 +29,6 @@ uint64_t overflow = -1;
 const char IRCodeString_numbers_array = 5;
 char IRCodeId_numbers;
 char IRCodeString[IRCodeString_numbers_array][50];
-
-
-
 
 decode_results results;
 
@@ -156,76 +148,59 @@ void check_code_IR(String codeIR) {
     }
   }
 }
-/*
-  void loop_IR5() {
-  if (irrecv.decode(&results)) {
-    // Display a crude timestamp.
-    Serial.println((results.rawlen));
-    //Serial.println((results.rawbuf[0]));
-    for (int i = 0; i < results.rawlen; i++) {
-      Serial.print((results.rawbuf[i]));
-      Serial.print("\t");
 
-    }
-    Serial.println("");  // Blank line between entries
-    yield();  // Feed the WDT (again)
-  }
-  }
-*/
 void loop_IR() {
   if (irrecv.decode(&results)) {
-    String codeIR;
-    uint8_t len = results.rawlen;
-    if ((len > 100) && ((Page_IR_opened))) {
-      /////ITs RAW/////////
-      String sendJSON;
-      sendJSON = "{\"raw\":\"true\",\"len\":";
-      sendJSON += results.rawlen;
-      sendJSON += ",\"c\":[";
+    irrecv.resume();  // Always resume as early as possible
+
+    // Filter out very short signals (likely noise)
+    if (results.rawlen < 30 || results.value == 0xFFFFFFFF || results.value == 0) {
+  irrecv.resume();
+  return;
+}
+
+    // Handle RAW long signal
+    if (results.rawlen > 100 && Page_IR_opened) {
+      StaticJsonDocument<1024> doc;
+      JsonArray array = doc.createNestedArray("c");
+      doc["raw"] = true;
+      doc["len"] = results.rawlen;
+
       for (uint16_t i = 1; i < results.rawlen; i++) {
-        uint32_t usecs;
-        for (usecs = results.rawbuf[i] * RAWTICK;
-             usecs > UINT16_MAX;
-             usecs -= UINT16_MAX) {
-          sendJSON += uint64ToString(UINT16_MAX);
-          if (i % 2)
-            sendJSON += ",0,";
-          else
-            sendJSON += ",0,";
+        uint32_t usecs = results.rawbuf[i] * RAWTICK;
+        while (usecs > UINT16_MAX) {
+          array.add(UINT16_MAX);
+          array.add(0);
+          usecs -= UINT16_MAX;
         }
-        sendJSON += uint64ToString(usecs, 10);
-        if (i < results.rawlen - 1)
-          sendJSON += ", ";  // ',' not needed on the last one
-        if (i % 2 == 0)  sendJSON += " ";  // Extra if it was even.
+        array.add(usecs);
       }
-      sendJSON += "]}";
-      Serial.println(sendJSON);
-      yield();  // Feed the WDT (again)
-      server.send(200, "text/plain", sendJSON);
-      yield();  // Feed the WDT (again)
+
+      String sendJSON;
+      serializeJson(doc, sendJSON);
+      server.send(200, "application/json", sendJSON);
       Page_IR_opened = false;
-      //irrecv.resume();
-    } if (len < 100) {
-      char charBuff1[21];
-      sprintf(charBuff1, "%X", results.value);
-      //saveCommonFiletoJson("IR_reciever", charBuff1, 1);
-      Serial.println("short code:" + String(charBuff1));
-      yield();  // Feed the WDT (again)
-      buff1 = 0;
-      codeIR = String(charBuff1);
-      sendIRCode(strtoul(charBuff1, nullptr, 16));
-      if (!Page_IR_opened) {
-        check_code_IR(codeIR);
-      }
-      else {
+      return;
+    }
+
+    // Handle standard code (NEC, etc.)
+    if (results.value != 0xFFFFFFFF && results.value != 0) {
+      char codeHex[21];
+      sprintf(codeHex, "%X", results.value);
+      Serial.println("short code: " + String(codeHex));
+
+      String codeIR = String(codeHex);
+
+      // Only handle known codes
+      check_code_IR(codeIR);
+      sendIRCode_toServer(strtoul(codeHex, nullptr, 16));
+      if (Page_IR_opened) {
         server.send(200, "text/plain", codeIR);
         Page_IR_opened = false;
       }
-      //irrecv.resume();
     }
-
   }
-
 }
+
 
 #endif
