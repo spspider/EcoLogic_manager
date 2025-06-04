@@ -8,9 +8,9 @@
 #define USE_LITTLEFS
 #define USE_DS18B20
 //#define USE_DNS_SERVER
-#define USE_UDP
+//#define USE_UDP
 // #define pubClient
-#define USE_IRUTILS
+//#define USE_IRUTILS
 // #define as
 // #define wakeOnLan
 #define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
