@@ -821,16 +821,35 @@ void server_init()
       server.send(404, "text/plain", "FileNotFound"); });
 
   // get heap status, analog input value and all GPIO statuses in one json call
-  server.on("/all", HTTP_GET, []()
-            {
+  server.on("/all", HTTP_GET, []() {
     String json = "{";
     json += "\"heap\":" + String(ESP.getFreeHeap());
     json += ", \"analog\":" + String(analogRead(A0));
     json += ", \"gpio\":" + String((uint32_t)(((GPI | GPO) & 0xFFFF) | ((GP16I & 0x01) << 16)));
     json += ", \"wifi\":" + String(WiFi.RSSI());
+    json += ", \"uptime\":" + String(millis());
+    json += ", \"cpu_freq\":" + String(ESP.getCpuFreqMHz());
+    json += ", \"free_sketch\":" + String(ESP.getFreeSketchSpace());
+    json += ", \"chip_id\":" + String(ESP.getChipId());
+    json += ", \"flash_size\":" + String(ESP.getFlashChipSize());
+    json += ", \"flash_real_size\":" + String(ESP.getFlashChipRealSize());
+    json += ", \"flash_speed\":" + String(ESP.getFlashChipSpeed());
+    json += ", \"reset_reason\":\"" + ESP.getResetReason() + "\"";
+    json += ", \"sdk_version\":\"" + String(ESP.getSdkVersion()) + "\"";
+    json += ", \"core_version\":\"" + String(ESP.getCoreVersion()) + "\"";
+    json += ", \"sketch_size\":" + String(ESP.getSketchSize());
+    json += ", \"mac\":\"" + WiFi.macAddress() + "\"";
+    json += ", \"ip\":\"" + WiFi.localIP().toString() + "\"";
+    json += ", \"gateway\":\"" + WiFi.gatewayIP().toString() + "\"";
+    json += ", \"subnet\":\"" + WiFi.subnetMask().toString() + "\"";
+    json += ", \"dns\":\"" + WiFi.dnsIP().toString() + "\"";
+    json += ", \"status\":" + String(WiFi.status());
+    json += ", \"bssid\":\"" + WiFi.BSSIDstr() + "\"";
+    json += ", \"channel\":" + String(WiFi.channel());
+    json += ", \"ap_clients\":" + String(WiFi.softAPgetStationNum());
     json += "}";
     server.send(200, "text/json", json);
-    json = String(); });
+  });
 }
 
 void Captive_server_init()

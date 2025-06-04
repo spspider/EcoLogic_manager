@@ -2,13 +2,95 @@
 <html>
 <head>
   <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ESP Monitor</title>
   <script type="text/javascript" src="scripts/graphs.js"></script>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      min-height: 100vh;
+      background: #f8f8f8;
+      font-family: Arial, sans-serif;
+    }
+  
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      border: 1px solid #444;
+      padding: 5px;
+      margin: 5px auto;
+      width: 98vw;
+      max-width: 600px;
+      background-color: #eee;
+      box-sizing: border-box;
+    }
+  
+    #controls label,
+    #controls input {
+      margin: 5px 8px 5px 0;
+      font-size: 1.1em;
+    }
+  
+    #sysinfo {
+      margin: 10px auto;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      max-width: 600px;
+      font-size: 1em;
+      word-break: break-all;
+    }
+  
+    #heap,
+    #analog,
+    #digital,
+    #wifi,
+    #uptime,
+    #cpu_freq,
+    #free_sketch {
+      margin: 8px auto;
+      width: 98vw;
+      max-width: 600px;
+      min-width: 220px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      box-sizing: border-box;
+      padding: 4px 0 4px 0;
+    }
+  
+    @media (max-width: 700px) {
+  
+      #controls,
+      #sysinfo,
+      #heap,
+      #analog,
+      #digital,
+      #wifi,
+      #uptime,
+      #cpu_freq,
+      #free_sketch {
+        max-width: 99vw;
+        min-width: 0;
+        padding-left: 2vw;
+        padding-right: 2vw;
+      }
+  
+      #controls {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
   <script type="text/javascript">
-      var heap, temp, digi, wifi;
+          var heap, temp, digi, wifi, uptime, cpu_freq, free_sketch;
     var reloadPeriod = 1000;
-    var running = false;
-    
+          var running = false;
     function loadValues(){
       if(!running) return;
       var xh = new XMLHttpRequest();
@@ -20,21 +102,42 @@
             temp.add(res.analog);
             digi.add(res.gpio);
             wifi.add(res.wifi);
+            uptime.add(res.uptime);
+            cpu_freq.add(res.cpu_freq);
+            free_sketch.add(res.free_sketch);
+            // Text info
+            var sysinfo = '';
+            sysinfo += '<b>Chip ID:</b> ' + res.chip_id + '<br>';
+            sysinfo += '<b>Flash Size:</b> ' + res.flash_size + '<br>';
+            sysinfo += '<b>Flash Real Size:</b> ' + res.flash_real_size + '<br>';
+            sysinfo += '<b>Flash Speed:</b> ' + res.flash_speed + '<br>';
+            sysinfo += '<b>Reset Reason:</b> ' + res.reset_reason + '<br>';
+            sysinfo += '<b>SDK Version:</b> ' + res.sdk_version + '<br>';
+            sysinfo += '<b>Core Version:</b> ' + res.core_version + '<br>';
+            sysinfo += '<b>Sketch Size:</b> ' + res.sketch_size + '<br>';
+            sysinfo += '<b>MAC:</b> ' + res.mac + '<br>';
+            sysinfo += '<b>IP:</b> ' + res.ip + '<br>';
+            sysinfo += '<b>Gateway:</b> ' + res.gateway + '<br>';
+            sysinfo += '<b>Subnet:</b> ' + res.subnet + '<br>';
+            sysinfo += '<b>DNS:</b> ' + res.dns + '<br>';
+            sysinfo += '<b>Status:</b> ' + res.status + '<br>';
+            sysinfo += '<b>BSSID:</b> ' + res.bssid + '<br>';
+            sysinfo += '<b>Channel:</b> ' + res.channel + '<br>';
+            sysinfo += '<b>AP Clients:</b> ' + res.ap_clients + '<br>';
+            document.getElementById('sysinfo').innerHTML = sysinfo;
             if(running) setTimeout(loadValues, reloadPeriod);
           } else running = false;
         }
       };
       xh.open("GET", "/all", true);
       xh.send(null);
-    };
-    
+          };
     function run(){
       if(!running){
         running = true;
         loadValues();
       }
     }
-    
     function onBodyLoad(){
       var refreshInput = document.getElementById("refresh-rate");
       refreshInput.value = reloadPeriod;
@@ -64,6 +167,9 @@
       heap = createGraph(document.getElementById("heap"), "Current Heap", 100, 125, 0, 30000, true, "orange");
       digi = createDigiGraph(document.getElementById("digital"), "GPIO", 100, 146, [0, 4, 5, 16], "gold");
       wifi = createGraph(document.getElementById("wifi"), "WiFi Signal (dBm)", 100, 125, -100, 0, true, "green");
+      uptime = createGraph(document.getElementById("uptime"), "Uptime (ms)", 100, 125, 0, 10000000, true, "blue");
+      cpu_freq = createGraph(document.getElementById("cpu_freq"), "CPU Freq (MHz)", 100, 125, 0, 200, false, "purple");
+      free_sketch = createGraph(document.getElementById("free_sketch"), "Free Sketch (bytes)", 100, 125, 0, 1000000, true, "brown");
       run();
     }
   </script>
@@ -79,5 +185,9 @@
   <div id="analog"></div>
   <div id="digital"></div>
   <div id="wifi"></div>
+  <div id="uptime"></div>
+  <div id="cpu_freq"></div>
+  <div id="free_sketch"></div>
+  <div id="sysinfo" style="margin:10px; padding:10px; background:#f8f8f8; border:1px solid #ccc;"></div>
 </body>
 </html>
