@@ -5,7 +5,7 @@
   <title>ESP Monitor</title>
   <script type="text/javascript" src="scripts/graphs.js"></script>
   <script type="text/javascript">
-    var heap,temp,digi;
+      var heap, temp, digi, wifi;
     var reloadPeriod = 1000;
     var running = false;
     
@@ -19,6 +19,7 @@
             heap.add(res.heap);
             temp.add(res.analog);
             digi.add(res.gpio);
+            wifi.add(res.wifi);
             if(running) setTimeout(loadValues, reloadPeriod);
           } else running = false;
         }
@@ -62,6 +63,7 @@
       temp = createGraph(document.getElementById("analog"), "Analog Input", 100, 128, 0, 1023, false, "cyan");
       heap = createGraph(document.getElementById("heap"), "Current Heap", 100, 125, 0, 30000, true, "orange");
       digi = createDigiGraph(document.getElementById("digital"), "GPIO", 100, 146, [0, 4, 5, 16], "gold");
+      wifi = createGraph(document.getElementById("wifi"), "WiFi Signal (dBm)", 100, 125, -100, 0, true, "green");
       run();
     }
   </script>
@@ -76,5 +78,6 @@
   <div id="heap"></div>
   <div id="analog"></div>
   <div id="digital"></div>
+  <div id="wifi"></div>
 </body>
 </html>

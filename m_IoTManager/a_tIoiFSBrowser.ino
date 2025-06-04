@@ -1,4 +1,3 @@
-
 static bool fsOK;
 String unsupportedFiles = String();
 File uploadFile;
@@ -828,6 +827,7 @@ void server_init()
     json += "\"heap\":" + String(ESP.getFreeHeap());
     json += ", \"analog\":" + String(analogRead(A0));
     json += ", \"gpio\":" + String((uint32_t)(((GPI | GPO) & 0xFFFF) | ((GP16I & 0x01) << 16)));
+    json += ", \"wifi\":" + String(WiFi.RSSI());
     json += "}";
     server.send(200, "text/json", json);
     json = String(); });
