@@ -1,6 +1,6 @@
 ﻿# Определяем исходную и целевую директории
 $sourceDir = "HTML_data/"
-$destinationDir = "m_IoTManager/data/"
+$destinationDir = "EcoLogic_manager/data/"
 $useList = $true
 
 # Создаём целевую директорию, если её нет
