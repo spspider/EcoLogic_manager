@@ -64,7 +64,7 @@ bool loadConfig(File jsonConfig)
   }
 
 #endif
-#ifdef use_telegram
+#ifdef USE_IRUTILS
   if (jsonDocument.containsKey("nodered_address"))
   {
     strncpy(nodered_address, jsonDocument["nodered_address"], sizeof(nodered_address) - 1);

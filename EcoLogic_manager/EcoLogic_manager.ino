@@ -8,14 +8,14 @@
 #define USE_LITTLEFS
 #define USE_DS18B20
 //#define USE_DNS_SERVER
-//#define USE_UDP
-// #define pubClient
-//#define USE_IRUTILS
+#define USE_UDP
+// #define pubClient //mqtt possibility
+#define USE_IRUTILS
 // #define as
 // #define wakeOnLan
 #define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
 //  #define ads1115 # CHANGE TO USE_ADS1115
-#define USE_EMON
+//#define USE_EMON #electric monitor
 //  #define ws433 # CHANGE TO USE_WS433
 //------------------------------------------------------------------------------//
 
