@@ -1,4 +1,4 @@
-# Writing all output to: C:\MyDocuments\Programming\Projects_Arduino\esp8266\m_IoTManager\proteous\esp8266-smart-home.log
+# Writing all output to: C:\MyDocuments\Programming\Projects_Arduino\esp8266\EcoLogic_manager\proteous\esp8266-smart-home.log
 set pad_wire_necking on
 bus diagonal
 fanout 5
