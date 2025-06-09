@@ -67,7 +67,7 @@ void pubStatusShortAJAX_String(uint8_t i) {
 }
 #if defined(USE_IRUTILS)
 void sendIRCode_toServer(uint32_t code) {
-  if (WiFi.status() == WL_CONNECTED) {
+  if ((WiFi.status() == WL_CONNECTED) && (IR_recieve)){
     HTTPClient http_client_code;
     WiFiClient client_code;
     char url[64];
