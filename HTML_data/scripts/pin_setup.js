@@ -105,7 +105,7 @@ function renderTable() {
     const table = document.createElement('table');
     table.className = 'table'
     // Header Row
-    const headers = ['Pin Mode', 'Pin', 'Description', 'Widget', 'IR', 'Default', 'Actions'];
+    const headers = ['№', 'Pin Mode', 'Pin', 'Description', 'Widget', 'IR', 'Default', 'Actions'];
     const headerRow = document.createElement('tr');
     headers.forEach(header => {
         const th = document.createElement('th');
@@ -117,6 +117,11 @@ function renderTable() {
     // Table Rows
     tableData.pinmode.forEach((_, index) => {
         const row = document.createElement('tr');
+
+        // Count number cell
+        const countCell = document.createElement('td');
+        countCell.textContent = index;
+        row.appendChild(countCell);
 
         // Pin Mode
         const pinModeCell = document.createElement('td');
