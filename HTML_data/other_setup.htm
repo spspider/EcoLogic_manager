@@ -50,8 +50,12 @@
                             Device ID:
                             <input type='text' value="{{deviceID}}" class="form-control" placeholder='dev01-kitchen'
                                 name='deviceID' />
-
+                            <!-- New Test Connection Button -->
+                            <button type="button" class="btn btn-info" style="margin-top:10px;" onclick="testMQTTConnection()">Test
+                                Connection</button>
+                            <span id="mqtt_test_result" style="margin-left:10px;"></span>
                         </div>
+                        <!-- ...existing code... -->
 
                         <div class="col-sm-6">
                             <p>Email:</p>

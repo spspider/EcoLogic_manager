@@ -1,4 +1,3 @@
-
 //----------------------------------------defines-------------------------------//
 //  #define ws2811_include// активировать для ws2811
 #define will_use_serial
@@ -228,7 +227,7 @@ void setup()
     license = 1;
   }
 
-  if (loadConfig(fileSystem->open("/other_setup.txt", "r")))
+  if (loadConfig(readCommonFiletoJson("other_setup")))
   {
   }
   captive_setup();

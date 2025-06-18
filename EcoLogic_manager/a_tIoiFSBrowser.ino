@@ -788,6 +788,17 @@ void server_init()
             { handleFileRead("/condition.htm"); });
   server.on("/help", []()
             { handleFileRead("/help.htm"); });
+  server.on("/test_mqtt", HTTP_POST, []() {
+    String json = server.arg("plain");
+    bool result = loadConfig(json);
+    String response;
+    if (result) {
+      response = "{\"success\":true,\"message\":\"MQTT config loaded\"}";
+    } else {
+      response = "{\"success\":false,\"message\":\"Failed to load MQTT config\"}";
+    }
+    server.send(200, "application/json", response);
+  });
   /*
     server.on("/License", []() {
     if (server.arg("code")) {

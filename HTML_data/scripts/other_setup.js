@@ -90,7 +90,7 @@ function saveData(filename, data) {
 
     var xmlHttp = createXmlHttpObject();
 
-    var file = new Blob([JSON.stringify(data, null, 2)], {type: "text/plain;charset=utf-8"});
+    var file = new Blob([JSON.stringify(data, null, 2)], { type: "text/plain;charset=utf-8" });
     var a = new FormData();
     a.append("data", file, filename);
     xmlHttp.open("POST", "/edit");
@@ -143,7 +143,7 @@ function real_time(JsonTime) {
     setHTML("time", hours + ":" + min + ":" + sec);
     setHTML("date", JsonTime.d + "." + JsonTime.n + "." + JsonTime.y);
     //document.getElementById("time").innerHTML = hours + ":" + min + ":" + sec;
-//set_real_time = setTimeout("real_time(" + hours + "," + min + "," + sec + ");", 1000);
+    //set_real_time = setTimeout("real_time(" + hours + "," + min + "," + sec + ");", 1000);
     set_real_time = setTimeout("real_time(" + JSON.stringify(JsonTime) + ");", 1000);
 
     //set_real_time = setTimeout("real_time(" +JsonTime+");", 1000);
@@ -226,7 +226,7 @@ function SendTime_onload() {
     readTextFile("/setDate" + json_upload, function (readback) {
         try {
             var timeReadBack = JSON.parse(readback);
-//            real_time(timeReadBack.h, timeReadBack.m, timeReadBack.s);
+            //            real_time(timeReadBack.h, timeReadBack.m, timeReadBack.s);
             real_time(timeReadBack);
             setHTML("output", readback);
             setVal("timezone", timeReadBack.t);
@@ -278,7 +278,47 @@ function setTimeBrowser(submit) {
     server = "/setTime?Time='10:20:00'";
     send_request(submit, server);
 }
+// ...existing code...
 
+function testMQTTConnection() {
+    // Gather MQTT fields from the form
+    var form = document.getElementById("form");
+    var JsonString = toJSONString(form);
+    var JsonStringParse = JSON.parse(JsonString);
+
+    // Ensure checkboxes are included
+    JsonStringParse.iot_enable = getVal("iot_enable");
+
+    // Only send MQTT-relevant fields
+    var mqttData = {
+        iot_enable: JsonStringParse.iot_enable,
+        mqttServerName: JsonStringParse.mqttServerName,
+        mqttuser: JsonStringParse.mqttuser,
+        mqttpass: JsonStringParse.mqttpass,
+        mqttport: JsonStringParse.mqttport,
+        mqttspacing: JsonStringParse.mqttspacing,
+        deviceID: JsonStringParse.deviceID
+    };
+
+    var resultSpan = document.getElementById("mqtt_test_result");
+    resultSpan.innerHTML = "Testing...";
+
+    sendAjax("/test_mqtt", JSON.stringify(mqttData), function (response) {
+        var resultSpan = document.getElementById("mqtt_test_result");
+        try {
+            var resp = JSON.parse(response);
+            if (resp.success) {
+                resultSpan.innerHTML = "<span style='color:green'>" + resp.message + "</span>";
+            } else {
+                resultSpan.innerHTML = "<span style='color:red'>" + resp.message + "</span>";
+            }
+        } catch (e) {
+            resultSpan.innerHTML = "<span style='color:red'>Unexpected response</span>";
+        }
+    });
+}
+
+// ...existing code...
 function load() {
 
     try {
