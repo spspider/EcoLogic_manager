@@ -61,7 +61,7 @@ void pubConfig()// that is how I publish config, you dont need to adhere same st
   {
     char sTopic_ch[20];
     snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d", deviceID, i);
-    pubStatus(sTopic_ch, setStatus(stat[i] ^ defaultVal[i]));
+    pubStatus(sTopic_ch, setStatus(stat[i]));
   }
 }
 
