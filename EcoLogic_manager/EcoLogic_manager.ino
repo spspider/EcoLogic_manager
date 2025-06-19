@@ -151,7 +151,7 @@ bool save_stat = false;
 bool IR_recieve = false;
 bool loop_alarm_active = true;
 bool check_internet = true;
-uint8_t mqttspacing = 60;
+uint8_t mqttspacing = 99; // seconds between mqtt publish
 ///////////////////433
 #if defined(ws433)
 char w433rcv = 255;
@@ -227,7 +227,7 @@ void setup()
     license = 1;
   }
 
-  if (loadConfig(readCommonFiletoJson("other_setup")))
+  if (loadConfig(fileSystem->open("/other_setup.txt", "r")))
   {
   }
   captive_setup();

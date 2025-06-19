@@ -1,7 +1,7 @@
-bool loadConfig(const String &jsonString)
+bool loadConfig(File jsonConfig)
 {
   DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
-  DeserializationError error = deserializeJson(jsonDocument, jsonString);
+  DeserializationError error = deserializeJson(jsonDocument, jsonConfig);
 
   if (error)
   {
