@@ -68,7 +68,11 @@ void pubConfig()// that is how I publish config, you dont need to adhere same st
 void callback(char *topic, byte *payload, uint8_t length) // callback for recieving messages from subsriptions
 {
   char *lastSlash = strrchr(topic, '/');
-  char i = lastSlash != NULL ? *(lastSlash + 1) : '0';
+  char i = 0;
+  if (lastSlash != NULL && *(lastSlash + 1) != '\0') {
+    int temp = atoi(lastSlash + 1); // parse the number after the last '/'
+    i = (char)temp; // store as char to save memory
+  }
   char payloadBuffer[length + 1];
   strncpy(payloadBuffer, (char *)payload, length);
   payloadBuffer[length] = '\0';
@@ -78,12 +82,12 @@ void callback(char *topic, byte *payload, uint8_t length) // callback for reciev
   //pub status back
 
   Serial.print("callback:");
-  Serial.print(i);
+  Serial.print((int)i); // print as int for clarity
   Serial.print(" Payload: ");
   Serial.println(newValue);
 
-  char sTopic_ch[20];
-  snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%c/status", deviceID, i);
+  char sTopic_ch[24];
+  snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d/status", deviceID, (int)i);
   pubStatus(sTopic_ch, setStatus(newValue));
 }
 
