@@ -8,9 +8,10 @@
 #define USE_DS18B20
 //#define USE_DNS_SERVER
 #define USE_UDP
-//#define pubClient  //mqtt possibility
+//#define USE_PUBSUBCLIENT  //mqtt possibility
 #define USE_IRUTILS
-#define USE_TINYMQTT
+//#define USE_TINYMQTT
+//#define USE_PICOMQTT
 // #define as
 // #define wakeOnLan
 //#define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
@@ -72,7 +73,7 @@ LittleFSConfig fileSystemConfig = LittleFSConfig();
 
 // ###############################
 WiFiClientSecure wclient;
-#if defined(pubClient)
+#if defined(USE_PUBSUBCLIENT)
 #include <PubSubClient.h>
 PubSubClient client(wclient);  // for cloud broker - by hostname
 #endif
@@ -130,7 +131,7 @@ uint8_t ipport = 80;
 /* hostname for mDNS. Should work at least on windows. Try http://esp8266.local */
 const char *myHostname = "esp8266";
 char deviceID[20] = "dev01";  // thing ID - unique device id in our project
-#if defined(pubClient)
+#if defined(USE_PUBSUBCLIENT)
 char mqttServerName[60] = "177e3ee7cf004e6ebed04b25d4c51a26.s1.eu.hivemq.cloud";
 unsigned int mqttport = 8883;
 char mqttuser[15] = "dev01";
@@ -227,6 +228,9 @@ void setup() {
   if (loadConfig(fileSystem->open("/other_setup.txt", "r"))) {
   }
   captive_setup();
+#if defined(USE_PICOMQTT)
+setup_PICOMQTT();
+#endif
 #if defined(ws2811_include)
   setup_ws2811();  // include ws2811.in
 #endif
@@ -297,9 +301,12 @@ void loop() {
 #if defined(timerAlarm)
       check_for_changes();
 #endif
-#if defined(pubClient)
+#if defined(USE_PUBSUBCLIENT)
       client.loop();
       pubClientOneSecEvent();
+#endif
+#if defined(USE_PICOMQTT)
+loop_PICOMQTT();
 #endif
       onesec_255++;
 #if defined(timerAlarm)

@@ -22,7 +22,7 @@ uint8_t mqttspacing_oldtime;
 
 
 
-#if defined(pubClient)
+#if defined(USE_PUBSUBCLIENT)
 
 char *setStatus(char *s)
 {
