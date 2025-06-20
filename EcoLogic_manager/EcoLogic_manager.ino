@@ -8,8 +8,9 @@
 #define USE_DS18B20
 //#define USE_DNS_SERVER
 #define USE_UDP
-#define pubClient //mqtt possibility
+//#define pubClient  //mqtt possibility
 #define USE_IRUTILS
+#define USE_TINYMQTT
 // #define as
 // #define wakeOnLan
 //#define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
@@ -22,21 +23,21 @@
 // #include <gfxfont.h>
 
 // -----------------------DEFINING PINS----------------------------------
-#define ONE_WIRE_BUS 2 // D4 pin ds18b20
-#define RECV_PIN 5     // IR recieve d1
-#define SEND_PIN 15    // IR send d8
+#define ONE_WIRE_BUS 2  // D4 pin ds18b20
+#define RECV_PIN 5      // IR recieve d1
+#define SEND_PIN 15     // IR send d8
 #define N_WIDGECTS 12
 
 // #include <WiFiManager.h>     //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 #include <ESP8266mDNS.h>
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
-#include <WiFiClient.h> //iotmanager
+#include <WiFiClient.h>  //iotmanager
 #include <EEPROM.h>
-#include <ESP8266WebServer.h>        //Local WebServer used to
-#include <ESP8266HTTPUpdateServer.h> //OTA needs
+#include <ESP8266WebServer.h>         //Local WebServer used to
+#include <ESP8266HTTPUpdateServer.h>  //OTA needs
 
-ESP8266HTTPUpdateServer httpUpdater; // OTA
+ESP8266HTTPUpdateServer httpUpdater;  // OTA
 // ###############################
 #if defined(USE_DS18B20)
 #include <OneWire.h>
@@ -49,7 +50,7 @@ DallasTemperature sensors(&oneWire);
 #if defined(USE_UDP)
 #include <WiFiUdp.h>
 WiFiUDP Udp;
-const int UDP_PORT = 4210; // UDP port
+const int UDP_PORT = 4210;  // UDP port
 char incomingPacket[255];
 #endif
 
@@ -73,7 +74,7 @@ LittleFSConfig fileSystemConfig = LittleFSConfig();
 WiFiClientSecure wclient;
 #if defined(pubClient)
 #include <PubSubClient.h>
-PubSubClient client(wclient); // for cloud broker - by hostname
+PubSubClient client(wclient);  // for cloud broker - by hostname
 #endif
 
 //////////////////////////////////compass
@@ -98,8 +99,7 @@ AS5600 encoder;
 ESP8266WebServer server(80);
 // ESP8266WebServer server = new ESP8266Webserver(80);
 
-extern "C"
-{
+extern "C" {
 #include <user_interface.h>
 }
 #if defined(USE_DHT)
@@ -109,8 +109,8 @@ DHTesp dht;
 ////////////////////
 /// emon//
 #if defined(USE_EMON)
-#include "EmonLib.h" // Include Emon Library
-EnergyMonitor emon1; // Create an instance
+#include "EmonLib.h"  // Include Emon Library
+EnergyMonitor emon1;  // Create an instance
 float PowerCorrection = 111.1;
 /////////
 #endif
@@ -129,11 +129,11 @@ char password[32] = "";
 uint8_t ipport = 80;
 /* hostname for mDNS. Should work at least on windows. Try http://esp8266.local */
 const char *myHostname = "esp8266";
-char deviceID[20] = "dev-"; // thing ID - unique device id in our project
+char deviceID[20] = "dev01";  // thing ID - unique device id in our project
 #if defined(pubClient)
-char mqttServerName[60] = "m20.cloudmqtt.com";
-unsigned int mqttport = 16238;
-char mqttuser[15] = "spspider";
+char mqttServerName[60] = "177e3ee7cf004e6ebed04b25d4c51a26.s1.eu.hivemq.cloud";
+unsigned int mqttport = 8883;
+char mqttuser[15] = "dev01";
 char mqttpass[15] = "5506487";
 uint8_t type_mqtt = 1;
 #endif
@@ -151,7 +151,7 @@ bool save_stat = false;
 bool IR_recieve = false;
 bool loop_alarm_active = true;
 bool check_internet = true;
-uint8_t mqttspacing = 99; // seconds between mqtt publish
+uint8_t mqttspacing = 60;  // seconds between mqtt publish
 ///////////////////433
 #if defined(ws433)
 char w433rcv = 255;
@@ -160,9 +160,9 @@ uint8_t w433send = 255;
 //////////////////////////////
 // String jsonConfig = "{}";
 ////////////TimeAlarmString/////////
-const uint8_t Numbers = 1;   // количество условий в каждой кнопке
-const uint8_t Condition = 1; // количество кнопок
-uint8_t save_stat_long = 0;  // only initialized once
+const uint8_t Numbers = 1;    // количество условий в каждой кнопке
+const uint8_t Condition = 1;  // количество кнопок
+uint8_t save_stat_long = 0;   // only initialized once
 ///////////////////////////////////////
 uint8_t pwm_delay_long = 10;
 ///////////////////////////////////////////
@@ -180,7 +180,7 @@ bool test_action = false;
 uint8_t PWM_frequency = 1;
 // telegram global
 #ifdef use_telegram
-String BOTtoken = "";
+String BOTtoken = "7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38";
 #endif
 
 /////////////////////////////ads
@@ -193,22 +193,20 @@ Adafruit_ADS1015 ads(0x48);
 
 ///////////////////////////////
 #if defined(USE_IRUTILS)
-char nodered_address[32] = {0};
+char nodered_address[32] = { 0 };
 #endif
 
-void setup()
-{
+void setup() {
 #if defined(will_use_serial)
   Serial.begin(115200);
 #endif
 #if defined(USE_LITTLEFS)
   Serial.println("LittleFS init");
-  if (!LittleFS.begin())
-  {
+  if (!LittleFS.begin()) {
     LittleFS.format();
   };
 #endif
-  wclient.setInsecure(); // Disables certificate verification for testing purposes
+  wclient.setInsecure();  // Disables certificate verification for testing purposes
 
   delay(10);
   Serial.println();
@@ -222,17 +220,15 @@ void setup()
   md5.begin();
   md5.add(WiFi.macAddress() + "password");
   md5.calculate();
-  if (readCommonFiletoJson("activation") == md5.toString())
-  {
+  if (readCommonFiletoJson("activation") == md5.toString()) {
     license = 1;
   }
 
-  if (loadConfig(fileSystem->open("/other_setup.txt", "r")))
-  {
+  if (loadConfig(fileSystem->open("/other_setup.txt", "r"))) {
   }
   captive_setup();
 #if defined(ws2811_include)
-  setup_ws2811(); // include ws2811.in
+  setup_ws2811();  // include ws2811.in
 #endif
 #if defined(wakeOnLan)
   setup_WOL();
@@ -247,8 +243,7 @@ void setup()
 #endif
 
 #if defined(USE_IRUTILS)
-  if (IR_recieve)
-  {
+  if (IR_recieve) {
     setup_IR();
   }
 #endif
@@ -261,46 +256,39 @@ void setup()
   // callback_from_stat();
 
 #if defined(USE_DS18B20)
-  sensors.begin(); // Start up the library
+  sensors.begin();  // Start up the library
 #endif
 }
-void resetMillis()
-{
+void resetMillis() {
   millis_offset = millis();
 }
-unsigned long getMillis()
-{
+unsigned long getMillis() {
   return millis() - millis_offset;
 }
-void loop()
-{
+void loop() {
+
   captive_loop();
 #if defined(USE_IRUTILS)
-  if (IR_recieve)
-  {
+  if (IR_recieve) {
     loop_IR();
   }
 #endif
 #if defined(ws433)
-  if (w433rcv != 255)
-  {
+  if (w433rcv != 255) {
     loop_w433();
   }
 #endif
 #if defined(ws2811_include)
-  if (ws8211_loop == true)
-  {
-    loop_ws2811(); // include ws2811.in
+  if (ws8211_loop == true) {
+    loop_ws2811();  // include ws2811.in
   }
 #endif
 #if defined(timerAlarm)
-  if (loop_alarm_active)
-  {
+  if (loop_alarm_active) {
     loop_alarm();
   }
 #endif
-  if ((unsigned long)(getMillis() - millis_strart_one_sec) > 1000L)
-  {
+  if ((unsigned long)(getMillis() - millis_strart_one_sec) > 1000L) {
     {
       onesec++;
 #ifdef use_telegram
@@ -310,7 +298,7 @@ void loop()
       check_for_changes();
 #endif
 #if defined(pubClient)
-      //    subscr_loop_PLUS();
+      client.loop();
       pubClientOneSecEvent();
 #endif
       onesec_255++;
@@ -333,8 +321,7 @@ void loop()
 
 #if defined(USE_UDP)
   int packetSize = Udp.parsePacket();
-  if (packetSize)
-  {
+  if (packetSize) {
     int len = Udp.read(incomingPacket, 255);
     if (len > 0)
       incomingPacket[len] = '\0';

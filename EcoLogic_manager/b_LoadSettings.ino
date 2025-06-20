@@ -1,35 +1,29 @@
-bool loadConfig(File jsonConfig)
-{
-  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+bool loadConfig(File jsonConfig) {
+  DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, jsonConfig);
 
-  if (error)
-  {
+  if (error) {
     Serial.println("Failed to parse JSON! loadConfig");
     return false;
   }
 
-  if (jsonDocument.containsKey("softAP_ssid"))
-  {
+  if (jsonDocument.containsKey("softAP_ssid")) {
     // Do something with softAP_ssid if needed
   }
 
-  if (jsonDocument.containsKey("ssid"))
-  {
+  if (jsonDocument.containsKey("ssid")) {
     strcpy(ssid, jsonDocument["ssid"]);
     strcpy(password, jsonDocument["password"]);
   }
 
-  if (jsonDocument.containsKey("deviceID"))
-  {
+  if (jsonDocument.containsKey("deviceID")) {
     strcpy(softAP_ssid, jsonDocument["deviceID"]);
     strcpy(deviceID, jsonDocument["deviceID"]);
   }
 
 #if defined(pubClient)
   IOT_Manager_loop = jsonDocument["iot_enable"];
-  if (IOT_Manager_loop)
-  {
+  if (IOT_Manager_loop) {
     client.disconnect();
   }
 
@@ -52,28 +46,25 @@ bool loadConfig(File jsonConfig)
   jsonDocument.containsKey("save_stat") ? save_stat = jsonDocument["save_stat"] : save_stat = 0;
   unsigned int freq = 1000;
   jsonDocument.containsKey("PWM_frequency") ? freq = jsonDocument["PWM_frequency"] : freq = 1000;
-  analogWriteFreq(freq); // frequency for PWM
+  analogWriteFreq(freq);  // frequency for PWM
   // analogWriteRange(1023);
   jsonDocument.containsKey("IR_recieve") ? IR_recieve = jsonDocument["IR_recieve"] : IR_recieve = 0;
 
   // telegram
 #ifdef use_telegram
-  if (jsonDocument.containsKey("BOTtoken"))
-  {
+  if (jsonDocument.containsKey("BOTtoken")) {
     BOTtoken = jsonDocument["BOTtoken"].as<String>();
   }
 
 #endif
 #ifdef USE_IRUTILS
-  if (jsonDocument.containsKey("nodered_address"))
-  {
+  if (jsonDocument.containsKey("nodered_address")) {
     strncpy(nodered_address, jsonDocument["nodered_address"], sizeof(nodered_address) - 1);
     nodered_address[sizeof(nodered_address) - 1] = '\0';
   }
 #endif
   //  String jsonConfig_string = readCommonFiletoJson("pin_setup");
-  if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r")))
-  {
+  if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {
     Serial.println("Widgets Loaded");
   }
 #if defined(pubClient)
@@ -82,28 +73,22 @@ bool loadConfig(File jsonConfig)
   return true;
 }
 
-void Setup_pinmode(bool stat_loaded)
-{
-  for (uint8_t i = 0; i < nWidgets; i++)
-  {
+void Setup_pinmode(bool stat_loaded) {
+  for (uint8_t i = 0; i < nWidgets; i++) {
 
     stat[i] = stat_loaded ? stat[i] : defaultVal[i];
-    if (pin[i] != 255)
-    {
-      if (pinmode[i] == 1)
-      { // in
+    if (pin[i] != 255) {
+      if (pinmode[i] == 1) {  // in
         defaultVal[i] == 0 ? pinMode(pin[i], INPUT_PULLUP) : pinMode(pin[i], INPUT);
         stat[i] = (digitalRead(pin[i] ^ defaultVal[i]));
       }
-      if ((pinmode[i] == 2))
-      { // out
+      if ((pinmode[i] == 2)) {  // out
         pinMode(pin[i], OUTPUT);
         digitalWrite(pin[i], stat[i]);
       }
-      if ((pinmode[i] == 3) || (pinmode[i] == 7))
-      { // pwm,MQ7
+      if ((pinmode[i] == 3) || (pinmode[i] == 7)) {  // pwm,MQ7
         pinMode(pin[i], OUTPUT);
-        analogWrite(pin[i], stat[i]); // PWM
+        analogWrite(pin[i], stat[i]);  // PWM
       }
       // if (pinmode[i] == 5)
       // { // low_pwm
@@ -112,26 +97,22 @@ void Setup_pinmode(bool stat_loaded)
       //   digitalWrite(pin[i], 1); // далее - выключаем
       //   Serial.println("set low_pwm:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String(stat[i], DEC));
       // }
-      if (pinmode[i] == 4)
-      {
-        stat[i] = (analogRead(17) * 1.0F - analogSubtracter) / analogDivider; // adc pin:A0//
+      if (pinmode[i] == 4) {
+        stat[i] = (analogRead(17) * 1.0F - analogSubtracter) / analogDivider;  // adc pin:A0//
       }
-      if ((pinmode[i] == 6) || (pinmode[i] == 8))
-      { // dht temp
+      if ((pinmode[i] == 6) || (pinmode[i] == 8)) {  // dht temp
 #if defined(USE_DHT)
-        dht.setup(pin[i], DHTesp::DHT11); // data pin
+        dht.setup(pin[i], DHTesp::DHT11);  // data pin
         Serial.println("DHT:" + String(pin[i], DEC));
 #endif
       }
-      if (pinmode[i] == 10)
-      { // powerMeter
-        // pinMode(pin[i], OUTPUT);
+      if (pinmode[i] == 10) {  // powerMeter
+                               // pinMode(pin[i], OUTPUT);
 #if defined(USE_EMON)
-        emon1.current(17, PowerCorrection); // PowerCorrection=111.1
+        emon1.current(17, PowerCorrection);  // PowerCorrection=111.1
 #endif
       }
-      if (pinmode[i] == 15)
-      { // ads
+      if (pinmode[i] == 15) {  // ads
 #if defined(ads1115)
         ads.begin();
 #endif
@@ -140,11 +121,9 @@ void Setup_pinmode(bool stat_loaded)
   }
 }
 
-String readCommonFiletoJson(String file)
-{
+String readCommonFiletoJson(String file) {
   File configFile = fileSystem->open("/" + file + ".txt", "r");
-  if (!configFile)
-  {
+  if (!configFile) {
     // если файл не найден
     Serial.println("Failed to open " + file + ".txt");
     configFile.close();
@@ -152,8 +131,7 @@ String readCommonFiletoJson(String file)
   }
   // Проверяем размер файла, будем использовать файл размером меньше 1024 байта
   size_t size = configFile.size();
-  if (size > 1024)
-  {
+  if (size > 1024) {
     Serial.println("Config file size is too large");
   }
   String jsonConfig = configFile.readString();
@@ -165,57 +143,43 @@ String readCommonFiletoJson(String file)
   return jsonConfig;
 }
 
-void writeFile(fs::FS &fs, const char *path, const char *message)
-{
+void writeFile(fs::FS &fs, const char *path, const char *message) {
   Serial.printf("Writing file: %s\r\n", path);
 
   File file = fs.open(path, "w");
-  if (!file)
-  {
+  if (!file) {
     Serial.println("- failed to open file for writing");
     return;
   }
-  if (file.print(message))
-  {
+  if (file.print(message)) {
     Serial.println("- file written");
-  }
-  else
-  {
+  } else {
     Serial.println("- write failed");
   }
   file.close();
 }
-void appendFile(fs::FS &fs, const char *path, const char *message)
-{
+void appendFile(fs::FS &fs, const char *path, const char *message) {
   Serial.printf("Appending to file: %s\r\n", path);
 
   File file = fs.open(path, "a");
-  if (!file)
-  {
+  if (!file) {
     Serial.println("- failed to open file for appending");
     return;
   }
-  if (file.print(message))
-  {
+  if (file.print(message)) {
     Serial.println("- message appended");
-  }
-  else
-  {
+  } else {
     Serial.println("- append failed");
   }
   file.close();
 }
-bool saveCommonFiletoJson(String pagename, String json, boolean write_add)
-{
+bool saveCommonFiletoJson(String pagename, String json, boolean write_add) {
 #if defined(USE_LITTLEFS)
   String filePath = "/" + pagename + ".txt";
-  if (write_add == 1)
-  {
+  if (write_add == 1) {
     writeFile(LittleFS, filePath.c_str(), json.c_str());
     return true;
-  }
-  else
-  {
+  } else {
     appendFile(LittleFS, filePath.c_str(), json.c_str());
     return true;
   }
@@ -243,13 +207,11 @@ bool saveCommonFiletoJson(String pagename, String json, boolean write_add)
 }
 
 /////////////////////CONDITION////////////////////////////////////////////////////
-bool SaveCondition(String json)
-{
-  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+bool SaveCondition(String json) {
+  DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, json);
 
-  if (error)
-  {
+  if (error) {
     Serial.println("Failed to parse JSON!");
     return false;
   }
@@ -265,26 +227,22 @@ bool SaveCondition(String json)
 
 //////////////////////////////////////////////////////////////////////////////
 
-bool updatepinsetup(File jsonrecieve)
-{
-  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+bool updatepinsetup(File jsonrecieve) {
+  DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, jsonrecieve);
 
-  if (error)
-  {
+  if (error) {
     Serial.println("Failed to parse JSON!");
     return false;
   }
 
   uint8_t numberChosed = jsonDocument["numberChosed"];
-  if (numberChosed == 0)
-  {
+  if (numberChosed == 0) {
     Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FAIL!! numberChosed = 0");
     return false;
   }
 
-  if (numberChosed > nWidgetsArray)
-  {
+  if (numberChosed > nWidgetsArray) {
     numberChosed = nWidgetsArray;
   }
 
@@ -295,8 +253,7 @@ bool updatepinsetup(File jsonrecieve)
   w433send = jsonDocument.containsKey("w433send") ? jsonDocument["w433send"] : 255;
 #endif
 
-  for (uint8_t i = 0; i < numberChosed; i++)
-  {
+  for (uint8_t i = 0; i < numberChosed; i++) {
     pinmode[i] = jsonDocument["pinmode"][i];
     pin[i] = jsonDocument["pin"][i];
     defaultVal[i] = jsonDocument["defaultVal"][i];
@@ -321,19 +278,16 @@ bool updatepinsetup(File jsonrecieve)
   return true;
 }
 
-bool load_stat()
-{
-  if (save_stat == false)
-  {
+bool load_stat() {
+  if (save_stat == false) {
     return false;
   }
 
-  DynamicJsonDocument jsonDocument_stat(2048); // Adjust the capacity as needed
+  DynamicJsonDocument jsonDocument_stat(2048);  // Adjust the capacity as needed
   File stat1 = fileSystem->open("/stat.txt", "r");
 
   DeserializationError error = deserializeJson(jsonDocument_stat, stat1);
-  if (error)
-  {
+  if (error) {
     Serial.println("PARSE FAIL!!");
     //     for (uint8_t i = 0; i < nWidgets; i++) {
     //       stat[i] = 0;
@@ -341,11 +295,9 @@ bool load_stat()
     return false;
   }
 
-  for (uint8_t i = 0; i < nWidgets; i++)
-  {
+  for (uint8_t i = 0; i < nWidgets; i++) {
     short int stat_js = jsonDocument_stat["stat"][i];
-    if (stat_js)
-    {
+    if (stat_js) {
       stat[i] = stat_js;
       // callback_socket(i, stat_js);
     }
@@ -355,10 +307,8 @@ bool load_stat()
   return true;
 }
 
-void callback_from_stat()
-{
-  for (uint8_t i = 0; i < nWidgets; i++)
-  {
+void callback_from_stat() {
+  for (uint8_t i = 0; i < nWidgets; i++) {
     callback_socket(i, stat[i]);
     // Serial.println(stat_js);
   }
