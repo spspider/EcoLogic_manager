@@ -21,7 +21,7 @@ bool loadConfig(File jsonConfig) {
     strcpy(deviceID, jsonDocument["deviceID"]);
   }
 
-#if defined(pubClient)
+#if defined(USE_PUBSUBCLIENT)
   IOT_Manager_loop = jsonDocument["iot_enable"];
   if (IOT_Manager_loop) {
     client.disconnect();
@@ -67,7 +67,7 @@ bool loadConfig(File jsonConfig) {
   if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {
     Serial.println("Widgets Loaded");
   }
-#if defined(pubClient)
+#if defined(USE_PUBSUBCLIENT)
   setup_IOTManager();
 #endif
   return true;

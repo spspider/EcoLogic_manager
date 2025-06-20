@@ -108,8 +108,7 @@ float get_new_pin_value(uint8_t i)
 #endif
   }
   if (pinmode[i] == 16)
-  { // USE_DS18B20
-    // Serial.print ("stat[i]", stat[i]);
+  { 
 #if defined(USE_DS18B20)
     sensors.requestTemperatures();
     float tempC = sensors.getTempCByIndex(defaultVal[i]);

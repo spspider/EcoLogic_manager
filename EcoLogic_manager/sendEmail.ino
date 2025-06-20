@@ -28,12 +28,15 @@ byte sendEmail(String message)
     Serial.println("Failed to parse JSON! loadConfig for email");
     return false;
   }
-  char smtp_arr[] = "mail.smtp2go.com";
-  char timezone;
+  char smtp_arr[64] = "mail.smtp2go.com";
+  // Use int8_t for timezone to avoid ArduinoJson 'char' error
+  int8_t timezone = 2;
 
   const char *buff_smtp_arr = jsonDocument["smtp_arr"];
-  snprintf(smtp_arr, sizeof smtp_arr, "%s", buff_smtp_arr);
-  smtp_arr[sizeof(smtp_arr) - 1] = '\0';
+  if (buff_smtp_arr) {
+    snprintf(smtp_arr, sizeof smtp_arr, "%s", buff_smtp_arr);
+    smtp_arr[sizeof(smtp_arr) - 1] = '\0';
+  }
 
   short unsigned int smtp_port = jsonDocument["smtp_port"];
   String to_email_addr = jsonDocument["to_email_addr"].as<String>();
@@ -41,7 +44,7 @@ byte sendEmail(String message)
   String emaillogin = jsonDocument["emaillogin"].as<String>();
   String password_email = jsonDocument["password_email"].as<String>();
 
-  jsonDocument.containsKey("timezone") ? timezone = jsonDocument["timezone"] : timezone = 2;
+  jsonDocument.containsKey("timezone") ? timezone = jsonDocument["timezone"].as<int8_t>() : timezone = 2;
   ///////////end load email
   byte thisByte = 0;
   byte respCode;

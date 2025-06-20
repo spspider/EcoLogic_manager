@@ -140,7 +140,7 @@ void captive_loop()
     }
     // lastConnectTry = onesec;
   }
-#if defined(pubClient)
+#if defined(USE_PUBSUBCLIENT)
   if (try_MQTT_access)
   {
     if (IOT_Manager_loop)
