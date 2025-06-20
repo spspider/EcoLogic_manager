@@ -5,13 +5,13 @@
 //  #define use_telegram
 // #define USE_SPIFFS
 #define USE_LITTLEFS
-#define USE_DS18B20
+//#define USE_DS18B20
 //#define USE_DNS_SERVER
 #define USE_UDP
 //#define USE_PUBSUBCLIENT  //mqtt possibility
 #define USE_IRUTILS
 //#define USE_TINYMQTT
-//#define USE_PICOMQTT
+#define USE_PICOMQTT
 // #define as
 // #define wakeOnLan
 //#define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
@@ -229,7 +229,7 @@ void setup() {
   }
   captive_setup();
 #if defined(USE_PICOMQTT)
-setup_PICOMQTT();
+setup_picoMqtt();
 #endif
 #if defined(ws2811_include)
   setup_ws2811();  // include ws2811.in
@@ -306,7 +306,7 @@ void loop() {
       pubClientOneSecEvent();
 #endif
 #if defined(USE_PICOMQTT)
-loop_PICOMQTT();
+loop_picoMqtt();
 #endif
       onesec_255++;
 #if defined(timerAlarm)
