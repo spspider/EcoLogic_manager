@@ -75,7 +75,7 @@ LittleFSConfig fileSystemConfig = LittleFSConfig();
 WiFiClientSecure wclient;
 #if defined(USE_PUBSUBCLIENT)
 #include <PubSubClient.h>
-PubSubClient client(wclient);  // for cloud broker - by hostname
+PubSubClient client(wclient);
 #endif
 
 //////////////////////////////////compass
