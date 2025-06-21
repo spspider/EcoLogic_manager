@@ -53,9 +53,29 @@ bool setup_picoMqtt() {
     }
     if (mqtt) delete mqtt;
     mqtt = new PicoMQTT::Client(mqttServerName, mqttport, mqttuser, mqttpass);
-    mqtt->subscribe("picomqtt/#", [](const char * topic, const char * payload) {
-        Serial.printf("Received message in topic '%s': %s\n", topic, payload);
-    });
+    // Subscribe to all topics for each widget
+    for (uint8_t i = 0; i < nWidgets; i++) {
+        char topic[32];
+        snprintf(topic, sizeof(topic), "%s/%d", deviceID, i);
+        mqtt->subscribe(topic, [](const char * topic, const char * payload) {
+            const char *lastSlash = strrchr(topic, '/');
+            char idx = 0;
+            if (lastSlash && *(lastSlash + 1) != '\0') {
+                int temp = atoi(lastSlash + 1);
+                idx = (char)temp;
+            }
+            int newValue = atoi(payload);
+            callback_socket(idx, newValue);
+            Serial.printf("callback: %d Payload: %d\n", (int)idx, newValue);
+        });
+    }
+    // Add connection state callbacks
+    mqtt->connected_callback = [] {
+        Serial.println("MQTT connected");
+    };
+    mqtt->disconnected_callback = [] {
+        Serial.println("MQTT disconnected");
+    };
     mqtt->begin();
     Serial.println("PicoMQTT client started");
     return true;
