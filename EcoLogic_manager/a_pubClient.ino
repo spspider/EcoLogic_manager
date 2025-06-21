@@ -23,11 +23,6 @@ uint8_t mqttspacing_oldtime;
 
 
 #if defined(USE_PUBSUBCLIENT)
-#include <ESP8266WiFi.h>
-#include <PubSubClient.h>
-
-WiFiClient espClient;
-PubSubClient client(espClient);
 
 // Use static buffer only once, not per function call
 template<typename T>
