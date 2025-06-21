@@ -8,10 +8,10 @@
 #define USE_DS18B20
 //#define USE_DNS_SERVER
 #define USE_UDP
-//#define USE_PUBSUBCLIENT  //mqtt possibility
+#define USE_PUBSUBCLIENT  //mqtt possibility
 #define USE_IRUTILS
 //#define USE_TINYMQTT
-#define USE_PICOMQTT
+//#define USE_PICOMQTT
 // #define as
 // #define wakeOnLan
 //#define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
@@ -243,7 +243,9 @@ void setup() {
   if (loadConfig(fileSystem->open("/other_setup.txt", "r"))) {
   }
   captive_setup();
-  load_picoMqtt_config();
+  #if defined(USE_PICOMQTT)
+    load_picoMqtt_config();
+  #endif
 #if defined(ws2811_include)
   setup_ws2811();  // include ws2811.in
 #endif
