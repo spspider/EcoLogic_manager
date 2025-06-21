@@ -12,7 +12,7 @@ extern char mqttpass[15];
 extern FS *fileSystem;
 bool picoMqtt_config_loaded = false;
 
-PicoMQTT::Client *mqtt = nullptr;
+PicoMQTT::Client* mqtt = nullptr;
 
 unsigned long last_publish_time = 0;
 int greeting_number = 1;
@@ -39,11 +39,11 @@ bool load_picoMqtt_config() {
     if (jsonDocument.containsKey("mqttpass"))
         strncpy(mqttpass, jsonDocument["mqttpass"], sizeof(mqttpass) - 1);
     picoMqtt_config_loaded = true;
+    Serial.printf("MQTT config loaded: server=%s, port=%d, user=%s\n", mqttServerName, mqttport, mqttuser);
     return true;
 }
 
 bool setup_picoMqtt() {
-    Serial.begin(115200);
     if (!picoMqtt_config_loaded) {
         load_picoMqtt_config();
     }

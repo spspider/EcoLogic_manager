@@ -277,6 +277,17 @@ void captive_loop()
   dnsServer.processNextRequest();
 #endif
   server.handleClient();
+
+  // WiFi connection event
+  if (WiFi.status() == WL_CONNECTED) {
+#if defined(USE_PICOMQTT)
+    static bool mqtt_started = false;
+    if (!mqtt_started) {
+      setup_picoMqtt();
+      mqtt_started = true;
+    }
+#endif
+  }
 }
 void sendLocationData()
 {
