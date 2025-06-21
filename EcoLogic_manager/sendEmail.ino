@@ -217,3 +217,8 @@ void efail()
   Serial.println(F("disconnected"));
 }
 
+extern char mqttServerName[60];
+extern unsigned int mqttport;
+extern char mqttuser[15];
+extern char mqttpass[15];
+

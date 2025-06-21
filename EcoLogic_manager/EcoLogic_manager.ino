@@ -5,7 +5,7 @@
 //  #define use_telegram
 // #define USE_SPIFFS
 #define USE_LITTLEFS
-//#define USE_DS18B20
+#define USE_DS18B20
 //#define USE_DNS_SERVER
 #define USE_UDP
 //#define USE_PUBSUBCLIENT  //mqtt possibility
@@ -131,14 +131,11 @@ uint8_t ipport = 80;
 /* hostname for mDNS. Should work at least on windows. Try http://esp8266.local */
 const char *myHostname = "esp8266";
 char deviceID[20] = "dev01";  // thing ID - unique device id in our project
-#if defined(USE_PUBSUBCLIENT)
 char mqttServerName[60] = "177e3ee7cf004e6ebed04b25d4c51a26.s1.eu.hivemq.cloud";
 unsigned int mqttport = 8883;
 char mqttuser[15] = "dev01";
 char mqttpass[15] = "5506487";
 uint8_t type_mqtt = 1;
-#endif
-
 /////////////IR
 bool Page_IR_opened = false;
 bool geo_enable = false;
@@ -204,8 +201,26 @@ void setup() {
 #if defined(USE_LITTLEFS)
   Serial.println("LittleFS init");
   if (!LittleFS.begin()) {
+    Serial.println("Failed to mount LittleFS!");
     LittleFS.format();
-  };
+    if (!LittleFS.begin()) {
+      Serial.println("LittleFS mount failed after format!");
+      return;
+    }
+  }
+  fileSystem = &LittleFS;
+#endif
+#if defined(USE_SPIFFS)
+  Serial.println("SPIFFS init");
+  if (!SPIFFS.begin()) {
+    Serial.println("Failed to mount SPIFFS!");
+    SPIFFS.format();
+    if (!SPIFFS.begin()) {
+      Serial.println("SPIFFS mount failed after format!");
+      return;
+    }
+  }
+  fileSystem = &SPIFFS;
 #endif
   wclient.setInsecure();  // Disables certificate verification for testing purposes
 
@@ -228,9 +243,7 @@ void setup() {
   if (loadConfig(fileSystem->open("/other_setup.txt", "r"))) {
   }
   captive_setup();
-#if defined(USE_PICOMQTT)
-setup_picoMqtt();
-#endif
+  load_picoMqtt_config();
 #if defined(ws2811_include)
   setup_ws2811();  // include ws2811.in
 #endif
