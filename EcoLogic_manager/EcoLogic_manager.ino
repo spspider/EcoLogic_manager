@@ -28,6 +28,7 @@
 #define RECV_PIN 5      // IR recieve d1
 #define SEND_PIN 15     // IR send d8
 #define N_WIDGECTS 12
+#define RESET_PIN 12  // D6 pin reset
 
 // #include <WiFiManager.h>     //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 #include <ESP8266mDNS.h>
@@ -199,16 +200,17 @@ void setup() {
   Serial.begin(115200);
 #endif
 #if defined(USE_LITTLEFS)
-  Serial.println("LittleFS init");
+Serial.println("LittleFS init");
+if (!LittleFS.begin()) {
+  Serial.println("Failed to mount LittleFS!");
+  LittleFS.format();
   if (!LittleFS.begin()) {
-    Serial.println("Failed to mount LittleFS!");
-    LittleFS.format();
-    if (!LittleFS.begin()) {
-      Serial.println("LittleFS mount failed after format!");
-      return;
-    }
+    Serial.println("LittleFS mount failed after format!");
+    return;
   }
-  fileSystem = &LittleFS;
+}
+fileSystem = &LittleFS;
+checkAndRestoreDefaults();  
 #endif
 #if defined(USE_SPIFFS)
   Serial.println("SPIFFS init");
