@@ -29,7 +29,7 @@ void setup_alarm() {
 
 bool load_Current_condition(String jsonCondition) {
   if (jsonCondition != "") {
-    DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
+    DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
     DeserializationError error = deserializeJson(jsonDocument, jsonCondition);
     if (error) {
       Serial.println("JSON Parsing Error: " + String(error.c_str()));

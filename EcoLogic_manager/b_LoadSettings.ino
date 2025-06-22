@@ -1,5 +1,5 @@
 bool loadConfig(File jsonConfig) {
-  DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
+  DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, jsonConfig);
 
   if (error) {
@@ -218,7 +218,7 @@ bool saveCommonFiletoJson(String pagename, String json, boolean write_add) {
 
 /////////////////////CONDITION////////////////////////////////////////////////////
 bool SaveCondition(String json) {
-  DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
+  DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, json);
 
   if (error) {
@@ -238,7 +238,7 @@ bool SaveCondition(String json) {
 //////////////////////////////////////////////////////////////////////////////
 
 bool updatepinsetup(File jsonrecieve) {
-  DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
+  DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, jsonrecieve);
 
   if (error) {

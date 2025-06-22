@@ -8,7 +8,7 @@
 #define USE_DS18B20
 //#define USE_DNS_SERVER
 //#define USE_UDP
-#define USE_PUBSUBCLIENT  //mqtt possibility
+//#define USE_PUBSUBCLIENT  //mqtt possibility
 //#define USE_IRUTILS
 #define USE_PLAY_AUDIO  // for player.ino
 // #define USE_TINYMQTT
