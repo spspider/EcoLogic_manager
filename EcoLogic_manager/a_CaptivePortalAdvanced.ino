@@ -171,8 +171,6 @@ void captive_loop()
 
   if (onesec >= lastConnectTry + 30)
   {
-    Serial.print("Wfif status:");
-    Serial.println(WiFi.status());
     if ((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() == 0))
     {
       WiFi.disconnect();
