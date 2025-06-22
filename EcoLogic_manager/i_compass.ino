@@ -1,4 +1,4 @@
-#if defined(as5600)
+#if defined(USE_AS5600)
 void setup_compass() {
   ///////////////compass/////////////
 
@@ -26,7 +26,7 @@ float get_fuel_value() {
 #endif
 float setFUllFuel(uint8_t full_fuel) {
   // high_compass_fuel = compass.readHeading();
-#if defined(as5600)
+#if defined(USE_AS5600)
   analogDivider = (encoder.getAngle() - analogSubtracter) / (full_fuel * 1.00F);
 #endif
   savePinSetup();
@@ -34,7 +34,7 @@ float setFUllFuel(uint8_t full_fuel) {
   return analogDivider;
 }
 float setZeroFuel() {
-#if defined(as5600)
+#if defined(USE_AS5600)
   analogSubtracter = encoder.getAngle();
 #endif
   savePinSetup();

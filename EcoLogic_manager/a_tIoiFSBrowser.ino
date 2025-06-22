@@ -528,7 +528,7 @@ void FunctionHTTP() {
       server.send(200, "text/plain", "license=" + String(license, DEC));
     }
   }
-#if defined(as5600)
+#if defined(USE_AS5600)
   if (jsonDocument.containsKey("EncoderIA")) {
     no_internet_timer = jsonDocument["rotations"];
     server.send(200, "text/plain", server.arg("json"));
@@ -689,6 +689,9 @@ void server_init() {
 
     },
     handleFileUpload);
+  #ifdef USE_PLAY_AUDIO
+  server.on("/play", handlePlay); // from player.ino
+  #endif
 
   // called when the url is not defined here
   // use it to load content from SPIFFS

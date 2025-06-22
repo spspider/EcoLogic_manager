@@ -7,23 +7,19 @@
 #define USE_LITTLEFS
 #define USE_DS18B20
 //#define USE_DNS_SERVER
-#define USE_UDP
+//#define USE_UDP
 #define USE_PUBSUBCLIENT  //mqtt possibility
-#define USE_IRUTILS
-//#define USE_TINYMQTT
-//#define USE_PICOMQTT
-// #define as
+//#define USE_IRUTILS
+#define USE_PLAY_AUDIO  // for player.ino
+// #define USE_TINYMQTT
+// #define USE_PICOMQTT
+// #define USE_AS5600
 // #define wakeOnLan
-//#define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
-//  #define ads1115 # CHANGE TO USE_ADS1115
+// #define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
+// #define ads1115 # CHANGE TO USE_ADS1115
 //#define USE_EMON //electric monitor
-//  #define ws433 # CHANGE TO USE_WS433
-//------------------------------------------------------------------------------//
+// #define ws433 # CHANGE TO USE_WS433
 
-// #include <Adafruit_GFX.h>
-// #include <gfxfont.h>
-
-// -----------------------DEFINING PINS----------------------------------
 #define ONE_WIRE_BUS 2  // D4 pin ds18b20
 #define RECV_PIN 5      // IR recieve d1
 #define SEND_PIN 15     // IR send d8
@@ -80,7 +76,7 @@ PubSubClient client(wclient);
 #endif
 
 //////////////////////////////////compass
-#if defined(as5600)
+#if defined(USE_AS5600)
 #include <AS5600.h>
 AS5600 encoder;
 #endif
@@ -254,7 +250,7 @@ void setup() {
 #if defined(wakeOnLan)
   setup_WOL();
 #endif
-#if defined(as5600)
+#if defined(USE_AS5600)
   setup_compass();
 #endif
   // Настраиваем и запускаем SSDP интерфейс

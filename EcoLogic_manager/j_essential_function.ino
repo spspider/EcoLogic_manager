@@ -64,7 +64,7 @@ float get_new_pin_value(uint8_t i) {
   if (pinmode[i] == 11) {
     if (!license)
       return 127;
-#if defined(as5600)
+#if defined(USE_AS5600)
     that_stat = (encoder.getAngle() - analogSubtracter) / analogDivider * 1.0F;
 #endif
     return that_stat;

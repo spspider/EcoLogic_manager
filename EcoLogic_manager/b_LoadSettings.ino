@@ -19,6 +19,13 @@ bool loadConfig(File jsonConfig) {
   if (jsonDocument.containsKey("deviceID")) {
     strcpy(softAP_ssid, jsonDocument["deviceID"]);
     strcpy(deviceID, jsonDocument["deviceID"]);
+  } else {
+    String mac = WiFi.macAddress();
+    String defName = "device:" + mac;
+    strncpy(softAP_ssid, defName.c_str(), sizeof(softAP_ssid) - 1);
+    softAP_ssid[sizeof(softAP_ssid) - 1] = '\0';
+    strncpy(deviceID, defName.c_str(), sizeof(deviceID) - 1);
+    deviceID[sizeof(deviceID) - 1] = '\0';
   }
 
 #if defined(USE_PUBSUBCLIENT)

@@ -133,26 +133,7 @@ void captive_loop() {
     }
   }
 #endif
-  // if ((!try_MQTT_access) && (WiFi.status() == WL_CONNECTED) && (WiFi.getMode() == WIFI_STA)) {
-  //   if (onesec > no_internet_timer + 300 ) {//пробовать подключится каждые30 сек
-  //     try_MQTT_access = true; //пробуем подключить MQTT
-  //     Serial.println("Connect again");
-  //     no_internet_timer = onesec;
-  //   }
-  // }
-
-  // typedef enum {
-  //     WL_NO_SHIELD        = 255,   // for compatibility with WiFi Shield library
-  //     WL_IDLE_STATUS      = 0,
-  //     WL_NO_SSID_AVAIL    = 1,
-  //     WL_SCAN_COMPLETED   = 2,
-  //     WL_CONNECTED        = 3,
-  //     WL_CONNECT_FAILED   = 4,
-  //     WL_CONNECTION_LOST  = 5,
-  //     WL_DISCONNECTED     = 6
-  // } wl_status_t;
   uint8_t s = (uint8_t)WiFi.status();
-
   if (onesec >= lastConnectTry + 30) {
     if ((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() == 0)) {
       WiFi.disconnect();
