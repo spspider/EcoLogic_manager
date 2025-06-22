@@ -48,7 +48,7 @@ char getEEPROM_char(int adress) {
 }
 
 void save_stat_void() {
-  DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
+  DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
   JsonArray stat_json = jsonDocument.createNestedArray("stat");
 
   for (uint8_t i = 0; i < nWidgets; i++) {
