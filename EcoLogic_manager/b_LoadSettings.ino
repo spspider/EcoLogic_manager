@@ -355,36 +355,38 @@ void loadDefaultPinSetup() {
 
 void checkAndRestoreDefaults() {
   pinMode(RESET_PIN, INPUT_PULLUP);
-  delay(10); // allow pin to settle
-  bool restoreDefaults = digitalRead(RESET_PIN) == LOW;
-  if (restoreDefaults) {
-    Serial.println("RESET_PIN pin LOW: Restoring default config files...");
-    struct {
-      const char* defName;
-      const char* targetName;
-    } files[] = {
-      {"pin_setup-def.txt", "pin_setup.txt"},
-      {"other_setup-def.txt", "other_setup.txt"},
-      {"wifilist-def.txt", "wifilist.txt"}
-    };
-    for (auto& f : files) {
-      File src = LittleFS.open(f.defName, "r");
-      if (!src) {
-        Serial.print("Default file not found: "); Serial.println(f.defName);
-        continue;
+  if (digitalRead(RESET_PIN) == LOW) {
+    Serial.println("RESET_PIN LOW at boot: waiting 3 seconds for restore trigger...");
+    delay(3000); // freeze for 3 seconds
+    if (digitalRead(RESET_PIN) == LOW) {
+      Serial.println("RESET_PIN still LOW: Restoring default config files...");
+      struct {
+        const char* defName;
+        const char* targetName;
+      } files[] = {
+        {"pin_setup-def.txt", "pin_setup.txt"},
+        {"other_setup-def.txt", "other_setup.txt"},
+        {"wifilist-def.txt", "wifilist.txt"}
+      };
+      for (auto& f : files) {
+        File src = LittleFS.open(f.defName, "r");
+        if (!src) {
+          Serial.print("Default file not found: "); Serial.println(f.defName);
+          continue;
+        }
+        File dst = LittleFS.open(f.targetName, "w");
+        if (!dst) {
+          Serial.print("Failed to open for writing: "); Serial.println(f.targetName);
+          src.close();
+          continue;
+        }
+        while (src.available()) dst.write(src.read());
+        src.close(); dst.close();
+        Serial.print("Restored: "); Serial.print(f.defName); Serial.print(" -> "); Serial.println(f.targetName);
       }
-      File dst = LittleFS.open(f.targetName, "w");
-      if (!dst) {
-        Serial.print("Failed to open for writing: "); Serial.println(f.targetName);
-        src.close();
-        continue;
-      }
-      while (src.available()) dst.write(src.read());
-      src.close(); dst.close();
-      Serial.print("Restored: "); Serial.print(f.defName); Serial.print(" -> "); Serial.println(f.targetName);
+      Serial.println("Rebooting...");
+      delay(1000);
+      ESP.restart();
     }
-    Serial.println("Rebooting...");
-    delay(1000);
-    ESP.restart();
   }
 }

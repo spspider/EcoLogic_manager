@@ -27,8 +27,8 @@
 #define ONE_WIRE_BUS 2  // D4 pin ds18b20
 #define RECV_PIN 5      // IR recieve d1
 #define SEND_PIN 15     // IR send d8
-#define N_WIDGECTS 12
-#define RESET_PIN 12  // D6 pin reset
+#define N_WIDGETS 12
+#define RESET_PIN 4     // D2 pin reset button
 
 // #include <WiFiManager.h>     //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 #include <ESP8266mDNS.h>
