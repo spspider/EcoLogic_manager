@@ -144,23 +144,6 @@ void loop_IOTManager() // that void is in loop section in a main ino file
 void pubClientOneSecEvent() { //this event call each second, for reduce load on esp8266
   if (client.connected())
   {
-    // if (onesec > oldtime + subscr_sec && subscribe_loop < nWidgets)// here I subscribe for a one message in a 1 period of subscribtion
-    // {
-    //   char topic_subscr[30];
-    //   if ((pinmode[subscribe_loop] == 2) || (pinmode[subscribe_loop] == 3) || (pinmode[subscribe_loop] == 5)) {
-    //     snprintf(topic_subscr, sizeof(topic_subscr), "%s/%d", deviceID, subscribe_loop);
-    //     if (client.subscribe(topic_subscr))
-    //     {
-    //       Serial.print(F("subscribe:"));
-    //       Serial.println(topic_subscr);
-    //       subscribe_loop++;
-    //     }
-    //     oldtime = onesec;
-    //   } else {
-    //     subscribe_loop++;
-    //   }
-    // }
-
     if (onesec_255 > mqttspacing_oldtime + mqttspacing )
     {
       char sTopic_ch[20];
