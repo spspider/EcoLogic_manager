@@ -6,7 +6,6 @@
   "mqttport": "8883",
   "mqttpass": "5506487",
   "prefix": "/IoTmanager",
-  "deviceID": "dev01",
   "smtp_arr": "mail.smtp2go.com",
   "smtp_port": "2525",
   "to_email_addr": "spspider95@gmail.com",
