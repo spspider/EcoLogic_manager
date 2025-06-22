@@ -19,23 +19,23 @@ FASTLED_USING_NAMESPACE
 
 //#define CLK_PIN   4
 //#define DATA_PIN 15
-#define DATA_PIN 15 //lock2,any 15
-#define LED_TYPE    WS2811
+#define DATA_PIN 15  //lock2,any 15
+#define LED_TYPE WS2811
 #define COLOR_ORDER GRB
-#define NUM_LEDS    88//40//53 - двери: 52 ванна 88, компьютер 8
+#define NUM_LEDS 88  //40//53 - двери: 52 ванна 88, компьютер 8
 //#if defined(ws2811_include)
 CRGB leds[NUM_LEDS];
 
 //CRGB leds_prep[NUM_LEDS];
-#define NUM_CHARTS    1//2
+#define NUM_CHARTS 1  //2
 #include <ArduinoJson.h>
 #define FASTLED_ESP8266_RAW_PIN_ORDER
 #define FASTLED_ESP8266_NODEMCU_PIN_ORDER
 #define FASTLED_ESP8266_D1_PIN_ORDER
 
 
-#define BRIGHTNESS          100
-#define FRAMES_PER_SECOND  500
+#define BRIGHTNESS 100
+#define FRAMES_PER_SECOND 500
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
@@ -52,9 +52,9 @@ bool running_led = true;
 
 uint8_t fade_sunrise[NUM_LEDS];
 
-unsigned  char col_ws8211[NUM_CHARTS];
-unsigned  char white_ws8211[NUM_CHARTS];
-unsigned  char br__ws8211[NUM_CHARTS];
+unsigned char col_ws8211[NUM_CHARTS];
+unsigned char white_ws8211[NUM_CHARTS];
+unsigned char br__ws8211[NUM_CHARTS];
 uint8_t delay_loop_8211 = 0;
 //unsigned  char white_white_col_[NUM_CHARTS];
 
@@ -95,9 +95,8 @@ void setup_ws2811() {
   char buffer[200];
   DataLoad_8211.toCharArray(buffer, sizeof buffer);
   LoadData(buffer);
-
 }
-uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+uint8_t gHue = 0;  // rotating "base color" used by many of the patterns
 
 bool LoadData_set_leds(char json[400]) {
   Serial.println(json);
@@ -114,16 +113,15 @@ bool LoadData_set_leds(char json[400]) {
   uint8_t num_ = root["num"];
   uint8_t wh = root["wh"];
   uint8_t g1 = 255;
-  for (uint8_t i = 0; i < NUM_LEDS; i++)
-  {
+  for (uint8_t i = 0; i < NUM_LEDS; i++) {
     // uint8_t g1 = root["g1"][i];
     // uint8_t g2 = root["g2"][i];//от
 
-    uint8_t g3 = root["g3"][i]; // от
+    uint8_t g3 = root["g3"][i];  // от
     if (i > num_) {
-      leds[i] = CHSV( 0, 0, 0);//hue,white,bright
+      leds[i] = CHSV(0, 0, 0);  //hue,white,bright
     } else {
-      leds[i] = CHSV( g1, wh, g3);//hue,white,bright
+      leds[i] = CHSV(g1, wh, g3);  //hue,white,bright
     }
   }
 
@@ -148,7 +146,7 @@ bool LoadData(char json[200]) {
   uint8_t num_ = root["num"];
   num_ws8211 = num_ <= NUM_CHARTS ? num_ : NUM_CHARTS;
   //num_ = root["num"] > NUM_CHARTS ? NUM_CHARTS : = root["num"];
-  if ( root["num"] > NUM_CHARTS) {
+  if (root["num"] > NUM_CHARTS) {
     Serial.print("ERROR NUM_CHARTS:");
     Serial.println(num_, DEC);
   }
@@ -171,15 +169,14 @@ bool LoadData(char json[200]) {
 
   FastLED.setBrightness(bright);
   //}
-  for (uint8_t i = 0; i < num_ws8211; i++)
-  {
-    uint8_t from_ = root["from"][i];    // от
-    uint8_t to_ = root["to"][i];        // к чему
-    uint8_t type_ = root["type"][i];    // тип
-    uint8_t dir_ = root["dir"][i];      // направление
-    uint8_t col_ = root["col"][i];      // цвет
-    uint8_t white_col_ = root["wh"][i]; // интенсивность белого
-    uint8_t br_ = root["br_"][i];       // яркость
+  for (uint8_t i = 0; i < num_ws8211; i++) {
+    uint8_t from_ = root["from"][i];     // от
+    uint8_t to_ = root["to"][i];         // к чему
+    uint8_t type_ = root["type"][i];     // тип
+    uint8_t dir_ = root["dir"][i];       // направление
+    uint8_t col_ = root["col"][i];       // цвет
+    uint8_t white_col_ = root["wh"][i];  // интенсивность белого
+    uint8_t br_ = root["br_"][i];        // яркость
 
     white_ws8211[i] = white_col_ == 0 ? 255 : white_col_;
     br__ws8211[i] = br_ == 0 ? 192 : br_;
@@ -187,15 +184,15 @@ bool LoadData(char json[200]) {
     //Serial.println(white_ws8211[i], DEC);
     pos[i] = dir_ == 1 ? to_ : from_;
     //if (from_ <= NUM_LEDS) {
-    from_ws8211[i] = from_ <= NUM_LEDS ? from_ : NUM_LEDS ;
-    if ( from_ > NUM_LEDS) {
+    from_ws8211[i] = from_ <= NUM_LEDS ? from_ : NUM_LEDS;
+    if (from_ > NUM_LEDS) {
       Serial.print("ERROR from_:");
       Serial.println(from_, DEC);
     }
     //}
     //if (to_ws8211[i] <= NUM_LEDS) {
     to_ws8211[i] = to_ <= NUM_LEDS ? to_ : NUM_LEDS;
-    if ( to_ > NUM_LEDS) {
+    if (to_ > NUM_LEDS) {
       Serial.print("ERROR to_:");
       Serial.println(to_, DEC);
     }
@@ -224,7 +221,7 @@ bool LoadData(char json[200]) {
   }
   return true;
 }
-uint8_t one_min, one_hour;//, new_value_count;
+uint8_t one_min, one_hour;  //, new_value_count;
 
 
 void one_sec() {
@@ -244,8 +241,7 @@ void one_sec() {
     //Serial.print("Duration:");
     //Serial.println(duration, DEC);
     duration--;
-  } else if (duration == 0)
-  {
+  } else if (duration == 0) {
     running_led = false;
     if (reverse_set) {
       String DataLoad_8211 = readCommonFiletoJson("ws8211/0");
@@ -284,7 +280,6 @@ void one_sec() {
     //check_for_license();
   }
   if (one_hour >= 24) {
-
   }
   if (delay_loop_8211 > 1) {
     delay_loop_8211--;
@@ -298,40 +293,38 @@ void check_for_license() {
     }
   }
 }
-void load_pattern()
-{
+void load_pattern() {
 
   // a colored dot sweeping back and forth, with fading trails
 
   switch (fadetype) {
     case 0:
-      nscale8_video( leds, NUM_LEDS, fade);
+      nscale8_video(leds, NUM_LEDS, fade);
       break;
     case 1:
-      fade_video( leds, NUM_LEDS, fade);
+      fade_video(leds, NUM_LEDS, fade);
       break;
     case 2:
-      fadeLightBy( leds, NUM_LEDS, fade);
+      fadeLightBy(leds, NUM_LEDS, fade);
       break;
     case 3:
-      fadeToBlackBy( leds, NUM_LEDS, fade);
+      fadeToBlackBy(leds, NUM_LEDS, fade);
       break;
     case 4:
-      fade_raw( leds, NUM_LEDS, fade);
+      fade_raw(leds, NUM_LEDS, fade);
       break;
     case 5:
       //nscale8_raw( leds, NUM_LEDS, fade);
       break;
     case 6:
-      nscale8( leds, NUM_LEDS, fade);
+      nscale8(leds, NUM_LEDS, fade);
       break;
     case 7:
       //fadeUsingColor( leds, NUM_LEDS, fade);
       break;
     case 8:
-      blur1d( leds, NUM_LEDS, fade);
+      blur1d(leds, NUM_LEDS, fade);
       break;
-
   }
 
   //fade_video(leds, NUM_LEDS, fade);//чем меньше, тем медленее)
@@ -339,11 +332,9 @@ void load_pattern()
   if (!running_led) return;
   //Serial.println(divide1,DEC);
 
-  for (uint8_t i = 0; i < num_ws8211; i++)
-  {
+  for (uint8_t i = 0; i < num_ws8211; i++) {
 
-    if (col_ws8211[i] != 0)
-    {
+    if (col_ws8211[i] != 0) {
       gHue = col_ws8211[i];
     }
 
@@ -353,123 +344,102 @@ void load_pattern()
     char i_div = 1;
     char divide1 = (to_ws8211[i] - from_ws8211[i]) / 3;
 
-    switch (type_ws8211[i])
-    {
-    case 0:                                                       // с одной стороны
-      leds[pos[i]] += CHSV(gHue, white_ws8211[i], br__ws8211[i]); //
-      // fill_solid(leds, NUM_LEDS, CHSV(hue, white_ws8211[i], 192));
-      // leds[pos[i]].maximizeBrightness(1);
-      pos[i] = reverseDirection(i);
-      // leds[i].setRGB(0,255,250);  // Set Color HERE!!!
-      // leds[i].fadeLightBy(brightness);
-      //
-      break;
-    case 1: // с двух сторон
-      // case 5:
-      pos[i] = reverseDirection(i);
-      leds[pos[i]] = CHSV(gHue, white_ws8211[i], br__ws8211[i]); // бегающий огонь
+    switch (type_ws8211[i]) {
+      case 0:                                                        // с одной стороны
+        leds[pos[i]] += CHSV(gHue, white_ws8211[i], br__ws8211[i]);  //
+        // fill_solid(leds, NUM_LEDS, CHSV(hue, white_ws8211[i], 192));
+        // leds[pos[i]].maximizeBrightness(1);
+        pos[i] = reverseDirection(i);
+        // leds[i].setRGB(0,255,250);  // Set Color HERE!!!
+        // leds[i].fadeLightBy(brightness);
+        //
+        break;
+      case 1:  // с двух сторон
+        // case 5:
+        pos[i] = reverseDirection(i);
+        leds[pos[i]] = CHSV(gHue, white_ws8211[i], br__ws8211[i]);  // бегающий огонь
 
-      uint8_t calc_pos;
-      calc_pos = (to_ws8211[i] - pos[i] + from_ws8211[i]);
-      leds[calc_pos] = CHSV(gHue, white_ws8211[i], br__ws8211[i]); // бегающий огонь
-      break;
-    case 2: // полностью в цвете
-      for (uint8_t i1 = from_ws8211[i]; i1 < to_ws8211[i]; i1++)
-      {
-        leds[i1] = CHSV(gHue, white_ws8211[i], br__ws8211[i]); // простая линия света
-      }
-      break;
-    case 3: // середина в цвете
-      for (uint8_t i1 = from_ws8211[i]; i1 < to_ws8211[i]; i1++)
-      {
-        if (i1 < mid)
-        {
-          leds[i1] = CHSV(gHue, white_ws8211[i], maxLight * i1);
+        uint8_t calc_pos;
+        calc_pos = (to_ws8211[i] - pos[i] + from_ws8211[i]);
+        leds[calc_pos] = CHSV(gHue, white_ws8211[i], br__ws8211[i]);  // бегающий огонь
+        break;
+      case 2:  // полностью в цвете
+        for (uint8_t i1 = from_ws8211[i]; i1 < to_ws8211[i]; i1++) {
+          leds[i1] = CHSV(gHue, white_ws8211[i], br__ws8211[i]);  // простая линия света
         }
-        else
-        {
-          leds[i1] = CHSV(gHue, white_ws8211[i], maxLight * (to_ws8211[i] - i1));
-        }
-      }
-      break;
-    case 4:                                                                                     // не работает
-      leds[random(from_ws8211[i], to_ws8211[i])] += CHSV(gHue, white_ws8211[i], br__ws8211[i]); // бегающий огонь
-      break;
-    case 5: // мигание через одну
-      if (pos[i] >= to_ws8211[i])
-      {
-        dir_ws8211[i] = 1;
-      }
-      else if (pos[i] <= from_ws8211[i])
-      {
-        dir_ws8211[i] = 0;
-      }
-      for (uint8_t i1 = from_ws8211[i]; i1 < to_ws8211[i]; i1++)
-      {
-        if (pos[i] % 2 == 0)
-        {
-          if ((i1 % 2) == 0)
-          {
-            leds[i1] = CHSV(gHue, white_ws8211[i], br__ws8211[i]); // бегающий огонь
+        break;
+      case 3:  // середина в цвете
+        for (uint8_t i1 = from_ws8211[i]; i1 < to_ws8211[i]; i1++) {
+          if (i1 < mid) {
+            leds[i1] = CHSV(gHue, white_ws8211[i], maxLight * i1);
+          } else {
+            leds[i1] = CHSV(gHue, white_ws8211[i], maxLight * (to_ws8211[i] - i1));
           }
         }
-        else
-        {
-          if ((i1 % 2) != 0)
-          {
-            leds[i1] = CHSV(gHue, white_ws8211[i], br__ws8211[i]); // бегающий огонь
+        break;
+      case 4:                                                                                      // не работает
+        leds[random(from_ws8211[i], to_ws8211[i])] += CHSV(gHue, white_ws8211[i], br__ws8211[i]);  // бегающий огонь
+        break;
+      case 5:  // мигание через одну
+        if (pos[i] >= to_ws8211[i]) {
+          dir_ws8211[i] = 1;
+        } else if (pos[i] <= from_ws8211[i]) {
+          dir_ws8211[i] = 0;
+        }
+        for (uint8_t i1 = from_ws8211[i]; i1 < to_ws8211[i]; i1++) {
+          if (pos[i] % 2 == 0) {
+            if ((i1 % 2) == 0) {
+              leds[i1] = CHSV(gHue, white_ws8211[i], br__ws8211[i]);  // бегающий огонь
+            }
+          } else {
+            if ((i1 % 2) != 0) {
+              leds[i1] = CHSV(gHue, white_ws8211[i], br__ws8211[i]);  // бегающий огонь
+            }
           }
         }
-      }
-      break;
-    case 6: // деление на три части
-      for (uint8_t i1 = from_ws8211[i]; i1 < to_ws8211[i]; i1++)
-      {
-        if (i1 < (divide1 * i_div) + from_ws8211[i])
-        {
-          if ((i_div & 0x01) == (pos[i] & 0x01))
-          {
-            leds[i1] = CHSV(gHue, white_ws8211[i], br__ws8211[i]);
+        break;
+      case 6:  // деление на три части
+        for (uint8_t i1 = from_ws8211[i]; i1 < to_ws8211[i]; i1++) {
+          if (i1 < (divide1 * i_div) + from_ws8211[i]) {
+            if ((i_div & 0x01) == (pos[i] & 0x01)) {
+              leds[i1] = CHSV(gHue, white_ws8211[i], br__ws8211[i]);
+            }
+          } else {
+            i_div++;
           }
         }
-        else
-        {
-          i_div++;
+        break;
+      case 7:
+        rainbow();
+        break;
+      case 8:
+        rainbowWithGlitter();
+        break;
+      case 9:
+        confetti();
+        break;
+      case 10:
+        sinelon();
+        break;
+      case 11:
+        bpm();
+        break;
+      case 12:
+        juggle();
+        break;
+      case 13:  // glow_to_max
+        for (uint8_t i1 = from_ws8211[i]; i1 < to_ws8211[i]; i1++) {
+
+          uint8_t bright_pos = pos[i] * (255 / (to_ws8211[i] - from_ws8211[i]));
+          leds[i1] = CHSV(0, 0, bright_pos);  // бегающий огонь
         }
-      }
-      break;
-    case 7:
-      rainbow();
-      break;
-    case 8:
-      rainbowWithGlitter();
-      break;
-    case 9:
-      confetti();
-      break;
-    case 10:
-      sinelon();
-      break;
-    case 11:
-      bpm();
-      break;
-    case 12:
-      juggle();
-      break;
-    case 13: // glow_to_max
-      for (uint8_t i1 = from_ws8211[i]; i1 < to_ws8211[i]; i1++)
-      {
+        break;
+      case 14:  // случайно
+        type_ws8211[i] = random(0, 13);
+        break;
+      case 15:  // цветомузыка
 
-        uint8_t bright_pos = pos[i] * (255 / (to_ws8211[i] - from_ws8211[i]));
-        leds[i1] = CHSV(0, 0, bright_pos); // бегающий огонь
-      }
-      break;
-    case 14: // случайно
-      type_ws8211[i] = random(0, 13);
-      break;
-    case 15: // цветомузыка
-
-      break;
+        break;
     }
   }
 
@@ -477,35 +447,30 @@ void load_pattern()
 
   //leds[num_leds_fade - pos] += CHSV( gHue, white_ws8211[i], br__ws8211[i]);
 
-    if (inv) {
-      for (uint8_t i = 0; i < NUM_LEDS; i++)
-      { // 9948
-        leds[i] = CHSV(0, 0, 255) - leds[i];
-      }
+  if (inv) {
+    for (uint8_t i = 0; i < NUM_LEDS; i++) {  // 9948
+      leds[i] = CHSV(0, 0, 255) - leds[i];
+    }
   }
-  
 }
-uint8_t reverseDirection(uint8_t i)
-{
+uint8_t reverseDirection(uint8_t i) {
 
   switch (dir_ws8211[i]) {
     case 0:
       pos[i] = pos[i] >= to_ws8211[i] ? from_ws8211[i] : pos[i];
       break;
     case 1:
-      pos[i] = pos[i] <= from_ws8211[i] ?  to_ws8211[i] : pos[i];
+      pos[i] = pos[i] <= from_ws8211[i] ? to_ws8211[i] : pos[i];
       break;
   }
-  return  pos[i];
+  return pos[i];
 }
-void rainbow()
-{
+void rainbow() {
   // FastLED's built-in rainbow generator
-  fill_rainbow( leds, NUM_LEDS, gHue, 7);
+  fill_rainbow(leds, NUM_LEDS, gHue, 7);
 }
 
-void rainbowWithGlitter()
-{
+void rainbowWithGlitter() {
   // built-in FastLED rainbow, plus some random sparkly glitter
   rainbow();
   //addGlitter(80);
@@ -518,57 +483,52 @@ void rainbowWithGlitter()
   }
   }
 */
-void confetti()
-{
+void confetti() {
   // random colored speckles that blink in and fade smoothly
-  fadeToBlackBy( leds, NUM_LEDS, 10);
+  fadeToBlackBy(leds, NUM_LEDS, 10);
   int pos = random16(NUM_LEDS);
-  leds[pos] += CHSV( gHue + random8(64), 200, 255);
+  leds[pos] += CHSV(gHue + random8(64), 200, 255);
 }
 
-void sinelon()
-{
+void sinelon() {
   // a colored dot sweeping back and forth, with fading trails
-  fadeToBlackBy( leds, NUM_LEDS, 20);
-  int pos = beatsin16( 13, 0, NUM_LEDS - 1 );
-  leds[pos] += CHSV( gHue, 255, 192);
+  fadeToBlackBy(leds, NUM_LEDS, 20);
+  int pos = beatsin16(13, 0, NUM_LEDS - 1);
+  leds[pos] += CHSV(gHue, 255, 192);
 }
 
-void bpm()
-{
+void bpm() {
   // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
   uint8_t BeatsPerMinute = 62;
   CRGBPalette16 palette = PartyColors_p;
-  uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-  for ( int i = 0; i < NUM_LEDS; i++) { //9948
+  uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
+  for (int i = 0; i < NUM_LEDS; i++) {  //9948
     leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
   }
 }
 
 void juggle() {
   // eight colored dots, weaving in and out of sync with each other
-  fadeToBlackBy( leds, NUM_LEDS, 20);
+  fadeToBlackBy(leds, NUM_LEDS, 20);
   byte dothue = 0;
-  for ( int i = 0; i < 8; i++) {
-    leds[beatsin16( i + 7, 0, NUM_LEDS - 1 )] |= CHSV(dothue, 200, 255);
+  for (int i = 0; i < 8; i++) {
+    leds[beatsin16(i + 7, 0, NUM_LEDS - 1)] |= CHSV(dothue, 200, 255);
     dothue += 32;
   }
 }
 
 typedef void (*SimplePatternList[])();
 SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm };
-uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
+uint8_t gCurrentPatternNumber = 0;  // Index number of which pattern is current
 
-void nextPattern()
-{
+void nextPattern() {
   // add one to the current pattern number, and wrap around at the end
-  gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE( gPatterns);
+  gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE(gPatterns);
 }
 
 
 
-void loop_ws2811()
-{
+void loop_ws2811() {
   // Call the current pattern function once, updating the 'leds' array
 
   // send the 'leds' array out to the actual LED strip
@@ -580,29 +540,28 @@ void loop_ws2811()
   FastLED.delay(sp_ws8211);
 
   // do some periodic updates
-  EVERY_N_MILLISECONDS( 20 ) {
+  EVERY_N_MILLISECONDS(20) {
     gHue++;  // slowly cycle the "base color" through the rainbow
   }
-  EVERY_N_SECONDS( 10 ) {
+  EVERY_N_SECONDS(10) {
     //nextPattern();  // change patterns periodically
   }
 
   // uint8_t one_period_speed = 2;//((sp_ws8211 * 16) / (192 / 2));
-  if (millis() > (sp_ws8211)+ millis_strart) {
-    for (uint8_t i = 0; i < num_ws8211; i++)
-    {
+  if (millis() > (sp_ws8211) + millis_strart) {
+    for (uint8_t i = 0; i < num_ws8211; i++) {
       if (pos[0] == 0) {
         //
       }
       switch (dir_ws8211[i]) {
         case 0:
-          pos[i] = pos[i] < to_ws8211[i] ?  pos[i] + 1 : to_ws8211[i];
+          pos[i] = pos[i] < to_ws8211[i] ? pos[i] + 1 : to_ws8211[i];
           break;
         case 1:
-          pos[i] =  pos[i] > from_ws8211[i] ? pos[i] - 1 : from_ws8211[i];
+          pos[i] = pos[i] > from_ws8211[i] ? pos[i] - 1 : from_ws8211[i];
           break;
         case 3:
-          pos[i] = random16( from_ws8211[i], to_ws8211[i]);
+          pos[i] = random16(from_ws8211[i], to_ws8211[i]);
           break;
         case 4:
           pos[i] = 0;

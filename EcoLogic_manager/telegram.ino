@@ -38,8 +38,7 @@ void setup_telegram() {
   //      myKbd.addRow();
   //    }
   //  }
-  for (uint8_t i = 0; i < char(nWidgets); i++)
-  {
+  for (uint8_t i = 0; i < char(nWidgets); i++) {
     if (pinmode[i] == 2) {
       char descr_on[10];
       snprintf(descr_on, sizeof(descr_on), "%s:on", descr[i]);  // Shortened length
@@ -126,15 +125,14 @@ void loop_telegram() {
       snprintf(fullanswer, sizeof(fullanswer), "%s\nnot found,\nusing:\n0:1 - number:value\n", messageText);
     }
 
-    for (uint8_t i = 0; i < nWidgets; i++)
-    {
+    for (uint8_t i = 0; i < nWidgets; i++) {
       char valueStr[10];
       dtostrf(get_new_pin_value(i), 2, 2, valueStr);  // Use `dtostrf` for float conversion
       snprintf(fullanswer + strlen(fullanswer), sizeof(fullanswer) - strlen(fullanswer), "%s: %s\n", descr[i], valueStr);
     }
 
     myBot.sendMessage(msg.sender.id, fullanswer);
-//    delay(500);
+    //    delay(500);
   }
 }
 // void loop_telegram() { // String way

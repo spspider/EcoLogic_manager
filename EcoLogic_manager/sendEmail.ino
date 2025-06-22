@@ -17,11 +17,10 @@
 
 
 
-byte sendEmail(String message)
-{
+byte sendEmail(String message) {
   ///////////load email
   File load_other_setup = fileSystem->open("/other_setup.txt", "r");
-  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+  DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, load_other_setup);
 
   if (error) {
@@ -81,14 +80,14 @@ byte sendEmail(String message)
 
   // change to your email address (sender)
   Serial.println(F("Sending From"));
-  wclient.print("MAIL FROM: <"); // identify sender
+  wclient.print("MAIL FROM: <");  // identify sender
   wclient.print(from_email_addr);
   wclient.println(">");
   if (!eRcv()) return 0;
 
   // change to recipient address
   Serial.println(F("Sending To"));
-  wclient.print("RCPT TO: <"); // identify recipient
+  wclient.print("RCPT TO: <");  // identify recipient
   wclient.print(to_email_addr);
   wclient.println(">");
   if (!eRcv()) return 0;
@@ -151,8 +150,7 @@ byte sendEmail(String message)
   return 1;
 }
 
-byte eRcv()
-{
+byte eRcv() {
   byte respCode;
   byte thisByte;
   int loopCount = 0;
@@ -171,14 +169,12 @@ byte eRcv()
 
   respCode = wclient.peek();
 
-  while (wclient.available())
-  {
+  while (wclient.available()) {
     thisByte = wclient.read();
     Serial.write(thisByte);
   }
 
-  if (respCode >= '4')
-  {
+  if (respCode >= '4') {
     efail();
     return 0;
   }
@@ -187,8 +183,7 @@ byte eRcv()
 }
 
 
-void efail()
-{
+void efail() {
   byte thisByte = 0;
   int loopCount = 0;
 
@@ -206,8 +201,7 @@ void efail()
     }
   }
 
-  while (wclient.available())
-  {
+  while (wclient.available()) {
     thisByte = wclient.read();
     Serial.write(thisByte);
   }
@@ -221,4 +215,3 @@ extern char mqttServerName[60];
 extern unsigned int mqttport;
 extern char mqttuser[15];
 extern char mqttpass[15];
-

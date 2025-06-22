@@ -234,7 +234,7 @@ bool updatepinsetup(File jsonrecieve) {
   if (error) {
     Serial.println("Failed to parse JSON!");
     loadDefaultPinSetup();
-    Setup_pinmode(false); // false: use defaultVal
+    Setup_pinmode(false);  // false: use defaultVal
     return false;
   }
 
@@ -319,30 +319,60 @@ void callback_from_stat() {
 void loadDefaultPinSetup() {
   nWidgets = 10;
   // pinmode: [2, 2, 2, 2, 3, 3, 3, 6, 6, 6]
-  pinmode[0] = 2; pinmode[1] = 2; pinmode[2] = 2; pinmode[3] = 2; pinmode[4] = 3;
-  pinmode[5] = 3; pinmode[6] = 3; pinmode[7] = 6; pinmode[8] = 6; pinmode[9] = 6;
+  pinmode[0] = 2;
+  pinmode[1] = 2;
+  pinmode[2] = 2;
+  pinmode[3] = 2;
+  pinmode[4] = 3;
+  pinmode[5] = 3;
+  pinmode[6] = 3;
+  pinmode[7] = 6;
+  pinmode[8] = 6;
+  pinmode[9] = 6;
   // pin: [0, 16, 16, 16, 14, 12, 13, 0, 5, 17]
-  pin[0] = 0; pin[1] = 16; pin[2] = 16; pin[3] = 16; pin[4] = 14;
-  pin[5] = 12; pin[6] = 13; pin[7] = 0; pin[8] = 5; pin[9] = 17;
+  pin[0] = 0;
+  pin[1] = 16;
+  pin[2] = 16;
+  pin[3] = 16;
+  pin[4] = 14;
+  pin[5] = 12;
+  pin[6] = 13;
+  pin[7] = 0;
+  pin[8] = 5;
+  pin[9] = 17;
   // defaultVal: [1, 1, 1, 1, 0, 0, 0, 0, 0, 0]
-  defaultVal[0] = 1; defaultVal[1] = 1; defaultVal[2] = 1; defaultVal[3] = 1;
-  defaultVal[4] = 0; defaultVal[5] = 0; defaultVal[6] = 0; defaultVal[7] = 0;
-  defaultVal[8] = 0; defaultVal[9] = 0;
+  defaultVal[0] = 1;
+  defaultVal[1] = 1;
+  defaultVal[2] = 1;
+  defaultVal[3] = 1;
+  defaultVal[4] = 0;
+  defaultVal[5] = 0;
+  defaultVal[6] = 0;
+  defaultVal[7] = 0;
+  defaultVal[8] = 0;
+  defaultVal[9] = 0;
   // IrButtonID: [255, 255, 255, 255, 255, 255, 255, 255, 255, 0]
-  IrButtonID[0] = 255; IrButtonID[1] = 255; IrButtonID[2] = 255; IrButtonID[3] = 255;
-  IrButtonID[4] = 255; IrButtonID[5] = 255; IrButtonID[6] = 255; IrButtonID[7] = 255;
-  IrButtonID[8] = 255; IrButtonID[9] = 0;
+  IrButtonID[0] = 255;
+  IrButtonID[1] = 255;
+  IrButtonID[2] = 255;
+  IrButtonID[3] = 255;
+  IrButtonID[4] = 255;
+  IrButtonID[5] = 255;
+  IrButtonID[6] = 255;
+  IrButtonID[7] = 255;
+  IrButtonID[8] = 255;
+  IrButtonID[9] = 0;
   // descr: ["d3 switch", "tx switch", "d0 switch", "rx switch", "d5 PWM", "d6 PWM", "d7 PWM", "ds18b20 temp", "d1 in", "ADC"]
-  strncpy(descr[0], "d3 switch", sizeof(descr[0])-1);
-  strncpy(descr[1], "tx switch", sizeof(descr[1])-1);
-  strncpy(descr[2], "d0 switch", sizeof(descr[2])-1);
-  strncpy(descr[3], "rx switch", sizeof(descr[3])-1);
-  strncpy(descr[4], "d5 PWM", sizeof(descr[4])-1);
-  strncpy(descr[5], "d6 PWM", sizeof(descr[5])-1);
-  strncpy(descr[6], "d7 PWM", sizeof(descr[6])-1);
-  strncpy(descr[7], "ds18b20 temp", sizeof(descr[7])-1);
-  strncpy(descr[8], "d1 in", sizeof(descr[8])-1);
-  strncpy(descr[9], "ADC", sizeof(descr[9])-1);
+  strncpy(descr[0], "d3 switch", sizeof(descr[0]) - 1);
+  strncpy(descr[1], "tx switch", sizeof(descr[1]) - 1);
+  strncpy(descr[2], "d0 switch", sizeof(descr[2]) - 1);
+  strncpy(descr[3], "rx switch", sizeof(descr[3]) - 1);
+  strncpy(descr[4], "d5 PWM", sizeof(descr[4]) - 1);
+  strncpy(descr[5], "d6 PWM", sizeof(descr[5]) - 1);
+  strncpy(descr[6], "d7 PWM", sizeof(descr[6]) - 1);
+  strncpy(descr[7], "ds18b20 temp", sizeof(descr[7]) - 1);
+  strncpy(descr[8], "d1 in", sizeof(descr[8]) - 1);
+  strncpy(descr[9], "ADC", sizeof(descr[9]) - 1);
   // analogDivider, analogSubtracter, pwm_delay_long, router
   analogDivider = 0.0185F;
   analogSubtracter = 0;
@@ -357,32 +387,38 @@ void checkAndRestoreDefaults() {
   pinMode(RESET_PIN, INPUT_PULLUP);
   if (digitalRead(RESET_PIN) == LOW) {
     Serial.println("RESET_PIN LOW at boot: waiting 3 seconds for restore trigger...");
-    delay(3000); // freeze for 3 seconds
+    delay(3000);  // freeze for 3 seconds
     if (digitalRead(RESET_PIN) == LOW) {
       Serial.println("RESET_PIN still LOW: Restoring default config files...");
       struct {
-        const char* defName;
-        const char* targetName;
+        const char *defName;
+        const char *targetName;
       } files[] = {
-        {"pin_setup-def.txt", "pin_setup.txt"},
-        {"other_setup-def.txt", "other_setup.txt"},
-        {"wifilist-def.txt", "wifilist.txt"}
+        { "pin_setup-def.txt", "pin_setup.txt" },
+        { "other_setup-def.txt", "other_setup.txt" },
+        { "wifilist-def.txt", "wifilist.txt" }
       };
-      for (auto& f : files) {
+      for (auto &f : files) {
         File src = LittleFS.open(f.defName, "r");
         if (!src) {
-          Serial.print("Default file not found: "); Serial.println(f.defName);
+          Serial.print("Default file not found: ");
+          Serial.println(f.defName);
           continue;
         }
         File dst = LittleFS.open(f.targetName, "w");
         if (!dst) {
-          Serial.print("Failed to open for writing: "); Serial.println(f.targetName);
+          Serial.print("Failed to open for writing: ");
+          Serial.println(f.targetName);
           src.close();
           continue;
         }
         while (src.available()) dst.write(src.read());
-        src.close(); dst.close();
-        Serial.print("Restored: "); Serial.print(f.defName); Serial.print(" -> "); Serial.println(f.targetName);
+        src.close();
+        dst.close();
+        Serial.print("Restored: ");
+        Serial.print(f.defName);
+        Serial.print(" -> ");
+        Serial.println(f.targetName);
       }
       Serial.println("Rebooting...");
       delay(1000);

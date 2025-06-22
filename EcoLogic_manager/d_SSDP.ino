@@ -1,9 +1,9 @@
 #if defined(USE_SSDP)
-void SSDP_init(void)
-{
+void SSDP_init(void) {
   // SSDP дескриптор
-  server.on("/description.xml", HTTP_GET, []()
-            { SSDP.schema(server.client()); });
+  server.on("/description.xml", HTTP_GET, []() {
+    SSDP.schema(server.client());
+  });
   // Если версия  2.0.0 закаментируйте следующую строчку
   SSDP.setDeviceType("upnp:rootdevice");
   SSDP.setSchemaURL("description.xml");

@@ -28,7 +28,7 @@
 #define RECV_PIN 5      // IR recieve d1
 #define SEND_PIN 15     // IR send d8
 #define N_WIDGETS 12
-#define RESET_PIN 4     // D2 pin reset button
+#define RESET_PIN 4  // D2 pin reset button
 
 // #include <WiFiManager.h>     //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 #include <ESP8266mDNS.h>
@@ -200,17 +200,17 @@ void setup() {
   Serial.begin(115200);
 #endif
 #if defined(USE_LITTLEFS)
-Serial.println("LittleFS init");
-if (!LittleFS.begin()) {
-  Serial.println("Failed to mount LittleFS!");
-  LittleFS.format();
+  Serial.println("LittleFS init");
   if (!LittleFS.begin()) {
-    Serial.println("LittleFS mount failed after format!");
-    return;
+    Serial.println("Failed to mount LittleFS!");
+    LittleFS.format();
+    if (!LittleFS.begin()) {
+      Serial.println("LittleFS mount failed after format!");
+      return;
+    }
   }
-}
-fileSystem = &LittleFS;
-checkAndRestoreDefaults();  
+  fileSystem = &LittleFS;
+  checkAndRestoreDefaults();
 #endif
 #if defined(USE_SPIFFS)
   Serial.println("SPIFFS init");
@@ -245,9 +245,9 @@ checkAndRestoreDefaults();
   if (loadConfig(fileSystem->open("/other_setup.txt", "r"))) {
   }
   captive_setup();
-  #if defined(USE_PICOMQTT)
-    load_picoMqtt_config();
-  #endif
+#if defined(USE_PICOMQTT)
+  load_picoMqtt_config();
+#endif
 #if defined(ws2811_include)
   setup_ws2811();  // include ws2811.in
 #endif
@@ -323,7 +323,7 @@ void loop() {
       pubClientOneSecEvent();
 #endif
 #if defined(USE_PICOMQTT)
-loop_picoMqtt();
+      loop_picoMqtt();
 #endif
       onesec_255++;
 #if defined(timerAlarm)
