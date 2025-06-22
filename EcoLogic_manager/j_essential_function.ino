@@ -123,7 +123,7 @@ float get_new_pin_value(uint8_t i) {
 }
 
 void makeAres_sim(String json) {
-  DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
+  DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, json);
 
   if (error) {

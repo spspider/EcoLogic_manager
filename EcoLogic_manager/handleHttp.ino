@@ -69,7 +69,7 @@ boolean captivePortal() {
   return false;
 }
 void handleWifilist() {
-  DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
+  DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
   JsonObject json = jsonDocument.to<JsonObject>();
 
   json["ssid"] = ssid;

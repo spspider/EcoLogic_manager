@@ -23,7 +23,7 @@ bool load_picoMqtt_config() {
         Serial.println("Failed to open /other_setup.txt for MQTT config");
         return false;
     }
-    DynamicJsonDocument jsonDocument(2048);
+    DynamicJsonDocument jsonDocument(1024);
     DeserializationError error = deserializeJson(jsonDocument, configFile);
     configFile.close();
     if (error) {
