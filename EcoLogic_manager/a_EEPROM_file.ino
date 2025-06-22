@@ -1,7 +1,6 @@
 
 
-void saveCredentials()
-{
+void saveCredentials() {
   EEPROM.begin(512);
   EEPROM.put(0, ssid);
   EEPROM.put(0 + sizeof(ssid), password);
@@ -11,16 +10,14 @@ void saveCredentials()
   EEPROM.end();
 }
 #if defined(EEPROM)
-void saveEEPROM(int adress, char value[5])
-{
+void saveEEPROM(int adress, char value[5]) {
   char sep = 100;
   EEPROM.begin(512);
   EEPROM.put(adress * sizeof(value) + sep, value);
   EEPROM.commit();
   EEPROM.end();
 }
-void saveEEPROM_char(int adress, char value)
-{
+void saveEEPROM_char(int adress, char value) {
   char sep = 8;
   EEPROM.begin(512);
   EEPROM.put(adress * sizeof(value) + sep, value);
@@ -29,8 +26,7 @@ void saveEEPROM_char(int adress, char value)
   Serial.println("Saved EEPROM:");
   Serial.println(String(getEEPROM_char(adress), DEC));
 }
-char *getEEPROM(int adress)
-{
+char *getEEPROM(int adress) {
   char buffer[5];
   char sep = 100;
   EEPROM.begin(512);
@@ -40,8 +36,7 @@ char *getEEPROM(int adress)
   Serial.println(buffer);
   return buffer;
 }
-char getEEPROM_char(int adress)
-{
+char getEEPROM_char(int adress) {
   char buffer;
   char sep = 8;
   EEPROM.begin(512);
@@ -52,13 +47,11 @@ char getEEPROM_char(int adress)
   return buffer;
 }
 
-void save_stat_void()
-{
-  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+void save_stat_void() {
+  DynamicJsonDocument jsonDocument(2048);  // Adjust the capacity as needed
   JsonArray stat_json = jsonDocument.createNestedArray("stat");
 
-  for (uint8_t i = 0; i < nWidgets; i++)
-  {
+  for (uint8_t i = 0; i < nWidgets; i++) {
     stat_json.add(stat[i]);
   }
 

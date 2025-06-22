@@ -1,9 +1,9 @@
 //This variables left in another file, so they are out of scope
 
 uint8_t oldtime = 0;
-uint8_t nWidgets = N_WIDGECTS;
-const uint8_t nWidgetsArray = N_WIDGECTS;
-int16_t stat[nWidgetsArray]; // use int16_t for clarity, same as short int
+uint8_t nWidgets = N_WIDGETS;
+const uint8_t nWidgetsArray = N_WIDGETS;
+int16_t stat[nWidgetsArray];  // use int16_t for clarity, same as short int
 // uint8_t widget[nWidgetsArray]; // inputWidjet[0] = 'unknown';1 = 'toggle';2 = 'simple-btn';4 = 'range';4 = 'small-badge';5 = 'uint8_tt';
 char descr[nWidgetsArray][10];
 uint8_t id[nWidgetsArray];
@@ -13,11 +13,11 @@ uint8_t IrButtonID[nWidgetsArray];
 float analogDivider = 1.0F;
 int16_t analogSubtracter = 0;
 uint16_t low_pwm[nWidgetsArray];
-bool low_pwm_off = false;             // low_pwm
-uint8_t pinmode[nWidgetsArray];       // inputPinmode[0] = "no pin";inputPinmode[1] = "in";inputPinmode[2] = "out";inputPinmode[3] = "pwm";inputPinmode[4] = "adc";inputPinmode[5] = "low_pwm";inputPinmode[6] = "IR";inputPinmode[7] = "датчик газа MQ7";
+bool low_pwm_off = false;        // low_pwm
+uint8_t pinmode[nWidgetsArray];  // inputPinmode[0] = "no pin";inputPinmode[1] = "in";inputPinmode[2] = "out";inputPinmode[3] = "pwm";inputPinmode[4] = "adc";inputPinmode[5] = "low_pwm";inputPinmode[6] = "IR";inputPinmode[7] = "датчик газа MQ7";
 
 uint8_t subscribe_loop = 0;
-const uint8_t subscr_sec = 5; 
+const uint8_t subscr_sec = 5;
 uint8_t mqttspacing_oldtime;
 
 
@@ -43,37 +43,34 @@ char *setStatus(const char *s) {
   return stat;
 }
 
-void pubStatus(const char *t, const char *payload)
-{
+void pubStatus(const char *t, const char *payload) {
   if (!client.connected())
     return;
-  if (client.publish(t, payload))
-  {
-    #if defined(PUB_DEBUG)
-      Serial.print(F("publish:"));
-      Serial.print(t);
-      Serial.print(F(", value: "));
-      Serial.println(payload);
-    #endif
+  if (client.publish(t, payload)) {
+#if defined(PUB_DEBUG)
+    Serial.print(F("publish:"));
+    Serial.print(t);
+    Serial.print(F(", value: "));
+    Serial.println(payload);
+#endif
   }
 }
 
-void pubConfig()// that is how I publish config, you dont need to adhere same structure
+void pubConfig()  // that is how I publish config, you dont need to adhere same structure
 {
   char sTopic_ch[20];
-  for (uint8_t i = 0; i < nWidgets; i++)
-  {
+  for (uint8_t i = 0; i < nWidgets; i++) {
     snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d", deviceID, i);
     pubStatus(sTopic_ch, setStatus(stat[i]));
   }
 }
 
-void callback(char *topic, byte *payload, uint8_t length) // callback for recieving messages from subsriptions
+void callback(char *topic, byte *payload, uint8_t length)  // callback for recieving messages from subsriptions
 {
   char *lastSlash = strrchr(topic, '/');
   uint8_t i = 0;
   if (lastSlash != NULL && *(lastSlash + 1) != '\0') {
-    i = (uint8_t)atoi(lastSlash + 1); // parse the number after the last '/'
+    i = (uint8_t)atoi(lastSlash + 1);  // parse the number after the last '/'
   }
   char payloadBuffer[8];
   uint8_t copyLen = (length < sizeof(payloadBuffer) - 1) ? length : sizeof(payloadBuffer) - 1;
@@ -85,7 +82,7 @@ void callback(char *topic, byte *payload, uint8_t length) // callback for reciev
   //pub status back
 
   Serial.print(F("callback:"));
-  Serial.print(i); // print as int for clarity
+  Serial.print(i);  // print as int for clarity
   Serial.print(F(" Payload: "));
   Serial.println(newValue);
 
@@ -111,7 +108,7 @@ void reconnect() {
         }
       }
       pubConfig();
-      subscribe_loop = nWidgets; // all subscribed
+      subscribe_loop = nWidgets;  // all subscribed
     } else {
       Serial.print(F("failed, rc="));
       Serial.print(client.state());
@@ -121,34 +118,29 @@ void reconnect() {
   }
 }
 
-void setup_IOTManager() // that void is in setup() section in a main ino file
+void setup_IOTManager()  // that void is in setup() section in a main ino file
 {
   client.setServer(mqttServerName, mqttport);
   client.setCallback(callback);
-  client.setBufferSize(256); // default, change if needed
-  client.setKeepAlive(15);   // default, change if needed
+  client.setBufferSize(256);  // default, change if needed
+  client.setKeepAlive(15);    // default, change if needed
 }
 
-void loop_IOTManager() // that void is in loop section in a main ino file
+void loop_IOTManager()  // that void is in loop section in a main ino file
 {
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    if (!client.connected())
-    {
+  if (WiFi.status() == WL_CONNECTED) {
+    if (!client.connected()) {
       reconnect();
     }
     client.loop();
   }
 }
 
-void pubClientOneSecEvent() { //this event call each second, for reduce load on esp8266
-  if (client.connected())
-  {
-    if (onesec_255 > mqttspacing_oldtime + mqttspacing )
-    {
+void pubClientOneSecEvent() {  //this event call each second, for reduce load on esp8266
+  if (client.connected()) {
+    if (onesec_255 > mqttspacing_oldtime + mqttspacing) {
       char sTopic_ch[20];
-      for (uint8_t i = 0; i < nWidgets; i++)
-      {
+      for (uint8_t i = 0; i < nWidgets; i++) {
         float x = get_new_pin_value(i);
         stat[i] = (int)x;
         snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d/status", deviceID, i);
@@ -160,4 +152,3 @@ void pubClientOneSecEvent() { //this event call each second, for reduce load on 
   client.loop();
 }
 #endif
-

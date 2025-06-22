@@ -22,37 +22,32 @@ IPAddress netMsk(255, 255, 255, 0);
 /** Should I connect to WLAN asap? */
 bool connect = false;
 
-bool staReady = false; // Don't connect right away
+bool staReady = false;  // Don't connect right away
 
 uint8_t status = WL_IDLE_STATUS;
 uint8_t FreeWIFIid[5];
 bool freeWIFIConnected = false;
 
-void connect_as_AccessPoint()
-{
+void connect_as_AccessPoint() {
   delay(1000);
   Serial.print("Configuring access point...");
   /* You can remove the password parameter if you want the AP to be open. */
   WiFi.disconnect();
-  WiFi.persistent(false); // w/o this a flash write occurs at every boot
-  WiFi.mode(WIFI_OFF);    // Prevent use of SDK stored credentials
+  WiFi.persistent(false);  // w/o this a flash write occurs at every boot
+  WiFi.mode(WIFI_OFF);     // Prevent use of SDK stored credentials
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  if (WiFi.softAP(softAP_ssid + WiFi.macAddress(), softAP_password))
-  {
+  if (WiFi.softAP(softAP_ssid + WiFi.macAddress(), softAP_password)) {
     Serial.println("SoftAP started successfully.");
-  }
-  else
-  {
+  } else {
     Serial.println("Failed to start SoftAP.");
   }
 
-  delay(500); // Without delay I've seen the IP address blank
+  delay(500);  // Without delay I've seen the IP address blank
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
   lastConnectTry = onesec = 0;
 }
-void captive_setup()
-{ // starting void
+void captive_setup() {  // starting void
 #if defined(USE_DNS_SERVER)
   dnsServer.setTTL(0);
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
@@ -64,10 +59,9 @@ void captive_setup()
   server.begin();
 }
 
-void connectWifi(char ssid_that[32], char password_that[32])
-{
+void connectWifi(char ssid_that[32], char password_that[32]) {
   WiFi.disconnect();
-  status = WL_IDLE_STATUS; // обнуляем статус, для подключения
+  status = WL_IDLE_STATUS;  // обнуляем статус, для подключения
   WiFi.mode(WIFI_STA);
   delay(1000);
   Serial.println("Connecting as wifi client...");
@@ -78,8 +72,7 @@ void connectWifi(char ssid_that[32], char password_that[32])
   delay(100);
   WiFi.begin(ssid_that, strlen(password_that) > 0 ? password_that : nullptr);
   char attempt = 0;
-  while (WiFi.status() != WL_CONNECTED && attempt < 50)
-  {
+  while (WiFi.status() != WL_CONNECTED && attempt < 50) {
     delay(500);
     Serial.print(".");
     attempt++;
@@ -113,38 +106,29 @@ void connectWifi(char ssid_that[32], char password_that[32])
 //     }
 //   }
 // }
-void relayRouter()
-{
-  if (router != 255)
-  {
+void relayRouter() {
+  if (router != 255) {
     pinMode(router, OUTPUT);
     digitalWrite(router, digitalRead(router) ^ 1);
     Serial.println("Router relay state:" + String(digitalRead(router), DEC));
   }
 }
-void captive_loop()
-{
-  if (connect)
-  {
+void captive_loop() {
+  if (connect) {
     status = WL_IDLE_STATUS;
     connect = false;
     Serial.println("connect: true");
-    if (load_ssid_pass())
-    {
+    if (load_ssid_pass()) {
       Serial.println("SSID loaded");
       connectWifi(ssid, password);
-    }
-    else
-    {
+    } else {
       connect_as_AccessPoint();
     }
     // lastConnectTry = onesec;
   }
 #if defined(USE_PUBSUBCLIENT)
-  if (try_MQTT_access)
-  {
-    if (IOT_Manager_loop)
-    {
+  if (try_MQTT_access) {
+    if (IOT_Manager_loop) {
       loop_IOTManager();
     }
   }
@@ -169,10 +153,8 @@ void captive_loop()
   // } wl_status_t;
   uint8_t s = (uint8_t)WiFi.status();
 
-  if (onesec >= lastConnectTry + 30)
-  {
-    if ((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() == 0))
-    {
+  if (onesec >= lastConnectTry + 30) {
+    if ((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() == 0)) {
       WiFi.disconnect();
       Serial.println("Connecting as Wifi client due AP not connected");
       // connect = true;
@@ -181,15 +163,12 @@ void captive_loop()
 #if defined(USE_DNS_SERVER)
       // dnsServer.setTTL(600); // 10 minutes
       dnsServer.enableForwarder(myHostname, WiFi.dnsIP(0));
-      if (dnsServer.isDNSSet())
-      {
+      if (dnsServer.isDNSSet()) {
         CONSOLE_PRINTF("  Forward other lookups to DNS: %s\r\n", dnsServer.getDNS().toString().c_str());
       }
 #endif
       return;
-    }
-    else if ((wifi_softap_get_station_num() == 0) && ((WiFi.status() == WL_DISCONNECTED) || (WiFi.status() == WL_IDLE_STATUS) || (WiFi.status() == WL_NO_SSID_AVAIL)))
-    {
+    } else if ((wifi_softap_get_station_num() == 0) && ((WiFi.status() == WL_DISCONNECTED) || (WiFi.status() == WL_IDLE_STATUS) || (WiFi.status() == WL_NO_SSID_AVAIL))) {
       // else if ((wifi_softap_get_station_num() == 0) && (WiFi.status() == WL_DISCONNECTED) || ((wifi_softap_get_station_num() == 0) && (WiFi.status() == WL_IDLE_STATUS)))
       // {
       WiFi.disconnect();
@@ -200,26 +179,20 @@ void captive_loop()
       internet = false;
       try_MQTT_access = false;
       return;
-    }
-    else if (!internet && geo_enable)
-    {
+    } else if (!internet && geo_enable) {
       Serial.println("Status WIFI: " + String(WiFi.status()));
-    }
-    else if ((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() != 0))
-    {
+    } else if ((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() != 0)) {
       Serial.print("stations connected as AP:");
       Serial.println(wifi_softap_get_station_num());
     }
     lastConnectTry = onesec = 0;
   }
-  if (status != s)
-  { // WLAN status change
+  if (status != s) {  // WLAN status change
     Serial.print("Status: ");
     Serial.println(s);
     status = s;
-    if (s == WL_CONNECTED)
-    {
-      try_MQTT_access = true; // можно попытаться подключиться к интернету
+    if (s == WL_CONNECTED) {
+      try_MQTT_access = true;  // можно попытаться подключиться к интернету
       /* Just connected to WLAN */
       Serial.println("Connected to ");
       Serial.println(ssid);
@@ -227,15 +200,12 @@ void captive_loop()
       Serial.println(WiFi.localIP());
       server.send(200, "text/plain", toStringIp(WiFi.localIP()));
       save_wifiList(ssid, password);
-      httpUpdater.setup(&server); // setupOTA
+      httpUpdater.setup(&server);  // setupOTA
 
       // Setup MDNS responder
-      if (!MDNS.begin(myHostname))
-      {
+      if (!MDNS.begin(myHostname)) {
         Serial.println("Error setting up MDNS responder!");
-      }
-      else
-      {
+      } else {
         Serial.println("mDNS responder started");
         MDNS.addService("http", "tcp", 80);
       }
@@ -252,9 +222,7 @@ void captive_loop()
 #ifdef use_telegram
       setup_telegram();
 #endif
-    }
-    else if (s == WL_NO_SSID_AVAIL)
-    {
+    } else if (s == WL_NO_SSID_AVAIL) {
       internet = false;
       try_MQTT_access = false;
       WiFi.disconnect();
@@ -266,8 +234,7 @@ void captive_loop()
     setup_alarm();
 #endif
   }
-  if (s == WL_CONNECTED)
-  {
+  if (s == WL_CONNECTED) {
     MDNS.update();
   }
 
@@ -287,15 +254,11 @@ void captive_loop()
 #endif
   }
 }
-void sendLocationData()
-{
+void sendLocationData() {
   String pos = getHttp("api.2ip.ua/geo.json?ip=");
-  if (pos != "fail")
-  {
+  if (pos != "fail") {
     internet = true;
-  }
-  else
-  {
+  } else {
     internet = false;
     Serial.println("Internet connection failed");
   }

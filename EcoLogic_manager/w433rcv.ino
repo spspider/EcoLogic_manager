@@ -18,9 +18,9 @@ void setup_w433() {
 }
 
 void saveocde_to_file(String code) {
-  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+  DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
   // Load existing data from file
-//  String existingData = readCommonFiletoJson("w433");
+  //  String existingData = readCommonFiletoJson("w433");
   File existingData = fileSystem->open("/w433.txt", "r");
   DeserializationError error = deserializeJson(jsonDocument, existingData);
   if (error) {
@@ -41,7 +41,7 @@ void saveocde_to_file(String code) {
 }
 
 void check_code_w433(String codeIR) {
-  DynamicJsonDocument jsonDocument(1024); // Adjust the capacity as needed
+  DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
 
   File irlist = fileSystem->open("/IRButtons.txt", "r");
   DeserializationError error = deserializeJson(jsonDocument, irlist);
@@ -53,14 +53,12 @@ void check_code_w433(String codeIR) {
 
   char numbers_i = jsonDocument.containsKey("num") ? jsonDocument["num"] : 0;
 
-  for (uint8_t i = 0; i < numbers_i; i++)
-  {
+  for (uint8_t i = 0; i < numbers_i; i++) {
     String code = jsonDocument["code"][i].as<String>();
-    if (code == codeIR) { //found
+    if (code == codeIR) {  //found
       String name_i = jsonDocument["name"][i].as<String>();
       //write logic to do action
-      for (uint8_t i1 = 0; i1 < char(nWidgets); i1++)
-      {
+      for (uint8_t i1 = 0; i1 < char(nWidgets); i1++) {
         if (String(descr[i1]) == name_i) {
           Serial.print("do action:");
           Serial.println(name_i);
@@ -87,8 +85,7 @@ void loop_w433() {
       if (!Page_IR_opened) {
         check_code_w433(codeIR);
         //        saveocde_to_file(codeIR);
-      }
-      else {
+      } else {
         server.send(200, "text/plain", codeIR);
       }
       //Serial.print("/");
@@ -103,8 +100,5 @@ void loop_w433() {
     mySwitch.resetAvailable();
   }
   //mySwitch.resetAvailable();
-
-
-
 }
 #endif
