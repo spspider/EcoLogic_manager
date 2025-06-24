@@ -11,6 +11,7 @@
 //#define USE_PUBSUBCLIENT  //mqtt possibility
 //#define USE_IRUTILS
 #define USE_PLAY_AUDIO  // for player.ino
+//#define USE_PLAY_AUDIO_RAW  // for player.ino
 // #define USE_TINYMQTT
 // #define USE_PICOMQTT
 // #define USE_AS5600
