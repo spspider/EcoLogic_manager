@@ -10,7 +10,8 @@
 //#define USE_UDP
 //#define USE_PUBSUBCLIENT  //mqtt possibility
 //#define USE_IRUTILS
-#define USE_PLAY_AUDIO  // for player.ino
+// #define USE_PLAY_AUDIO  // for player.ino
+#define USE_PLAY_AUDIO_FROM_URL
 //#define USE_PLAY_AUDIO_RAW  // for player.ino
 // #define USE_TINYMQTT
 // #define USE_PICOMQTT
@@ -276,6 +277,9 @@ void setup() {
 #if defined(USE_DS18B20)
   sensors.begin();  // Start up the library
 #endif
+#ifdef USE_PLAY_AUDIO_FROM_URL
+setup_player_from_url();
+#endif
 }
 void resetMillis() {
   millis_offset = millis();
@@ -353,5 +357,8 @@ void loop() {
 
     callback_socket(topic, value);
   }
+#endif
+#ifdef USE_PLAY_AUDIO_FROM_URL
+loop_player_from_url();
 #endif
 }
