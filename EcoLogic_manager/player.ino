@@ -1,12 +1,14 @@
 #ifdef USE_PLAY_AUDIO
-#include <AudioFileSourceLittleFS.h>
-#include <AudioGeneratorWAV.h>
-#include <AudioOutputI2SNoDAC.h>
+#include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <LittleFS.h>
+#include <AudioFileSourceLittleFS.h>
+#include <AudioGeneratorMP3.h>
+#include <AudioOutputI2SNoDAC.h>
 
 extern ESP8266WebServer server;
 
-AudioGeneratorWAV *wav = nullptr;
+AudioGeneratorMP3 *mp3 = nullptr;
 AudioFileSourceLittleFS *file = nullptr;
 AudioOutputI2SNoDAC *out = nullptr;
 
@@ -14,28 +16,28 @@ void setup_player() {
 
 }
 
-void handlePlay() {
-  play_wav_i2s_nodac();
-  server.send(200, "text/plain", "Playing audio.wav via I2SNoDAC");
-}
-
-void play_wav_i2s_nodac() {
-  if (wav && wav->isRunning()) {
-    return; // Уже играет
+void playAudioMP3(const char *filename) {
+  if (mp3 && mp3->isRunning()) {
+    mp3->stop();
+    delete mp3;
+    delete file;
+    delete out;
   }
-  if (file) delete file;
-  if (wav) delete wav;
-  if (out) delete out;
 
-  file = new AudioFileSourceLittleFS("/audio.wav");
-  out = new AudioOutputI2SNoDAC(); // программный дельта-сигма DAC
-  wav = new AudioGeneratorWAV();
-  wav->begin(file, out);
+  file = new AudioFileSourceLittleFS(filename);
+  out = new AudioOutputI2SNoDAC();
+  out->begin();
+
+  mp3 = new AudioGeneratorMP3();
+  mp3->begin(file, out);
 }
+
 
 void loop_player() {
-  if (wav && wav->isRunning()) {
-    wav->loop();
+  server.handleClient();
+
+  if (mp3 && mp3->isRunning()) {
+    mp3->loop();
   }
 }
 #endif

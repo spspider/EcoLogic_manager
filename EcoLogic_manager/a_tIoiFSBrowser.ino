@@ -690,7 +690,17 @@ void server_init() {
     },
     handleFileUpload);
   #ifdef USE_PLAY_AUDIO
-  server.on("/play", handlePlay); // from player.ino
+
+  server.on("/play", []() {
+    playAudioMP3("/birds.mp3");
+    server.send(200, "text/plain", "Playing birds.mp3");
+  });
+  #endif
+  #ifdef USE_PLAY_AUDIO_RAW
+  server.on("/play", []() {
+    playAudio("birds.raw");
+    server.send(200, "text/plain", "Playing birds.raw");
+  });
   #endif
 
   // called when the url is not defined here
