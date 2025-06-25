@@ -689,17 +689,11 @@ void server_init() {
 
     },
     handleFileUpload);
-  #ifdef USE_PLAY_AUDIO
+  #ifdef USE_PLAY_AUDIO_WAV
 
   server.on("/play", []() {
-    playAudioMP3("/birds.mp3");
-    server.send(200, "text/plain", "Playing birds.mp3");
-  });
-  #endif
-  #ifdef USE_PLAY_AUDIO_RAW
-  server.on("/play", []() {
-    playAudio("birds.raw");
-    server.send(200, "text/plain", "Playing birds.raw");
+    playAudioWAV("/audio.wav");
+    server.send(200, "text/plain", "Playing audio.wav");
   });
   #endif
 
