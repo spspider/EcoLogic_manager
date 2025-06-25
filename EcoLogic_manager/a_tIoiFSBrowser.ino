@@ -692,8 +692,20 @@ void server_init() {
   #ifdef USE_PLAY_AUDIO_WAV
 
   server.on("/play", []() {
-    playAudioWAV("/audio.wav");
-    server.send(200, "text/plain", "Playing audio.wav");
+    String filename = "/audio.wav";
+    if (server.hasArg("filename")) {
+      filename = server.arg("filename");
+      if (!filename.startsWith("/")) filename = "/" + filename;
+    }
+    playAudioWAV(filename.c_str());
+    server.send(200, "text/plain", String("Playing ") + filename);
+  });
+  #endif
+  #ifdef USE_PLAY_AUDIO_MP3
+
+  server.on("/play", []() {
+    playAudioMP3("/birds.mp3");
+    server.send(200, "text/plain", "Playing birds.mp3");
   });
   #endif
 
