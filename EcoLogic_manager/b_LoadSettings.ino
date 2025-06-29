@@ -67,12 +67,10 @@ bool loadConfig(File jsonConfig) {
   }
 
 #endif
-#ifdef USE_IRUTILS
   if (jsonDocument.containsKey("nodered_address")) {
     strncpy(nodered_address, jsonDocument["nodered_address"], sizeof(nodered_address) - 1);
     nodered_address[sizeof(nodered_address) - 1] = '\0';
   }
-#endif
   //  String jsonConfig_string = readCommonFiletoJson("pin_setup");
   if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {
     Serial.println("Widgets Loaded");

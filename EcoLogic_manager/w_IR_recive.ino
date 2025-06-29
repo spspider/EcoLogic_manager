@@ -187,6 +187,7 @@ void loop_IR() {
 
       // Only handle known codes
       check_code_IR(codeIR);
+
       sendIRCode_toServer(strtoul(codeHex, nullptr, 16));
       if (Page_IR_opened) {
         server.send(200, "text/plain", codeIR);
