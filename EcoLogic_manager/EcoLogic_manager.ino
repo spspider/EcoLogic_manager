@@ -10,7 +10,7 @@
 //#define USE_UDP
 //#define USE_PUBSUBCLIENT  //mqtt possibility
 //#define USE_IRUTILS
-#define USE_PLAY_AUDIO_WAV  // for player.ino
+// #define USE_PLAY_AUDIO_WAV  // for player.ino
 // #define USE_PLAY_AUDIO_MP3  // for player.ino
 // #define USE_TINYMQTT
 // #define USE_PICOMQTT
@@ -188,9 +188,7 @@ Adafruit_ADS1015 ads(0x48);
 #endif
 
 ///////////////////////////////
-#if defined(USE_IRUTILS)
 char nodered_address[32] = { 0 };
-#endif
 
 void setup() {
 #if defined(will_use_serial)
@@ -357,4 +355,5 @@ void loop() {
 #if defined(USE_PLAY_AUDIO_WAV) || defined(USE_PLAY_AUDIO_MP3)
   loop_player();
 #endif
+check_new_status_and_send_nodeRed();
 }

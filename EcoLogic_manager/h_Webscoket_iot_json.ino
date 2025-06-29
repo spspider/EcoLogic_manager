@@ -1,6 +1,4 @@
-#if defined(USE_IRUTILS)
 #include <ESP8266HTTPClient.h>
-#endif
 
 void callback_socket(uint8_t i, int payload_is) {
   bool that_Ajax = false;
@@ -68,6 +66,7 @@ void pubStatusShortAJAX_String(uint8_t i) {
 #if defined(USE_IRUTILS)
 void sendIRCode_toServer(uint32_t code) {
   if ((WiFi.status() == WL_CONNECTED) && (IR_recieve)) {
+    if (!nodered_address || nodered_address[0] == '\0' || strcmp(nodered_address, "0.0.0.0") == 0) return;
     HTTPClient http_client_code;
     WiFiClient client_code;
     char url[64];
@@ -81,6 +80,31 @@ void sendIRCode_toServer(uint32_t code) {
   }
 }
 #endif
+
+void sendPinStatus_toNodeRed(int pin, int value) {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http_client_pin;
+    WiFiClient client_pin;
+    char url[64];
+    snprintf(url, sizeof(url), "http://%s/pin", nodered_address);
+    http_client_pin.begin(client_pin, url);
+    http_client_pin.addHeader("Content-Type", "application/json");
+    char body[64];
+    snprintf(body, sizeof(body), "{\"pin\":%d,\"value\":%d}", pin, value);
+    int status = http_client_pin.POST(body);
+    http_client_pin.end();
+  }
+}
+void check_new_status_and_send_nodeRed() {
+  if (!nodered_address || nodered_address[0] == '\0' || strcmp(nodered_address, "0.0.0.0") == 0) return;
+  for (int i = 0; i < N_WIDGETS; i++) {
+    int new_value = get_new_pin_value(i);
+    if (new_value != stat[i]) {
+      sendPinStatus_toNodeRed(i, new_value);
+      stat[i] = new_value;
+    }
+  }
+}
 // void pubStatusShortAJAX_String(uint8_t i)
 // {
 //   char buffer[6]; // Adjust the size based on the maximum length of the short int
