@@ -5,7 +5,7 @@
 //  #define use_telegram
 // #define USE_SPIFFS
 #define USE_LITTLEFS
-#define USE_DS18B20
+//#define USE_DS18B20
 //#define USE_DNS_SERVER
 //#define USE_UDP
 //#define USE_PUBSUBCLIENT  //mqtt possibility
