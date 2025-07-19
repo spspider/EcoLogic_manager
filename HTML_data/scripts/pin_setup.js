@@ -69,6 +69,8 @@ const modeValues = {
 
 let tableData;
 
+let irButtonsData;
+
 function fetchTableDataAndUpdateUI() {
     readTextFile("pin_setup.txt", function (result) {
         if (result !== 404) {
@@ -91,7 +93,16 @@ let max_number_chosed = 12;
 function loadlimits() {
     readTextFile("/function?json={\"pin_setup_limits\":\"1\"}", function (callback) {
         max_number_chosed = (callback !== 404 && isNaN(parseInt(callback))) ? 8 : parseInt(callback) || 12;
-        if (callback) fetchTableDataAndUpdateUI();
+        // Load IRButtons.txt before fetching table data
+        readTextFile("IRButtons.txt", function (irResult) {
+            if (irResult !== 404) {
+                irButtonsData = irResult;
+            } else {
+                irButtonsData = null;
+                console.error('Failed to fetch IRButtons.txt file.');
+            }
+            if (callback) fetchTableDataAndUpdateUI();
+        });
     });
 }
 
