@@ -97,6 +97,7 @@ function loadlimits() {
         readTextFile("IRButtons.txt", function (irResult) {
             if (irResult !== 404) {
                 irButtonsData = irResult;
+                console.log('IRButtons data loaded successfully:', irButtonsData);
             } else {
                 irButtonsData = null;
                 console.error('Failed to fetch IRButtons.txt file.');
@@ -223,19 +224,48 @@ function renderTable() {
         widgetCell.appendChild(widgetSelect);
         row.appendChild(widgetCell);
 
-        // IR
+        // IR (dropdown from IRButtons.txt)
         const irCell = document.createElement('td');
-        const irInput = document.createElement('input');
-        irInput.type = 'number';
-        irInput.className = 'form-control';
-        irInput.min = -1;
-        irInput.max = 1024;
-        irInput.value = tableData.IrBtnId[index];
-        irInput.oninput = () => {
-            tableData.IrBtnId[index] = parseInt(irInput.value);
+        const irSelect = document.createElement('select');
+        irSelect.className = 'form-control';
+        // Always add a default/none option
+        const noneOption = document.createElement('option');
+        noneOption.value = 255;
+        noneOption.textContent = '-';
+        irSelect.appendChild(noneOption);
+
+        let irList = [];
+        try {
+            if (irButtonsData) {
+                let parsed = null;
+                try {
+                    parsed = JSON.parse(irButtonsData);
+                } catch (e) { parsed = null; }
+                if (parsed && parsed.name && Array.isArray(parsed.name)) {
+                    irList = parsed.name.map((n, i) => ({ name: n, code: parsed.code && parsed.code[i] ? parsed.code[i] : undefined }));
+                }
+            }
+        } catch (e) {
+            irList = [];
+        }
+        irList.forEach((btn, idx) => {
+            const option = document.createElement('option');
+            option.value = idx;
+            let label = btn.name ? btn.name : `IR${idx}`;
+            let code = btn.code ? `:${btn.code}` : '';
+            option.textContent = `${idx}:${label}:${code}`;
+            if (idx === tableData.IrBtnId[index]) option.selected = true;
+            irSelect.appendChild(option);
+        });
+        // If current value is not in the list, select none
+        if (tableData.IrBtnId[index] === 255 || tableData.IrBtnId[index] == null) {
+            irSelect.value = 255;
+        }
+        irSelect.onchange = () => {
+            tableData.IrBtnId[index] = parseInt(irSelect.value);
             saveDataToLocalStorage();
         };
-        irCell.appendChild(irInput);
+        irCell.appendChild(irSelect);
         row.appendChild(irCell);
 
         // Default
