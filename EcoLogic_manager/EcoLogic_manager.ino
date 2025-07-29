@@ -5,7 +5,7 @@
 //  #define use_telegram
 // #define USE_SPIFFS
 #define USE_LITTLEFS
-//#define USE_DS18B20
+#define USE_DS18B20
 //#define USE_DNS_SERVER
 //#define USE_UDP
 //#define USE_PUBSUBCLIENT  //mqtt possibility
@@ -18,7 +18,7 @@
 // #define wakeOnLan
 // #define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
 // #define ads1115 # CHANGE TO USE_ADS1115
-//#define USE_EMON //electric monitor
+#define USE_EMON  //electric monitor
 // #define ws433 # CHANGE TO USE_WS433
 
 #define ONE_WIRE_BUS 2  // D4 pin ds18b20
@@ -179,6 +179,8 @@ uint8_t PWM_frequency = 1;
 String BOTtoken = "7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38";
 #endif
 
+bool send_to_nodeRed = false;  // отправлять ли данные в nodeRed
+
 /////////////////////////////ads
 // ads1115
 #include <Wire.h>
@@ -328,6 +330,7 @@ void loop() {
       one_sec();
 #endif
       millis_strart_one_sec = getMillis();
+      check_new_status_and_send_nodeRed();
     }
     // int interim = onesec - lastConnectTry;
     // Serial.print(interim, DEC);
@@ -355,5 +358,4 @@ void loop() {
 #if defined(USE_PLAY_AUDIO_WAV) || defined(USE_PLAY_AUDIO_MP3)
   loop_player();
 #endif
-check_new_status_and_send_nodeRed();
 }

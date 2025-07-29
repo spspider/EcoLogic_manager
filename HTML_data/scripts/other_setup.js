@@ -49,6 +49,7 @@ function CatchForm() {
 
     var JsonStringParse = JSON.parse(JsonString);
     JsonStringParse.iot_enable = getVal("iot_enable");
+    JsonStringParse.send_to_nodeRed = getVal("send_to_nodeRed");
     JsonStringParse.geo_enable = getVal("geo_enable");
     JsonStringParse.wifi_scan = getVal("wifi_scan");
     JsonStringParse.ir_loop = getVal("ir_loop");
@@ -414,6 +415,7 @@ function loadBlock(settings) {
     }
     document.getElementsByTagName('body')[0].innerHTML = new_string;
     setVal("iot_enable", data2.iot_enable);
+    setVal("send_to_nodeRed", data2.send_to_nodeRed);
     setVal("geo_enable", data2.geo_enable);
     setVal("wifi_scan", data2.wifi_scan);
     setVal("ir_loop", data2.ir_loop);

@@ -96,6 +96,7 @@ void sendPinStatus_toNodeRed(int pin, int value) {
   }
 }
 void check_new_status_and_send_nodeRed() {
+  if (send_to_nodeRed == false) return;
   if (!nodered_address || nodered_address[0] == '\0' || strcmp(nodered_address, "0.0.0.0") == 0) return;
   for (int i = 0; i < N_WIDGETS; i++) {
     int new_value = get_new_pin_value(i);
