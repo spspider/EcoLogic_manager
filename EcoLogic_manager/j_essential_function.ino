@@ -22,8 +22,6 @@ float get_new_pin_value(uint8_t i) {
   }
   if (pinmode[i] == 6) {  // dht Temp
 #if defined(USE_DHT)
-    if (!license)
-      return 127;
     float temperature = dht.getTemperature();
     if (!isnan(temperature)) {
       that_stat = temperature;
@@ -34,16 +32,13 @@ float get_new_pin_value(uint8_t i) {
 #endif
     return that_stat;
   }
-  if (pinmode[i] == 7) {
-    if (!license)
-      return 127;
+  if (pinmode[i] == 7)
+  {
     that_stat = (float)low_pwm_off;
     return that_stat;
   }
   if (pinmode[i] == 8) {  // dht Humidity
 #if defined(USE_DHT)
-    if (!license)
-      return 127;
     float humidity = dht.getHumidity();
     if (!isnan(humidity)) {
       that_stat = humidity;
@@ -55,15 +50,13 @@ float get_new_pin_value(uint8_t i) {
     return that_stat;
   }
 
-  if (pinmode[i] == 9) {  // remote
-    if (!license)
-      return 127;
+  if (pinmode[i] == 9)
+  { // remote
     that_stat = getHttp(String(descr[i])).toFloat();
     return that_stat;
   }
-  if (pinmode[i] == 11) {
-    if (!license)
-      return 127;
+  if (pinmode[i] == 11)
+  {
 #if defined(USE_AS5600)
     that_stat = (encoder.getAngle() - analogSubtracter) / analogDivider * 1.0F;
 #endif
@@ -104,10 +97,9 @@ float get_new_pin_value(uint8_t i) {
     return stat[i];
   }
 
-  if (pinmode[i] == 10) {  // PowerMeter должен быть последним, иначе ошибка jump to case label
-    if (!license)
-      return 127;
-      // double Irms ;
+  if (pinmode[i] == 10)
+  { // PowerMeter должен быть последним, иначе ошибка jump to case label
+    // double Irms ;
 #if defined(USE_EMON)
     that_stat = (float)emon1.calcIrms(1480);  // Calculate Irms only
     that_stat = (that_stat * 1.0F / analogDivider) + analogSubtracter;

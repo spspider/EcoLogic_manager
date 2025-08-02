@@ -8,35 +8,42 @@ void callback_socket(uint8_t i, int payload_is) {
     return;
   }
 
-  if (pinmode[i] == 3) {  // pwm
-    if (!license)
-      return;
+  if (pinmode[i] == 3)
+  { // pwm
     payload_is = defaultVal[i] != 0 ? defaultVal[i] - payload_is : payload_is;
     analogWrite(pin[i], payload_is);
     stat[i] = payload_is;
-  } else if (pinmode[i] == 5) {  // low_pwm
-    if (!license)
-      return;
+  }
+  else if (pinmode[i] == 5)
+  { // low_pwm
     low_pwm[i] = payload_is;
     stat[i] = (payload_is);
-  } else if (pinmode[i] == 4) {   // adc
-  } else if (pinmode[i] == 12) {  // mac adress
-    if (!license)
-      return;
+  }
+  else if (pinmode[i] == 4)
+  { // adc
+  }
+  else if (pinmode[i] == 12)
+  { // mac adress
 #if defined(wakeOnLan)
     const char *mac_adress = (const char *)descr;
     wakeMyPC(mac_adress);
 #endif
-  } else if (pinmode[i] == 11) {  // Dimmer
+  }
+  else if (pinmode[i] == 11)
+  { // Dimmer
     // DimmerVal = payload_is;
     // dimmer.setPower(DimmerVal);
-  } else if (pinmode[i] == 2) {  // out
+  }
+  else if (pinmode[i] == 2)
+  { // out
     stat[i] = (uint8_t)payload_is;
     digitalWrite(pin[i], payload_is);
 #if defined(timerAlarm)
     check_if_there_timer_once(i);
 #endif
-  } else if (pinmode[i] == 1) {  // in
+  }
+  else if (pinmode[i] == 1)
+  { // in
     stat[i] = (uint8_t)payload_is;
     digitalWrite(pin[i], payload_is);
 #if defined(timerAlarm)
