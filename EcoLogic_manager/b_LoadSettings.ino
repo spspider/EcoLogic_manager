@@ -106,7 +106,9 @@ void Setup_pinmode(bool stat_loaded) {
       //   Serial.println("set low_pwm:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String(stat[i], DEC));
       // }
       if (pinmode[i] == 4) {
-        stat[i] = (analogRead(17) * 1.0F - analogSubtracter) / analogDivider;  // adc pin:A0//
+                stat[i] = (analogRead(17) * 1.0F - analogSubtracter) / analogDivider;  // adc pin:A0//
+
+//        stat[i] = analogRead(A0); //* 1.0F - analogSubtracter) / analogDivider;  // adc pin:A0//
       }
       if ((pinmode[i] == 6) || (pinmode[i] == 8)) {  // dht temp
 #if defined(USE_DHT)
@@ -117,7 +119,7 @@ void Setup_pinmode(bool stat_loaded) {
       if (pinmode[i] == 10) {  // powerMeter
                                // pinMode(pin[i], OUTPUT);
 #if defined(USE_EMON)
-        emon1.current(17, PowerCorrection);  // PowerCorrection=111.1
+        emon1.current(A0, PowerCorrection); // PowerCorrection=111.1
 #endif
       }
       if (pinmode[i] == 15) {  // ads
@@ -387,7 +389,7 @@ void loadDefaultPinSetup() {
   pwm_delay_long = 60;
   router = 255;
 #if defined(USE_EMON)
-  PowerCorrection = 300;
+  PowerCorrection = 111.1;
 #endif
 }
 

@@ -16,10 +16,19 @@ float get_new_pin_value(uint8_t i) {
     that_stat = digitalRead(pin[i]);
     return that_stat;
   }
-  if ((pinmode[i] == 4) || (pinmode[i] == 3)) {  // pwm, adc
+  if (pinmode[i] == 3)
+  { // pwm, adc
     stat[i] = (int)that_stat;
     return that_stat;
   }
+#if !defined(USE_EMON)
+  if ((pinmode[i] == 4))
+  { // pwm, adc
+    that_stat = (float)analogRead(A0);
+    stat[i] = (int)that_stat;
+    return that_stat;
+  }
+#endif
   if (pinmode[i] == 6) {  // dht Temp
 #if defined(USE_DHT)
     float temperature = dht.getTemperature();
@@ -101,8 +110,8 @@ float get_new_pin_value(uint8_t i) {
   { // PowerMeter должен быть последним, иначе ошибка jump to case label
     // double Irms ;
 #if defined(USE_EMON)
-    that_stat = (float)emon1.calcIrms(1480);  // Calculate Irms only
-    that_stat = (that_stat * 1.0F / analogDivider) + analogSubtracter;
+    that_stat = (float)emon1.calcIrms(1480); // Calculate Irms only
+    return that_stat;                        // that_stat = (that_stat * 1.0F / analogDivider) + analogSubtracter;
 #endif
     return that_stat;
   }
