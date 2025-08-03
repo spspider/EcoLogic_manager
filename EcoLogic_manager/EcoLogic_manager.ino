@@ -9,7 +9,7 @@
 // #define USE_DNS_SERVER
 // #define USE_UDP
 // #define USE_PUBSUBCLIENT  //mqtt possibility
-// #define USE_IRUTILS
+#define USE_IRUTILS
 //  #define USE_PLAY_AUDIO_WAV  // for player.ino
 //  #define USE_PLAY_AUDIO_MP3  // for player.ino
 //  #define USE_TINYMQTT
