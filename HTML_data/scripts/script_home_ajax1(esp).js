@@ -38,13 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 }, false);
-function ConditionsLoadComlited() {
-    loadfile("License", function (text) {
-        alert(text);
-        setTimeoutLicenseCode();
-        //text==1?StartProgram():setTimeoutLicenseCode();
-    })
-}
+
 function StartProgram() {
     var sendJSON = JSON.stringify({
         't': "status",

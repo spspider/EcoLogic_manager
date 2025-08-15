@@ -317,24 +317,23 @@ function ActivateDialog() {
 
 function check_if_activated() {
     var license_code = "<a id ='activation_button' class='btn btn-block btn-default' onclick='ActivateDialog()' type='button'>activate</a>";
-    // var btmBtns;
-    //var license_code = "<a class='btn btn-block btn-default' onclick='ActivateDialog()' type='button'>activate</a>";
-    readTextFile('/function?json={\"Activation\":\"0\"}', function (callback) {//проверить если активирован
-        if (parseInt(callback) === 1) {//Activated
-            Activation = 1;
-            setHTML("activation_button", "");
-            return 1;
+    // readTextFile('/function?json={\"Activation\":\"0\"}', function (callback) {//проверить если активирован
+    //     if (parseInt(callback) === 1) {//Activated
+    //         Activation = 1;
+    //         setHTML("activation_button", "");
+    //         return 1;
 
-        } else {//не активирован
-            Activation = 0;
-            setHTML("btmBtns", getHTML("btmBtns") + license_code);
-            return 0;
-        }
-    });
+    //     } else {//не активирован
+    //         Activation = 0;
+    //         setHTML("btmBtns", getHTML("btmBtns") + license_code);
+    //         return 0;
+    //     }
+    // });
+    return 1;
 }
 
 function bottomButtons() {
-    check_if_activated();
+    //check_if_activated();
     var btmBtns =
         "<div class='btn-group btn-group-justified'>" +
         "<a class='btn btn-block btn-default' type='button' href='/'>cont</a>" +

@@ -496,7 +496,7 @@ void FunctionHTTP() {
 
   if (jsonDocument.containsKey("Activation")) {
     uint8_t Activation = jsonDocument["Activation"];
-
+#ifdef ACTIVATION
     if (Activation == 0) {
       server.send(200, "text/plain", String(license, DEC));
     } else if (Activation == 1) {
@@ -527,6 +527,8 @@ void FunctionHTTP() {
       }
       server.send(200, "text/plain", "license=" + String(license, DEC));
     }
+#endif
+    server.send(200, "text/plain", "license=1");
   }
 #if defined(USE_AS5600)
   if (jsonDocument.containsKey("EncoderIA")) {
@@ -689,7 +691,7 @@ void server_init() {
 
     },
     handleFileUpload);
-  #ifdef USE_PLAY_AUDIO_WAV
+#ifdef USE_PLAY_AUDIO_WAV
 
   server.on("/play", []() {
     String filename = "/audio.wav";
@@ -700,14 +702,14 @@ void server_init() {
     playAudioWAV(filename.c_str());
     server.send(200, "text/plain", String("Playing ") + filename);
   });
-  #endif
-  #ifdef USE_PLAY_AUDIO_MP3
+#endif
+#ifdef USE_PLAY_AUDIO_MP3
 
   server.on("/play", []() {
     playAudioMP3("/birds.mp3");
     server.send(200, "text/plain", "Playing birds.mp3");
   });
-  #endif
+#endif
 
   // called when the url is not defined here
   // use it to load content from SPIFFS
