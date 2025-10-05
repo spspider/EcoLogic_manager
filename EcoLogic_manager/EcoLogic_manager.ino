@@ -5,27 +5,27 @@
 //  #define use_telegram
 // #define USE_SPIFFS
 #define USE_LITTLEFS
-#define USE_DS18B20
+// #define USE_DS18B20
 // #define USE_DNS_SERVER
 // #define USE_UDP
 // #define USE_PUBSUBCLIENT  //mqtt possibility
-// #define USE_IRUTILS
+#define USE_IRUTILS
 //  #define USE_PLAY_AUDIO_WAV  // for player.ino
 //  #define USE_PLAY_AUDIO_MP3  // for player.ino
 //  #define USE_TINYMQTT
 //  #define USE_PICOMQTT
 //  #define USE_AS5600
 //  #define wakeOnLan
-//  #define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
+ #define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
 //  #define ads1115 # CHANGE TO USE_ADS1115
 //  #define USE_EMON  //electric monitor
 //  #define ws433 # CHANGE TO USE_WS433
 
 #define ONE_WIRE_BUS 2  // D4 pin ds18b20
 #define RECV_PIN 5      // IR recieve d1
-#define SEND_PIN 15     // IR send d8
+#define SEND_PIN 4     // IR send d2
 #define N_WIDGETS 12
-#define RESET_PIN 4  // D2 pin reset button
+#define RESET_PIN 5  // D1 pin reset button
 
 // #include <WiFiManager.h>     //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 #include <ESP8266mDNS.h>

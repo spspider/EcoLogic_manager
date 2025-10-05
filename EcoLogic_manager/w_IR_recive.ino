@@ -33,6 +33,7 @@ char IRCodeString[IRCodeString_numbers_array][50];
 decode_results results;
 
 void setup_IR() {
+  pinMode(SEND_PIN, OUTPUT);
   irrecv.setUnknownThreshold(MIN_UNKNOWN_SIZE);
   Serial.println("Setup IR");
   irrecv.enableIRIn();  // Start the receiver
