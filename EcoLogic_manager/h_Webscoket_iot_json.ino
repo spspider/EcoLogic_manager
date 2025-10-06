@@ -103,8 +103,12 @@ void sendPinStatus_toNodeRed(int pin, int value) {
   }
 }
 void check_new_status_and_send_nodeRed() {
-  if (send_to_nodeRed == false) return;
+  if (!send_to_nodeRed || !enable_http_requests) return;
   if (!nodered_address || nodered_address[0] == '\0' || strcmp(nodered_address, "0.0.0.0") == 0) return;
+  
+  static unsigned long lastNodeRedSend = 0;
+  if (millis() - lastNodeRedSend < 10000) return; // Ограничиваем частоту
+  
   for (int i = 0; i < N_WIDGETS; i++) {
     int new_value = get_new_pin_value(i);
     if (new_value != stat[i]) {
@@ -112,6 +116,7 @@ void check_new_status_and_send_nodeRed() {
       stat[i] = new_value;
     }
   }
+  lastNodeRedSend = millis();
 }
 // void pubStatusShortAJAX_String(uint8_t i)
 // {

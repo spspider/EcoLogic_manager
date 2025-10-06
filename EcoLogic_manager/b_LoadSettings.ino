@@ -22,8 +22,7 @@ bool loadConfig(File jsonConfig) {
     strncpy(deviceID, jsonDocument["deviceID"], sizeof(deviceID) - 1);
     deviceID[sizeof(deviceID) - 1] = '\0';
   } else {
-    String mac = WiFi.macAddress();
-    String defName = "device:" + mac;
+    String defName = "ecologic_" + String(ESP.getChipId());
     // Truncate defName if needed to fit deviceID and softAP_ssid arrays
     strncpy(softAP_ssid, defName.c_str(), sizeof(softAP_ssid) - 1);
     softAP_ssid[sizeof(softAP_ssid) - 1] = '\0';
@@ -113,7 +112,12 @@ void Setup_pinmode(bool stat_loaded) {
       if ((pinmode[i] == 6) || (pinmode[i] == 8)) {  // dht temp
 #if defined(USE_DHT)
         dht.setup(pin[i], DHTesp::DHT11);  // data pin
-        Serial.println("DHT:" + String(pin[i], DEC));
+        delay(2000); // Даем время DHT11 для инициализации
+        Serial.println("DHT11 initialized on pin: " + String(pin[i], DEC));
+        // Проверяем статус датчика
+        float testTemp = dht.getTemperature();
+        float testHum = dht.getHumidity();
+        Serial.println("DHT11 test - Temp: " + String(testTemp) + ", Humidity: " + String(testHum));
 #endif
       }
       if (pinmode[i] == 10) {  // powerMeter

@@ -182,7 +182,7 @@ function generateHomeAssistantConfig() {
         break;
       case 1: // Sensor
       case 16: // Template Data Sensor
-        templates += generateTemplateSensorConfig(description, clearDescription, index, ip, ip_name, Other_setup);
+        templates += generateTemplateSensorConfig(clearDescription = clearDescription, index = index, ip = ip, ip_name = ip_name, Other_setup);
         break;
       case 20: // Sensor
         sensors += generateSensorConfig(description, clearDescription, index, ip, ip_name);
@@ -242,10 +242,10 @@ function generateSwitchConfig(description, clearDescription, index, defaultVal, 
   };
 }
 
-function generateTemplateSensorConfig(description, clearDescription, index, ip, ip_name) {
+function generateTemplateSensorConfig(clearDescription, index, ip, ip_name) {
   return `
   - sensor:
-      - name: "${description}"
+      - name: "${clearDescription}"
         unit_of_measurement: ""
         state: >
           {% set sensor_value_array = states('sensor.esp8266_status${ip_name}') | from_json %}
@@ -271,7 +271,7 @@ function generateSensorConfig(description, clearDescription, index, ip, ip_name)
   `;
 }
 
-function generateTemperatureSensorConfig(description, index, ip, ip_name) {
+function generateTemperatureSensorConfig(description, clearDescription, index, ip, ip_name) {
   return `
     - platform: rest
       resource: "http://${ip}/sendAJAX?json=%7B%22t%22:${index},%22v%22:0%7D"

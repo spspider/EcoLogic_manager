@@ -32,11 +32,14 @@ float get_new_pin_value(uint8_t i) {
   if (pinmode[i] == 6) {  // dht Temp
 #if defined(USE_DHT)
     float temperature = dht.getTemperature();
-    if (!isnan(temperature)) {
+    Serial.println("DHT11 Temperature reading: " + String(temperature));
+    if (!isnan(temperature) && temperature != 0) {
       that_stat = temperature;
       stat[i] = that_stat;
+      Serial.println("DHT11 Temperature OK: " + String(that_stat));
     } else {
-      that_stat = stat[i];  // Use a default value or handle the NaN case accordingly
+      Serial.println("DHT11 Temperature ERROR - using previous value: " + String(stat[i]));
+      that_stat = stat[i];  // Use previous value
     }
 #endif
     return that_stat;
@@ -49,11 +52,14 @@ float get_new_pin_value(uint8_t i) {
   if (pinmode[i] == 8) {  // dht Humidity
 #if defined(USE_DHT)
     float humidity = dht.getHumidity();
-    if (!isnan(humidity)) {
+    Serial.println("DHT11 Humidity reading: " + String(humidity));
+    if (!isnan(humidity) && humidity != 0) {
       that_stat = humidity;
       stat[i] = that_stat;
+      Serial.println("DHT11 Humidity OK: " + String(that_stat));
     } else {
-      that_stat = stat[i];  // Use a default value or handle the NaN case accordingly
+      Serial.println("DHT11 Humidity ERROR - using previous value: " + String(stat[i]));
+      that_stat = stat[i];  // Use previous value
     }
 #endif
     return that_stat;

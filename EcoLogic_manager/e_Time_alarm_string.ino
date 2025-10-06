@@ -114,9 +114,13 @@ void loop_alarm() {
     l_minute = minute();
   }
 }
+
 void CheckInternet(String request) {
+  if (millis() - lastCheck < 60000) return; // Проверка раз в минуту
+  
   uint8_t timezone;
   String respond = getHttp(request);
+  lastCheck = millis();
 
   if (respond == "fail") {  // интернета нет
     Serial.println("Интернета нет");

@@ -151,18 +151,20 @@ byte sendEmail(String message) {
 }
 
 byte eRcv() {
+  if (!enable_email_sending) return 0;
+  
   byte respCode;
   byte thisByte;
   int loopCount = 0;
 
   while (!wclient.available()) {
+    yield(); // Позволяем ESP8266 обрабатывать WiFi
     delay(1);
     loopCount++;
 
-    // if nothing received for 10 seconds, timeout
-    if (loopCount > 10000) {
+    if (loopCount > 5000) { // Сокращаем до 5 сек
       wclient.stop();
-      Serial.println(F("\r\nTimeout"));
+      Serial.println(F("\r\nEmail timeout"));
       return 0;
     }
   }

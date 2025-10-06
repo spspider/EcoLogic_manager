@@ -10,35 +10,29 @@
 #include <ESP8266HTTPClient.h>
 
 String getHttp(String request) {
-  // wait for WiFi connection
-  if ((WiFi.status() == WL_CONNECTED)) {
-    HTTPClient http;
-    Serial.print("[HTTP] begin...\n");
-    http.begin(wclient, "http://" + request);  //запрос HTTP//"http://api.2ip.ua/geo.json?ip="
-    Serial.println(request);
-    Serial.print("[HTTP] GET...\n");
-    int httpCode = http.GET();
-
-    if (httpCode > 0) {
-
-      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-
-      if (httpCode == HTTP_CODE_OK) {
-        String payload = http.getString();
-        Serial.println(payload);
-        return payload;
-      }
-    } else {
-      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-      return ("fail");
-    }
-
-    http.end();
-
-
-    //delay(20000);
-  } else {
-    return ("fail");
+  if (!enable_http_requests || (WiFi.status() != WL_CONNECTED)) {
+    return "fail";
   }
-  return ("fail");
+  
+  HTTPClient http;
+  Serial.print("[HTTP] begin...\n");
+  http.begin(wclient, "http://" + request);
+  http.setTimeout(5000);
+  Serial.println(request);
+  Serial.print("[HTTP] GET...\n");
+  int httpCode = http.GET();
+
+  if (httpCode > 0) {
+    Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+    if (httpCode == HTTP_CODE_OK) {
+      String payload = http.getString();
+      Serial.println(payload);
+      http.end();
+      return payload;
+    }
+  } else {
+    Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+  }
+  http.end();
+  return "fail";
 }

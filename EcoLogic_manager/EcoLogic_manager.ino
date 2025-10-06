@@ -21,7 +21,7 @@
 //  #define USE_EMON  //electric monitor
 //  #define ws433 # CHANGE TO USE_WS433
 
-#define ONE_WIRE_BUS 2  // D4 pin ds18b20
+//#define ONE_WIRE_BUS 2  // D4 pin ds18b20
 #define RECV_PIN 5      // IR recieve d1
 #define SEND_PIN 4     // IR send d2
 #define N_WIDGETS 12
@@ -276,6 +276,14 @@ void setup() {
 #if defined(USE_DS18B20)
   sensors.begin();  // Start up the library
 #endif
+
+#if defined(USE_DHT)
+  // Дополнительная инициализация DHT11 для GPIO2
+  Serial.println("Initializing DHT11 sensor...");
+  // Если у вас DHT11 подключен к GPIO2, раскомментируйте следующую строку:
+  dht.setup(2, DHTesp::DHT11);
+  delay(2000); // Даем время датчику для стабилизации
+#endif
 }
 void resetMillis() {
   millis_offset = millis();
@@ -336,10 +344,6 @@ void loop() {
     // Serial.print(interim, DEC);
     yield();
   }
-  // if (getMillis() > 18000000L)
-  // {
-  //   ESP.restart();
-  // }
 
 #if defined(USE_UDP)
   int packetSize = Udp.parsePacket();
