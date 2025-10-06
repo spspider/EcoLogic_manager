@@ -28,6 +28,11 @@ uint8_t status = WL_IDLE_STATUS;
 uint8_t FreeWIFIid[5];
 bool freeWIFIConnected = false;
 
+// Static variables for non-blocking WiFi connection
+static unsigned long connectStart = 0;
+static bool connecting = false;
+static char wifiAttempt = 0;
+
 void connect_as_AccessPoint() {
   delay(1000);
   Serial.print("Configuring access point...");
@@ -47,6 +52,7 @@ void connect_as_AccessPoint() {
   Serial.println(WiFi.softAPIP());
   lastConnectTry = onesec = 0;
 }
+
 void captive_setup() {  // starting void
 #if defined(USE_DNS_SERVER)
   dnsServer.setTTL(0);
@@ -59,53 +65,37 @@ void captive_setup() {  // starting void
   server.begin();
 }
 
+// Non-blocking WiFi connection
 void connectWifi(char ssid_that[32], char password_that[32]) {
-  WiFi.disconnect();
-  status = WL_IDLE_STATUS;  // обнуляем статус, для подключения
-  WiFi.mode(WIFI_STA);
-  delay(1000);
-  Serial.println("Connecting as wifi client...");
-  Serial.println(ssid_that);
-  Serial.println(password_that);
-  Serial.print("Wifi status:");
-  Serial.println(WiFi.status());
-  delay(100);
-  WiFi.begin(ssid_that, strlen(password_that) > 0 ? password_that : nullptr);
-  char attempt = 0;
-  while (WiFi.status() != WL_CONNECTED && attempt < 50) {
-    delay(500);
-    Serial.print(".");
-    attempt++;
+  if (!connecting) {
+    WiFi.disconnect();
+    status = WL_IDLE_STATUS;
+    WiFi.mode(WIFI_STA);
+    Serial.println("Connecting as wifi client...");
+    Serial.println(ssid_that);
+    WiFi.begin(ssid_that, strlen(password_that) > 0 ? password_that : nullptr);
+    connecting = true;
+    connectStart = millis();
+    wifiAttempt = 0;
+    return;
   }
-  if (WiFi.waitForConnectResult() != WL_CONNECTED)
-    connect_as_AccessPoint();
+  
+  if (connecting) {
+    if (WiFi.status() == WL_CONNECTED) {
+      connecting = false;
+      Serial.println("\nWiFi connected!");
+    } else if (millis() - connectStart > 500) {
+      wifiAttempt++;
+      connectStart = millis();
+      Serial.print(".");
+      if (wifiAttempt >= 50) {
+        connecting = false;
+        connect_as_AccessPoint();
+      }
+    }
+  }
 }
-// void try_connect_free() {
-//   Serial.println("!!!scan for FREE WIFI!!!");
-//   uint8_t n = WiFi.scanNetworks();//сканируем Wifi сети
-//   if (n > 0) {//если сетей больше одной
-//     uint8_t number = 0;
-//     for (uint8_t i = 0; i < n; i++) {
-//       if (WiFi.encryptionType(i) == ENC_TYPE_NONE)  {//если эта сеть доступна
-//         FreeWIFIid[number] = i;
-//         number++;
-//       }
-//     }
-//     if (number > 0) {
-//       uint8_t ssid_number = random(number - 1);
-//       //Serial.println("random:" + String(ssid_number));
-//       WiFi.SSID(FreeWIFIid[ssid_number]).toCharArray(ssid, sizeof(ssid) - 1);
-//       strncpy( password, "\0", sizeof(password) - 1);
-//       lastConnectTry = onesec;
-//       connect = false;
-//       connectWifi(ssid, password);
-//       freeWIFIConnected = true;
-//     }
-//     else {
-//       Serial.println("no Free Wifi");
-//     }
-//   }
-// }
+
 void relayRouter() {
   if (router != 255) {
     pinMode(router, OUTPUT);
@@ -113,6 +103,7 @@ void relayRouter() {
     Serial.println("Router relay state:" + String(digitalRead(router), DEC));
   }
 }
+
 void captive_loop() {
   if (connect) {
     status = WL_IDLE_STATUS;
@@ -124,8 +115,13 @@ void captive_loop() {
     } else {
       connect_as_AccessPoint();
     }
-    // lastConnectTry = onesec;
   }
+  
+  // Continue WiFi connection process if in progress
+  if (connecting) {
+    connectWifi(ssid, password);
+  }
+  
 #if defined(USE_PUBSUBCLIENT)
   if (try_MQTT_access) {
     if (IOT_Manager_loop) {
@@ -138,11 +134,9 @@ void captive_loop() {
     if ((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() == 0)) {
       WiFi.disconnect();
       Serial.println("Connecting as Wifi client due AP not connected");
-      // connect = true;
       lastConnectTry = onesec = 0;
       captive_setup();
 #if defined(USE_DNS_SERVER)
-      // dnsServer.setTTL(600); // 10 minutes
       dnsServer.enableForwarder(myHostname, WiFi.dnsIP(0));
       if (dnsServer.isDNSSet()) {
         CONSOLE_PRINTF("  Forward other lookups to DNS: %s\r\n", dnsServer.getDNS().toString().c_str());
@@ -150,8 +144,6 @@ void captive_loop() {
 #endif
       return;
     } else if ((wifi_softap_get_station_num() == 0) && ((WiFi.status() == WL_DISCONNECTED) || (WiFi.status() == WL_IDLE_STATUS) || (WiFi.status() == WL_NO_SSID_AVAIL))) {
-      // else if ((wifi_softap_get_station_num() == 0) && (WiFi.status() == WL_DISCONNECTED) || ((wifi_softap_get_station_num() == 0) && (WiFi.status() == WL_IDLE_STATUS)))
-      // {
       WiFi.disconnect();
       Serial.println("Connecting as AP, due WL_DISCONNECTED");
       lastConnectTry = onesec = 0;
@@ -173,7 +165,7 @@ void captive_loop() {
     Serial.println(s);
     status = s;
     if (s == WL_CONNECTED) {
-      try_MQTT_access = true;  // можно попытаться подключиться к интернету
+      try_MQTT_access = true;
       /* Just connected to WLAN */
       Serial.println("Connected to ");
       Serial.println(ssid);
@@ -191,10 +183,6 @@ void captive_loop() {
         MDNS.addService("http", "tcp", 80);
       }
 
-      // else if (s == WL_NO_SSID_AVAIL)
-      // {
-      //   WiFi.disconnect();
-      // }
       if (geo_enable)
         sendLocationData();
 #if defined(timerAlarm)
@@ -235,14 +223,24 @@ void captive_loop() {
 #endif
   }
 }
+
+// Non-blocking geolocation with rate limiting
 void sendLocationData() {
-  String pos = getHttp("api.2ip.ua/geo.json?ip=");
-  if (pos != "fail") {
-    internet = true;
-  } else {
-    internet = false;
-    Serial.println("Internet connection failed");
+  if (!enable_geo_location) return;
+  
+  static unsigned long lastGeoCheck = 0;
+  if (millis() - lastGeoCheck > 300000) { // Проверка каждые 5 мин
+    String pos = getHttp("api.2ip.ua/geo.json?ip=");
+    if (pos != "fail") {
+      internet = true;
+      saveCommonFiletoJson("ip_gps", pos, 1);
+      if (enable_email_sending) {
+        sendEmail(pos);
+      }
+    } else {
+      internet = false;
+      Serial.println("Internet connection failed");
+    }
+    lastGeoCheck = millis();
   }
-  saveCommonFiletoJson("ip_gps", pos, 1);
-  sendEmail(pos);
 }

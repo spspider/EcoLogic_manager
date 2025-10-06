@@ -118,8 +118,13 @@ float PowerCorrection = 111.1;
 /* Don't set this wifi credentials. They are configurated at runtime and stored on EEPROM */
 bool try_MQTT_access = false;
 bool IOT_Manager_loop = false;
-int no_internet_timer = 0;
+char no_internet_timer = 0;
 bool internet = false;
+// Флаги для отключения блокирующих операций
+bool enable_http_requests = false;
+bool enable_email_sending = false;
+bool enable_geo_location = false;
+bool enable_mqtt_reconnect = true;
 //////////////////CaptivePortalAdvanced
 char softAP_ssid[32] = "dev_001";
 char softAP_password[32] = "12345678";
@@ -344,6 +349,17 @@ void loop() {
     // Serial.print(interim, DEC);
     yield();
   }
+  
+  // Watchdog для перезагрузки при зависании
+  static unsigned long lastLoopTime = 0;
+  unsigned long currentTime = millis();
+  if (currentTime - lastLoopTime > 30000) { // Если loop не выполнялся 30 сек
+    Serial.println("Loop timeout - restarting");
+    ESP.restart();
+  }
+  lastLoopTime = currentTime;
+  
+  yield(); // Позволяем ESP8266 обрабатывать WiFi и другие задачи
 
 #if defined(USE_UDP)
   int packetSize = Udp.parsePacket();

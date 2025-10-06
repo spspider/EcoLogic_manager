@@ -91,30 +91,36 @@ void callback(char *topic, byte *payload, uint8_t length)  // callback for recie
   pubStatus(sTopic_ch, setStatus(newValue));
 }
 
-// MQTT reconnect function as per official PubSubClient example
+// MQTT reconnect function - non-blocking version
 void reconnect() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print(F("Attempting MQTT connection..."));
-    // Attempt to connect with a unique client ID
-    if (client.connect(deviceID, mqttuser, mqttpass)) {
-      Serial.println(F("connected"));
-      // Once connected, subscribe to topics
-      for (uint8_t i = 0; i < nWidgets; i++) {
-        char topic_subscr[30];
-        if ((pinmode[i] == 2) || (pinmode[i] == 3) || (pinmode[i] == 5)) {
-          snprintf(topic_subscr, sizeof(topic_subscr), "%s/%d", deviceID, i);
-          client.subscribe(topic_subscr);
+  static unsigned long lastAttempt = 0;
+  static char attemptCount = 0;
+  
+  if (!enable_mqtt_reconnect) return;
+  
+  unsigned long now = millis();
+  if (now - lastAttempt > 30000) { // Попытка каждые 30 сек
+    if (attemptCount < 3 && !client.connected()) {
+      Serial.print(F("Attempting MQTT connection..."));
+      if (client.connect(deviceID, mqttuser, mqttpass)) {
+        Serial.println(F("connected"));
+        for (uint8_t i = 0; i < nWidgets; i++) {
+          char topic_subscr[30];
+          if ((pinmode[i] == 2) || (pinmode[i] == 3) || (pinmode[i] == 5)) {
+            snprintf(topic_subscr, sizeof(topic_subscr), "%s/%d", deviceID, i);
+            client.subscribe(topic_subscr);
+          }
         }
+        pubConfig();
+        subscribe_loop = nWidgets;
+        attemptCount = 0;
+      } else {
+        Serial.print(F("failed, rc="));
+        Serial.println(client.state());
+        attemptCount++;
       }
-      pubConfig();
-      subscribe_loop = nWidgets;  // all subscribed
-    } else {
-      Serial.print(F("failed, rc="));
-      Serial.print(client.state());
-      Serial.println(F(" try again in 5 seconds"));
-      delay(5000);
     }
+    lastAttempt = now;
   }
 }
 
