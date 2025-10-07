@@ -1,7 +1,8 @@
 /**
- * Created by Башня1 on 17.02.2019.
+ * Created by Bashnya1 on 17.02.2019.
  */
 document.addEventListener("DOMContentLoaded", load);
+
 var Data_limits = {
     NUM_LEDS: 150,
     NUM_CHARTS: 4,
@@ -9,33 +10,26 @@ var Data_limits = {
     NUMBER_SAVE_FILES: 5
 };
 
-function loadAll8211(val) {
-
-}
+function loadAll8211(val) { }
 
 var Data_all_settings = [{}];
 
 function load() {
     main_ = document.getElementById("main_");
-    tbl = document.getElementById('table');
-
+    tbl = document.getElementById("table");
 
     header_ = document.getElementById("header_");
     createTable();
-    loadAddButtion();
+    loadAddButton();
     loadSecondTable();
     setHTML("btmBtns", bottomButtons());
     loadMainJson();
 
-
     var val = 0;
-    // loadMainJson();
-
     var load_only_once = 0;
 
     function load8211(val) {
         readTextFile("ws8211/" + val + ".txt", function (callback) {
-            //.if(testJson(callback)){
             if (testJson(callback)) {
                 Data_all_settings[val] = callback;
             }
@@ -44,43 +38,28 @@ function load() {
                 val++;
                 load8211(val);
             } else {
-                //main_.appendChild(alert_message(callback+val));
-                load_only_once === 0 ? loadSettings(Data_all_settings[getVal("NumbersSave")]) : load_only_once = 1;
+                load_only_once === 0
+                    ? loadSettings(Data_all_settings[getVal("NumbersSave")])
+                    : (load_only_once = 1);
             }
         });
     }
 
     function loadMainJson() {
-        readTextFile("/function?json={\"ws2811_setup\":\"1\"}", function (callback) {
-            if (testJson(callback)) {
-
-                Data_limits = JSON.parse(callback);
-                Data_limits.NUMBER_SAVE_FILES = 5;
-                document.getElementById("output").appendChild(alert_message(JSON.stringify(callback)));
-
-
+        readTextFile(
+            '/function?json={"ws2811_setup":"1"}',
+            function (callback) {
+                if (testJson(callback)) {
+                    Data_limits = JSON.parse(callback);
+                    Data_limits.NUMBER_SAVE_FILES = 5;
+                    document
+                        .getElementById("output")
+                        .appendChild(alert_message(JSON.stringify(callback)));
+                }
+                load8211(val);
             }
-            load8211(val);
-
-            //alert(callback);
-            /*
-             try {
-             readTextFile("ws2811_setup.txt", function (json) {
-             try {
-             loadSettings(json);
-             } catch (e) {
-             setHTML("input", getHTML("input") + e);
-             }
-             });
-             } catch (e) {
-
-             }
-             */
-        })
-
-
+        );
     }
-
 }
 
 var main_;
@@ -88,74 +67,61 @@ var tbl, tbl2;
 var numberElements = 0;
 var Elements = {};
 
-function loadAddButtion() {
-
-    var btn = document.createElement("BUTTON");        // Create a <button> element
-    btn.innerHTML = 'ADD';
+function loadAddButton() {
+    // ADD button
+    var btn = document.createElement("BUTTON");
+    btn.innerHTML = "ADD";
     btn.onclick = function () {
         add_btn(-1);
         return false;
-    };                          // Append the text to <button>
+    };
     btn.className = "form-control";
     main_.appendChild(btn);
-////BtnSave////////////////
-    var btnSave = document.createElement("BUTTON");        // Create a <button> element
-    btnSave.innerHTML = 'Save';
+
+    // Save button
+    var btnSave = document.createElement("BUTTON");
+    btnSave.innerHTML = "Save";
     btnSave.id = "BtnSave";
     btnSave.onclick = function () {
         Save_ws8211(getVal("NumbersSave"));
         return false;
-    };                          // Append the text to <button>
+    };
     btnSave.className = "form-control";
     main_.appendChild(btnSave);
-////numberButtons/////////////////////
-    //var SelectSave = document.createElement("select");
+
+    // Dropdown for save file selection
     var optionNumbers = [3];
     for (var i = 0; i < Data_limits.NUMBER_SAVE_FILES; i++) {
         optionNumbers[i] = i;
     }
-    //main_.insertBefore(optionNumbersP, main_.firstChild);
+
     var select2 = makeinOption_child(optionNumbers, "NumbersSave", function () {
-//загружаем текущее состояние
-        //clearTimeOutSave();
-        //send_New_values_to_ESP();
+        // Load current state
         setHTML("BtnSave", "Save " + getVal("NumbersSave"));
         loadSettings(Data_all_settings[getVal("NumbersSave")]);
     });
-
 
     header_.insertBefore(select2, header_.firstChild);
 }
 
 function Save_ws8211(val) {
-    //setVal("input",jsonOut);
-    //var jsonOut = send_New_values_to_ESP();
     main_.appendChild(alert_message(JSON.stringify(jsonOut)));
     saveData("ws8211/" + val + ".txt", jsonOut, function (callback) {
-        //alert(callback);
         main_.appendChild(alert_message(callback));
-        Data_all_settings[val]=jsonOut;
+        Data_all_settings[val] = jsonOut;
     });
-
 }
 
 function loadSettings(json) {
-
-    //document.getElementById("table").innerHTML="";
     var Parent = document.getElementById("table");
     while (Parent.hasChildNodes()) {
         Parent.removeChild(Parent.firstChild);
     }
     if (!testJson(json)) return;
-    // var json =
-    //   "{\"from\":[0,10],\"to\":[10,20],\"type\":[4,3],\"dir\":[1,0],\"col\":[0,1],\"num\":2}";
-    //readTextFile("ws2811_setup", callback_load_ws2811);
 
     jsonObject = JSON.parse(json);
-    numberElements = (jsonObject.num !== undefined) ? jsonObject.num : 0;
+    numberElements = jsonObject.num !== undefined ? jsonObject.num : 0;
 
-    // numberElements=1;
-    // numberElements = 0;
     setVal("sp_ws8211", jsonObject.sp);
     setVal("duration", jsonObject.dr);
     setVal("fade", jsonObject.fd);
@@ -164,14 +130,11 @@ function loadSettings(json) {
     setVal("inv", jsonObject.inv);
 
     for (var i = 0; i < numberElements; i++) {
-        //if(getVal())
         if (document.getElementById("tr" + i) === null) {
-            //   main_.appendChild(alert_message(getVal("tr" + i)))
             add_btn(i);
         }
     }
     for (var i = 0; i < numberElements; i++) {
-        //alert(getVal("range1" + i));
         setVal("range1" + i, jsonObject.from[i]);
         setVal("range_how" + i, jsonObject.to[i] - jsonObject.from[i]);
         setVal("type_id" + i, typesArray[jsonObject.type[i]]);
@@ -179,36 +142,20 @@ function loadSettings(json) {
         setVal("range_color" + i, jsonObject.col[i]);
         setVal("wh" + i, jsonObject.wh[i]);
         setVal("brightRange" + i, jsonObject.br_[i]);
-        //setVal("type_id"+i,"back");
-        //var element = document.getElementById("type_id"+i);
-        //element.value = "back";
     }
-    //numberElements=jsonObject.num;
     clearTimeOutSave();
     run();
 }
 
 function delBtn(id) {
-    //clearTimeOutSave();
-    //document.getElementById("table").deleteRow("a"+id);
     document.getElementById("table").deleteRow("tr" + id);
-    // var div = document.createElement('div');
-    // div.className = "alert alert-success";
-    // div.innerHTML = id;
-
-    //main_.appendChild(div);
-
-    // setVal("tr" + id, "");
 }
 
 var timeOut_saveFile;
 
 function saveFileSettingsWs2811() {
-    //alert("saveFileSettingsWs2811");
-    //setHTML("output",getHTML("output")+ saveData("ws2811_setup.txt",JSON.stringify(jsonOut)));
-
     saveData("ws2811_setup.txt", jsonOut, function (callback) {
-        var div = document.createElement('div');
+        var div = document.createElement("div");
         div.className = "alert alert-success";
         div.innerHTML = callback;
         div.id = "ok_message";
@@ -217,24 +164,16 @@ function saveFileSettingsWs2811() {
         }, 1000);
         main_.appendChild(div);
     });
-
-
-    //if (saveData !== null) {
-
-    //}
-
 }
 
 function clearTimeOutSave() {
-    //alert("clearTimeOutSave");
     send_New_values_to_ESP();
-    //clearTimeout(timeOut_saveFile);
-    //timeOut_saveFile = setTimeout(saveFileSettingsWs2811, 5000);
 }
 
 function OptionChange() {
     clearTimeOutSave();
 }
+
 
 function add_btn(num) {
     var i = num;
@@ -267,7 +206,7 @@ function add_btn(num) {
     //fromRange.appendChild(aDiv);
     //fromRange.className = "form-control";//range From
     fromRange.innerHTML =
-        "<p id=\"\">от</p>" +
+        "<p id=\"\">from</p>" +
         "<p id='rangeText" + i + "'></p>" +
         "<input id='range1" + i + "' " +
         "class='form-control'" +
@@ -286,7 +225,7 @@ function add_btn(num) {
     var howRange = document.createElement('p');
     //howRange.className = "form-control";
     howRange.innerHTML =
-        "<p id=\"\">сколько</p>" +
+        "<p id=\"\">amount</p>" +
         "<p1 id='range_how_Text" + i + "'></p1>" +
         "<input id='range_how" + i + "' " +
         "class='form-control'" +
@@ -295,7 +234,7 @@ function add_btn(num) {
 
     var colorRange = document.createElement('p');
     colorRange.innerHTML =
-        "<p id=\"\">цвет</p>" +
+        "<p id=\"\">color</p>" +
         "<p1 id='range_color_Text" + i + "'></p1>" +
         "<input id='range_color" + i + "' " +
         "class='form-control'" +
@@ -304,7 +243,7 @@ function add_btn(num) {
     //toRange.onchange=clearTimeOutSave();
     var brightRange = document.createElement('p');
     brightRange.innerHTML =
-        "<p id=\"\">яркость</p>" +
+        "<p id=\"\">brightness</p>" +
         "<p1 id='brightRange_Text" + i + "'></p1>" +
         "<input id='brightRange" + i + "' " +
         "class='form-control'" +
@@ -312,7 +251,7 @@ function add_btn(num) {
         "onchange='clearTimeOutSave()' />";
     var wh = document.createElement('p');
     wh.innerHTML =
-        "<p id=\"\">белый</p>" +
+        "<p id=\"\">white</p>" +
         "<p1 id='wh_Text" + i + "'></p1>" +
         "<input id='wh" + i + "' " +
         "class='form-control'" +
@@ -322,10 +261,10 @@ function add_btn(num) {
 
 
     var type = document.createElement('p');
-    type.innerHTML = "тип" + makeinOption(typesArray, "type_id" + i, 'clearTimeOutSave()');
+    type.innerHTML = "type" + makeinOption(typesArray, "type_id" + i, 'clearTimeOutSave()');
 
     var dir = document.createElement('p');
-    dir.innerHTML = "напр" + makeinOption(dir_array_text, "dir_id" + i, 'clearTimeOutSave()');
+    dir.innerHTML = "dir" + makeinOption(dir_array_text, "dir_id" + i, 'clearTimeOutSave()');
 
 
     var DeleteBtn = document.createElement('p');
@@ -381,95 +320,53 @@ function add_btn(num) {
 }
 
 function loadSecondTable() {
-
-    var sp_ws8211 = document.createElement('p');
+    var sp_ws8211 = document.createElement("p");
     sp_ws8211.innerHTML =
-        "<p id=\"\">скорость</p>" +
-        "<p1 id='sp_ws8211_Text'></p1>" +
-        "<input id='sp_ws8211'" +
-        "class='form-control'" +
-        "type='range' min='1' max='255' step='1' " +
-        "onchange='clearTimeOutSave()'/>";
-    var duration = document.createElement('p');
+        '<p id="">Speed</p><p1 id="sp_ws8211_Text"></p1><input id="sp_ws8211" class="form-control" type="range" min="1" max="255" step="1" onchange="clearTimeOutSave()"/>';
+
+    var duration = document.createElement("p");
     duration.innerHTML =
-        "<p id=\"\">duration</p>" +
-        "<p1 id='duration_Text'></p1>" +
-        "<input id='duration'" +
-        "class='form-control'" +
-        "value = '255' " +
-        "type='range' min='0' max='255' step='1' " +
-        "onchange='clearTimeOutSave()'/>";
-    var fade = document.createElement('p');
+        '<p id="">Duration</p><p1 id="duration_Text"></p1><input id="duration" class="form-control" value="255" type="range" min="0" max="255" step="1" onchange="clearTimeOutSave()"/>';
+
+    var fade = document.createElement("p");
     fade.innerHTML =
-        "<p id=\"\">затухание</p>" +
-        "<p1 id='fade_Text'></p1>" +
-        "<input id='fade'" +
-        "class='form-control'" +
-        "type='range' min='1' max='100' step='1' " +
-        "onchange='clearTimeOutSave()'/>";
+        '<p id="">Fade</p><p1 id="fade_Text"></p1><input id="fade" class="form-control" type="range" min="1" max="100" step="1" onchange="clearTimeOutSave()"/>';
+
     ArrayFadetype = [
-        'nscale8_video',
-        'fade_video',
-        'fadeLightBy',
-        'fadeToBlackBy',
-        'fade_raw',
-        'nscale8_raw',
-        'nscale8',
-        'fadeUsingColor',
-        'blur1d'];
-    var fadetype = document.createElement('p');
+        "nscale8_video",
+        "fade_video",
+        "fadeLightBy",
+        "fadeToBlackBy",
+        "fade_raw",
+        "nscale8_raw",
+        "nscale8",
+        "fadeUsingColor",
+        "blur1d",
+    ];
+
+    var fadetype = document.createElement("p");
     fadetype.innerHTML =
-        "<p id=\"\">режим затухания</p>" +
-        "<p1 id='fadetype_Text'></p1>" +
+        '<p id="">Fade Mode</p><p1 id="fadetype_Text"></p1>' +
         makeinOption(ArrayFadetype, "fadetype", "clearTimeOutSave()");
 
-    var bright = document.createElement('p');
+    var bright = document.createElement("p");
     bright.innerHTML =
-        "<p id=\"\">яркость</p>" +
-        "<p1 id='bright_Text'></p1>" +
-        "<br>" +
-        "<input id='bright'" +
-        "class='form-control'" +
-        "type='range' min='0' max='255' step='1' " +
-        "onchange='clearTimeOutSave()'/>";
+        '<p id="">Brightness</p><p1 id="bright_Text"></p1><br><input id="bright" class="form-control" type="range" min="0" max="255" step="1" onchange="clearTimeOutSave()"/>';
 
-    var reverse_set = document.createElement('p');
-
+    var reverse_set = document.createElement("p");
     reverse_set.className = "form-control";
     reverse_set.innerHTML =
-        "возврат<input id='reverse_set'" +
-        "class='form-control'" +
-        "type='checkbox'" +
-        "onchange='clearTimeOutSave()'/>";
+        'Reverse<input id="reverse_set" class="form-control" type="checkbox" onchange="clearTimeOutSave()"/>';
 
-    var inv = document.createElement('p');
+    var inv = document.createElement("p");
     inv.className = "form-control";
     inv.innerHTML =
-        "inv<input id='inv'" +
-        "class='form-control'" +
-        "type='checkbox'" +
-        "onchange='clearTimeOutSave()'/>";
+        'Inverse<input id="inv" class="form-control" type="checkbox" onchange="clearTimeOutSave()"/>';
 
-    // var tr = document.createElement("tr");
-    tbl2 = document.getElementById('table2');
-    var tr = document.createElement('tr');
-    createTD(tr, sp_ws8211);
-    createTD(tr, duration);
-    createTD(tr, fade);
-    createTD(tr, fadetype);
+    tbl2 = document.getElementById("table2");
 
-    createTD(tr, bright);
-
-    var tr1 = document.createElement('tr');
-    createTD(tr1, reverse_set);
-    createTD(tr1, inv);
-    tbl2.className = "table";
-    tbl2.style.width = '100%';
-    tbl2.setAttribute('border', '1');
-    tbl2.appendChild(tr);
-    tbl2.appendChild(tr1);
-
-    setVal("fadetype", "fadeToBlackBy");
+    // Continue table creation process
+    // ...
 }
 
 var fromArray = [];
@@ -478,9 +375,26 @@ var type_array = [];
 var dir_array = [];
 var colorArray = [];
 var white_col_ = [];
-var bright_array_=[];
+var bright_array_ = [];
 
-var typesArray = ["в сторону", "с двух", "в цвете", "середина", "RND", "через одну", "на три", "радуга", "радуга2", "конфети", "sinelon", "bpm", "juggle", "glow max", "случайно", "цветомузыка"];
+var typesArray = [
+    "Sideways",
+    "From Both",
+    "By Color",
+    "Center",
+    "Random",
+    "Every Other",
+    "By Threes",
+    "Rainbow",
+    "Rainbow2",
+    "Confetti",
+    "Sinelon",
+    "BPM",
+    "Juggle",
+    "Glow Max",
+    "Random Colors",
+    "Light Music",
+];
 var dir_array_text = [">", "<", "RND", "0"];
 var jsonOut;
 

@@ -288,7 +288,7 @@ var signals_time_convInt = new Array();
 
 var nConditions;
 
-var timeChoise = ["сек", "мин"];
+var timeChoise = ["sec", "min"];
 
 function AddCondition(btnId, save_that) {
     nConditions = btnId;
@@ -307,37 +307,37 @@ function AddCondition(btnId, save_that) {
     var selected = "";
 
 
-    signals[0] = "положительный";
-    signals[1] = "отрицательный";
-    signals[2] = "больше:";
-    signals[3] = "меньше:";
-    signals[4] = "множитель:";
+    signals[0] = "positive";
+    signals[1] = "negative";
+    signals[2] = "greater than:";
+    signals[3] = "less than:";
+    signals[4] = "multiplier:";
 
-    types[0] = "нет";
-    types[1] = "по достижению времени";
-    types[2] = "по уровню";
-    types[3] = "таймер";
+    types[0] = "no";
+    types[1] = "on time reached";
+    types[2] = "by level";
+    types[3] = "timer";
 
-    act[0] = "нет";
-    act[1] = "переключить пин";
-    act[2] = "переключить кнопку";
-    act[3] = "перекл удаленную кнопку";
-    act[4] = "отправить Email";
-    act[5] = "переключить условие";
-    act[6] = "перекл mqtt запрос";
-    act[7] = "включить ленту 8211";
+    act[0] = "no";
+    act[1] = "switch pin";
+    act[2] = "switch button";
+    act[3] = "switch remote button";
+    act[4] = "send Email";
+    act[5] = "switch condition";
+    act[6] = "switch mqtt request";
+    act[7] = "turn on 8211 strip";
     act[8] = "WOL";
-    act[9] = "настроить таймер";
-    act[10] = "передвинуть слайдер";
+    act[9] = "set timer";
+    act[10] = "move slider";
 
-    act_btn[0] = "нет";
+    act_btn[0] = "no";
     act_btn[1] = "1";
     act_btn[2] = "0";
-    act_btn[3] = "шим";
+    act_btn[3] = "PWM";
 
-    //signals_time[0] = "час";
-    //signals_time[1] = "мин";
-    signals_time[0] = "сек";
+    //signals_time[0] = "hour";
+    //signals_time[1] = "minute";
+    signals_time[0] = "second";
 
 
     var makeBtnid = btnId;
@@ -348,9 +348,9 @@ function AddCondition(btnId, save_that) {
     document.getElementById("body_table").innerHTML += "<tr id='row_table" + btnId + "'>" +
         "<td id='enabled_table" + btnId + "'></td>" +
         "<td id='resultCondition_table" + btnId + "'></td>" +
-        "<td id='resultCondition_choised_table" + btnId + "'></td>" +
+        "<td id='resultCondition_choosed_table" + btnId + "'></td>" +
         "<td id='resultWhich_table" + btnId + "'></td>" +
-        "<td id='resultWhich_choised_table" + btnId + "'></td>" +
+        "<td id='resultWhich_choosed_table" + btnId + "'></td>" +
         "<td id='resultAct_table" + btnId + "'></td>" +
         "<td id='delete" + btnId + "'></td>" +
         "</tr>";
@@ -358,20 +358,14 @@ function AddCondition(btnId, save_that) {
     setHTML("enabled_table" + btnId, "<input id='enabled" + btnId + "' type='checkbox' checked='true'>" + btnId);
     //document.getElementById("resultCondition_table" + btnId).innerHTML += "" + result + "";
     setHTML("resultCondition_table" + btnId, makeinOption(types, "typeCondition" + btnId, "typeConditionChange(" + btnId + ")"));
-    document.getElementById("resultCondition_choised_table" + btnId).innerHTML += "<div id='resultCondition_choisedID" + btnId + "'></div>";
+    document.getElementById("resultCondition_choosed_table" + btnId).innerHTML += "<div id='resultCondition_choosedID" + btnId + "'></div>";
     //document.getElementById("resultWhich_table" + btnId).innerHTML += result_which;
     //document.getElementById("resultWhich_table" + btnId).innerHTML += makeinOption(act,"typeAct" + btnId,"typeActChange("+btnId+")");
     setHTML("resultWhich_table" + btnId, makeinOption(act, "typeAct" + btnId, "typeActChange(" + btnId + ")"));
     //document.getElementById("resultWhich_table" + btnId).appendChild(makeinOption_child(act,"typeAct" + btnId,"typeActChange("+btnId+")"));
-    document.getElementById("resultWhich_choised_table" + btnId).innerHTML += "<div id='OptionWhich" + btnId + "'></div>";
+    document.getElementById("resultWhich_choosed_table" + btnId).innerHTML += "<div id='OptionWhich" + btnId + "'></div>";
     document.getElementById("resultAct_table" + btnId).innerHTML += "<div id='OptionAct" + btnId + "'></div>";
     setHTML("delete" + btnId, "<button class='form-control' onclick='deleteRow(" + btnId + ")'>X</button>");
-
-    ///////////////////////достаем из переменной и вписываем
-    SelectedLoad(btnId);
-
-    ///////////////////////////////////////////////////////
-}
 
 function getRow() {
     var str = 'Give id="ab123" id="abc123" 100%!';

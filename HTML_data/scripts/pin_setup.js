@@ -1,21 +1,19 @@
 ﻿const inputPinmode = [
-    "no",
-    "in",
-    "out",
-    "PWM",
-    "ADC",
-    "low. PWM",
-    "DHT 1.1 Temp",
-    "power MQ7",
-    "DHT 1.1 Mist",
-    "remote http",
-    "power meter",
-    "as5600",
-    "MAC address",
-    "EncA",
-    "EncB",
-    "ads1115",
-    "ds18b20"
+    "no", //0
+    "in", //1
+    "out", //2
+    "PWM", //3
+    "ADC", //4
+    "DHT 1.1 Temp", //5
+    "DHT 1.1 Mist", //6
+    "remote http", //7
+    "power meter", //8
+    "MAC address", //9
+    "ds18b20" //10
+    //"as5600", //11
+    //"EncA", //12
+    //"EncB", //13
+    //"ads1115", //14
 ];
 
 const inputWidget = ['unknown', 'switch', 'button', 'progress', 'progress-bar', 'chart', 'data'];
@@ -25,16 +23,16 @@ const availablePins = {
     "out": [255, 16, 5, 4, 0, 14, 12, 13, 15, 1, 3],
     "PWM": [255, 4, 5, 0, 12, 14, 13, 15, 1],
     "ADC": [255, 17],
-    "low. PWM": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
+    //"low. PWM": [255, 16, 5, 4, 0, 2, 14, 12, 13, 15, 1],
     "DHT 1.1 Temp": [2],
     "DHT 1.1 Mist": [2],
     "remote http": [255],
     "power meter": [255],
-    "as5600": [255, 5, 4, 14, 12, 13, 3, 17],
+    //"as5600": [255, 5, 4, 14, 12, 13, 3, 17],
     "MAC address": [255],
-    "EncA": [255, 16, 5, 4, 0, 14, 12, 13, 15, 1],
-    "EncB": [255, 16, 5, 4, 0, 14, 12, 13, 15, 1],
-    "ads1115": [255, 5, 4], // hardcoded, pins 5,4 will be used for SCL SCA
+    //"EncA": [255, 16, 5, 4, 0, 14, 12, 13, 15, 1],
+    //"EncB": [255, 16, 5, 4, 0, 14, 12, 13, 15, 1],
+    //"ads1115": [255, 5, 4], // hardcoded, pins 5,4 will be used for SCL SCA
     "ds18b20": [2], //should be hardcoded in scheme d7 - GPIO13, possible pins GPIO 2
 };
 

@@ -82,7 +82,9 @@ bool loadConfig(File jsonConfig) {
 
 void Setup_pinmode(bool stat_loaded) {
   for (uint8_t i = 0; i < nWidgets; i++) {
-
+    if (pin[i] ==  RECV_PIN) return;      // IR recieve d1
+    if (pin[i] == SEND_PIN) return;     // IR send d2
+    
     stat[i] = stat_loaded ? stat[i] : defaultVal[i];
     if (pin[i] != 255) {
       if (pinmode[i] == 1) {  // in
@@ -93,23 +95,15 @@ void Setup_pinmode(bool stat_loaded) {
         pinMode(pin[i], OUTPUT);
         digitalWrite(pin[i], stat[i]);
       }
-      if ((pinmode[i] == 3) || (pinmode[i] == 7)) {  // pwm,MQ7
+      if (pinmode[i] == 3) {  // pwm
         pinMode(pin[i], OUTPUT);
-        analogWrite(pin[i], stat[i]);  // PWM
+        analogWrite(pin[i], stat[i]);
       }
-      // if (pinmode[i] == 5)
-      // { // low_pwm
-      //   pinMode(pin[i], OUTPUT);
-      //   low_pwm[i] = stat[i];
-      //   digitalWrite(pin[i], 1); // далее - выключаем
-      //   Serial.println("set low_pwm:" + String(pin[i], DEC) + "i:" + String(i, DEC) + "stat:" + String(stat[i], DEC));
-      // }
-      if (pinmode[i] == 4) {
-                stat[i] = (analogRead(17) * 1.0F - analogSubtracter) / analogDivider;  // adc pin:A0//
+      if (pinmode[i] == 4) { //ADC
+        stat[i] = (analogRead(17) * 1.0F - analogSubtracter) / analogDivider;  // adc pin:A0//
 
-//        stat[i] = analogRead(A0); //* 1.0F - analogSubtracter) / analogDivider;  // adc pin:A0//
       }
-      if ((pinmode[i] == 6) || (pinmode[i] == 8)) {  // dht temp
+      if ((pinmode[i] == 5) || (pinmode[i] == 6)) {  // DHT
 #if defined(USE_DHT)
         dht.setup(pin[i], DHTesp::DHT11);  // data pin
         delay(2000); // Даем время DHT11 для инициализации
@@ -120,13 +114,12 @@ void Setup_pinmode(bool stat_loaded) {
         Serial.println("DHT11 test - Temp: " + String(testTemp) + ", Humidity: " + String(testHum));
 #endif
       }
-      if (pinmode[i] == 10) {  // powerMeter
-                               // pinMode(pin[i], OUTPUT);
+      if (pinmode[i] == 8) {  // powerMeter
 #if defined(USE_EMON)
         emon1.current(A0, PowerCorrection); // PowerCorrection=111.1
 #endif
       }
-      if (pinmode[i] == 15) {  // ads
+      if (pinmode[i] == 14) {  // ads1115
 #if defined(ads1115)
         ads.begin();
 #endif

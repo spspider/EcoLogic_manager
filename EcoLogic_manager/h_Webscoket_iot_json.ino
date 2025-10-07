@@ -14,25 +14,12 @@ void callback_socket(uint8_t i, int payload_is) {
     analogWrite(pin[i], payload_is);
     stat[i] = payload_is;
   }
-  else if (pinmode[i] == 5)
-  { // low_pwm
-    low_pwm[i] = payload_is;
-    stat[i] = (payload_is);
-  }
-  else if (pinmode[i] == 4)
-  { // adc
-  }
-  else if (pinmode[i] == 12)
+  else if (pinmode[i] == 9)
   { // mac adress
 #if defined(wakeOnLan)
     const char *mac_adress = (const char *)descr;
     wakeMyPC(mac_adress);
 #endif
-  }
-  else if (pinmode[i] == 11)
-  { // Dimmer
-    // DimmerVal = payload_is;
-    // dimmer.setPower(DimmerVal);
   }
   else if (pinmode[i] == 2)
   { // out

@@ -26,10 +26,10 @@ function loadPinSetup() {
 
 function PinSetupLoaded(data) {
     if (data == null) {
-        setHTML("bodyNode", "не удалось загрузить настройки пинов");
+        setHTML("bodyNode", "Failed to load pin settings");
         return;
     }
-    readTextFile("other_setup.txt", other_setupLoaded);
+    readTextFile("other_setup.txt", otherSetupLoaded);
     PinSetup = JSON.parse(data);
 }
 
@@ -41,16 +41,16 @@ function loadOtherHelp() {
     bodyNode = "<a  href=/sendAJAX?json={t:127,v:0}>" + window.location.host + "/sendAJAX?json={t:127,v:0}</a>";
     setHTML("bodyNodeStat", bodyNode);
     //var bodyNode="";
-    bodyNode = window.location.host + "/sendEmail?Email=текст сообщения";
+    bodyNode = window.location.host + "/sendEmail?Email=Message text";
     setHTML("bodyNodeEmail", bodyNode);
     //var bodyNode="";
-    bodyNode = window.location.host + "/sendAJAX?json={C:2,stat:-=номер кнопки=-}";
+    bodyNode = window.location.host + "/sendAJAX?json={C:2,stat:-=Button number=-}";
     setHTML("bodyNodeSendIRw433", bodyNode);
     //var bodyNode="";
-    bodyNode = window.location.host + "/sendAJAX?json={C:3,st:-=код HEX=-}";
+    bodyNode = window.location.host + "/sendAJAX?json={C:3,st:-=HEX code=-}";
     setHTML("bodyNodeIRHex", bodyNode);
     //var bodyNode="";
-    bodyNode = window.location.host + "/sendAJAX?json={C:4,st:-=код незашифрованный=-}";
+    bodyNode = window.location.host + "/sendAJAX?json={C:4,st:-=Raw IR code=-}";
     setHTML("bodyNodeIRRaw", bodyNode);
 
     bodyNode = window.location.host + "/setDate?DateTime={}";
@@ -69,9 +69,9 @@ function loadOtherHelp() {
     });
 }
 
-function other_setupLoaded(data) {
+function otherSetupLoaded(data) {
     if (data == null) {
-        setHTML("bodyNode", "не удалось загрузить другие настройки");
+        setHTML("bodyNode", "Failed to load other settings");
         return;
     }
     dataOther = JSON.parse(data);

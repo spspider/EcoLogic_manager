@@ -198,6 +198,9 @@ Adafruit_ADS1015 ads(0x48);
 char nodered_address[32] = { 0 };
 
 void setup() {
+pinMode(0, OUTPUT); //hardcode pin D3 (GPIO 0) as output
+digitalWrite(0, HIGH);
+delay(100); // Время для стабилизации
 #if defined(will_use_serial)
   Serial.begin(115200);
 #endif
@@ -289,6 +292,11 @@ void setup() {
   dht.setup(2, DHTesp::DHT11);
   delay(2000); // Даем время датчику для стабилизации
 #endif
+
+// Hardcoding pins
+pinMode(0, OUTPUT); //hardcode pin D3 (GPIO 0) as output
+digitalWrite(0, HIGH);
+delay(100); // Время для стабилизации
 }
 void resetMillis() {
   millis_offset = millis();

@@ -17,19 +17,19 @@ float get_new_pin_value(uint8_t i) {
     return that_stat;
   }
   if (pinmode[i] == 3)
-  { // pwm, adc
+  { // pwm
     stat[i] = (int)that_stat;
     return that_stat;
   }
 #if !defined(USE_EMON)
   if ((pinmode[i] == 4))
-  { // pwm, adc
+  { //adc
     that_stat = (float)analogRead(A0);
     stat[i] = (int)that_stat;
     return that_stat;
   }
 #endif
-  if (pinmode[i] == 6) {  // dht Temp
+  if (pinmode[i] == 5) {  // dht Temp
 #if defined(USE_DHT)
     float temperature = dht.getTemperature();
     Serial.println("DHT11 Temperature reading: " + String(temperature));
@@ -44,12 +44,7 @@ float get_new_pin_value(uint8_t i) {
 #endif
     return that_stat;
   }
-  if (pinmode[i] == 7)
-  {
-    that_stat = (float)low_pwm_off;
-    return that_stat;
-  }
-  if (pinmode[i] == 8) {  // dht Humidity
+  if (pinmode[i] == 6) {  // dht Humidity
 #if defined(USE_DHT)
     float humidity = dht.getHumidity();
     Serial.println("DHT11 Humidity reading: " + String(humidity));
@@ -65,7 +60,7 @@ float get_new_pin_value(uint8_t i) {
     return that_stat;
   }
 
-  if (pinmode[i] == 9)
+  if (pinmode[i] == 7)
   { // remote
     that_stat = getHttp(String(descr[i])).toFloat();
     return that_stat;
@@ -77,25 +72,24 @@ float get_new_pin_value(uint8_t i) {
 #endif
     return that_stat;
   }
-  if (pinmode[i] == 12) {  // MAC ADRESS
-    // that_stat = stat[i] ^ 1;
+  if (pinmode[i] == 9) {  // MAC ADRESS
     return that_stat;
   }
-  if (pinmode[i] == 13) {  // EncA
+  if (pinmode[i] == 12) {  // EncA
     that_stat = no_internet_timer;
     return that_stat;
   }
-  if (pinmode[i] == 14) {  // EncB
+  if (pinmode[i] == 13) {  // EncB
     // that_stat = stat[i] ^ 1;
     return that_stat;
   }
-  if (pinmode[i] == 15) {  // ads
+  if (pinmode[i] == 14) {  // ads1115
 #if defined(ads1115)
     that_stat = (ads.readADC_SingleEnded(defaultVal[i]));
     return that_stat;
 #endif
   }
-  if (pinmode[i] == 16) {
+  if (pinmode[i] == 10) {
 #if defined(USE_DS18B20)
     sensors.requestTemperatures();
     float tempC = sensors.getTempCByIndex(defaultVal[i]);
@@ -112,7 +106,7 @@ float get_new_pin_value(uint8_t i) {
     return stat[i];
   }
 
-  if (pinmode[i] == 10)
+  if (pinmode[i] == 8)
   { // PowerMeter должен быть последним, иначе ошибка jump to case label
     // double Irms ;
 #if defined(USE_EMON)

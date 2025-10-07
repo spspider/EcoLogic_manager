@@ -106,7 +106,7 @@ void reconnect() {
         Serial.println(F("connected"));
         for (uint8_t i = 0; i < nWidgets; i++) {
           char topic_subscr[30];
-          if ((pinmode[i] == 2) || (pinmode[i] == 3) || (pinmode[i] == 5)) {
+          if ((pinmode[i] == 2) || (pinmode[i] == 3)) {
             snprintf(topic_subscr, sizeof(topic_subscr), "%s/%d", deviceID, i);
             client.subscribe(topic_subscr);
           }
