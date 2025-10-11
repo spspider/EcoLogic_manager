@@ -22,6 +22,5 @@
   "save_stat": false,
   "PWM_frequency": "1000",
   "ir_loop": -1,
-  "BOTtoken":"7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38",
-  "deviceID":"ecoLogic_chme"
+  "BOTtoken":"7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38"
 }

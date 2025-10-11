@@ -35,8 +35,10 @@
 #include <EEPROM.h>
 #include <ESP8266WebServer.h>         //Local WebServer used to
 #include <ESP8266HTTPUpdateServer.h>  //OTA needs
+#include <ESP8266HTTPClient.h>
 
 ESP8266HTTPUpdateServer httpUpdater;  // OTA
+HTTPClient http; // client for position and making http requests
 // ###############################
 #if defined(USE_DS18B20)
 #include <OneWire.h>
@@ -133,7 +135,9 @@ char password[32] = "";
 uint8_t ipport = 80;
 /* hostname for mDNS. Should work at least on windows. Try http://esp8266.local */
 const char *myHostname = "esp8266";
-char deviceID[20] = "dev01";  // thing ID - unique device id in our project
+// device_id удален - теперь используется device_id из arduino_client.ino
+extern char device_id[32]; // Объявляем внешнюю переменную
+void generate_device_id(); // Объявляем функцию
 char mqttServerName[60] = "177e3ee7cf004e6ebed04b25d4c51a26.s1.eu.hivemq.cloud";
 unsigned int mqttport = 8883;
 char mqttuser[15] = "dev01";
@@ -196,6 +200,7 @@ Adafruit_ADS1015 ads(0x48);
 
 ///////////////////////////////
 char nodered_address[32] = { 0 };
+char server_url[32] = "https://ecologic.pp.ua";
 
 void setup() {
 pinMode(0, OUTPUT); //hardcode pin D3 (GPIO 0) as output
@@ -297,6 +302,7 @@ delay(100); // Время для стабилизации
 pinMode(0, OUTPUT); //hardcode pin D3 (GPIO 0) as output
 digitalWrite(0, HIGH);
 delay(100); // Время для стабилизации
+
 }
 void resetMillis() {
   millis_offset = millis();

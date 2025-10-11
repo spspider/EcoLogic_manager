@@ -476,7 +476,7 @@ function sendNewValue(button, id) {
 }
 
 function sendAJAX(submit, sendJSON) {
-    server = "/sendAJAX?json=" + sendJSON;
+    server = "/sendAJAX?data=" + sendJSON;
     if (DEBUG == true) {
         var stat_respond = [];
         for (var i = 0; i < Pin_Setup.length; i++) {

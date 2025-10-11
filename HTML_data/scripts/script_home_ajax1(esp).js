@@ -582,7 +582,7 @@ function sendNewValue(button, id) {
 }
 function sendAJAX(submit, sendJSON) {
     //run();//убрать!! возможны зависания, т.к. sendAjax посылается каждый интервал, указанный в setReloadPeriod
-    server = "/sendAJAX?json=" + sendJSON;
+    server = "/sendAJAX?data=" + sendJSON;
     readTextFile(server, RespondCode);
     //send_request(submit, server);
     return false;

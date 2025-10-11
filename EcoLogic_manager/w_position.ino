@@ -14,7 +14,7 @@ String getHttp(String request) {
     return "fail";
   }
   
-  HTTPClient http;
+
   Serial.print("[HTTP] begin...\n");
   http.begin(wclient, "http://" + request);
   http.setTimeout(5000);

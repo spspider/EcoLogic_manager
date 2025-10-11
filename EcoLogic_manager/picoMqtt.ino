@@ -56,7 +56,7 @@ bool setup_picoMqtt() {
     // Subscribe to all topics for each widget
     for (uint8_t i = 0; i < nWidgets; i++) {
         char topic[32];
-        snprintf(topic, sizeof(topic), "%s/%d", deviceID, i);
+        snprintf(topic, sizeof(topic), "%s/%d", device_id, i);
         mqtt->subscribe(topic, [](const char * topic, const char * payload) {
             const char *lastSlash = strrchr(topic, '/');
             char idx = 0;

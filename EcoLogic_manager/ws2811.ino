@@ -103,7 +103,7 @@ bool LoadData_set_leds(char json[400]) {
   //running_led = true;
   DynamicJsonBuffer jsonBuffer;
   //char json[] =
-  //ws2811AJAXset?json={%22g1%22:[192,192],%22g3%22:[192,192],%22num%22:2,%22br%22:255,%22wh%22:0}
+  //ws2811AJAXset?data={%22g1%22:[192,192],%22g3%22:[192,192],%22num%22:2,%22br%22:255,%22wh%22:0}
   JsonObject& root = jsonBuffer.parseObject(json);
   if (!root.success()) {
     Serial.println("parseObject() failed LoadData:");

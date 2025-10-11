@@ -60,7 +60,7 @@ void pubConfig()  // that is how I publish config, you dont need to adhere same 
 {
   char sTopic_ch[20];
   for (uint8_t i = 0; i < nWidgets; i++) {
-    snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d", deviceID, i);
+    snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d", device_id, i);
     pubStatus(sTopic_ch, setStatus(stat[i]));
   }
 }
@@ -87,7 +87,7 @@ void callback(char *topic, byte *payload, uint8_t length)  // callback for recie
   Serial.println(newValue);
 
   char sTopic_ch[24];
-  snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d/status", deviceID, i);
+  snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d/status", device_id, i);
   pubStatus(sTopic_ch, setStatus(newValue));
 }
 
@@ -102,12 +102,12 @@ void reconnect() {
   if (now - lastAttempt > 30000) { // Попытка каждые 30 сек
     if (attemptCount < 3 && !client.connected()) {
       Serial.print(F("Attempting MQTT connection..."));
-      if (client.connect(deviceID, mqttuser, mqttpass)) {
+      if (client.connect(device_id, mqttuser, mqttpass)) {
         Serial.println(F("connected"));
         for (uint8_t i = 0; i < nWidgets; i++) {
           char topic_subscr[30];
           if ((pinmode[i] == 2) || (pinmode[i] == 3)) {
-            snprintf(topic_subscr, sizeof(topic_subscr), "%s/%d", deviceID, i);
+            snprintf(topic_subscr, sizeof(topic_subscr), "%s/%d", device_id, i);
             client.subscribe(topic_subscr);
           }
         }
@@ -149,7 +149,7 @@ void pubClientOneSecEvent() {  //this event call each second, for reduce load on
       for (uint8_t i = 0; i < nWidgets; i++) {
         float x = get_new_pin_value(i);
         stat[i] = (int)x;
-        snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d/status", deviceID, i);
+        snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d/status", device_id, i);
         pubStatus(sTopic_ch, setStatus(x));
       }
       mqttspacing_oldtime = onesec_255;

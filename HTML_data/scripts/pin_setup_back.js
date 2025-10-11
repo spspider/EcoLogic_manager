@@ -1,7 +1,7 @@
 ﻿var max_number_chosed = 12;
 
 function loadlimits() {
-    readTextFile("/function?json={\"pin_setup_limits\":\"1\"}", function (callback) {
+    readTextFile("/function?data={\"pin_setup_limits\":\"1\"}", function (callback) {
         max_number_chosed = (callback !== 404 && isNaN(parseInt(callback))) ? 8 : parseInt(callback) || 12;
         Activation_check();
     });
@@ -81,7 +81,7 @@ function getAvailablePins(mode) {
 }
 
 function Activation_check() {
-    readTextFile('/function?json={\"Activation\":\"0\"}', function (callback) {//проверить если активирован
+    readTextFile('/function?data={\"Activation\":\"0\"}', function (callback) {//проверить если активирован
         if (parseInt(callback) === 1) {//Activated
             Activation = 1;
         } else {//не активирован
@@ -269,7 +269,7 @@ function set(jsonStr) {
             if (dataOther) {
                 MQTT_adress = "MQTT topic: " + dataOther.deviceID + "/" + description + "/" + i + "\n";
                 MQTT_adress += "MQTT control topic: " + dataOther.deviceID + "/" + description + "/" + i + "/" + "status" + "\n";
-                MQTT_adress += "remote control HTTP: " + window.location.host + "/aRest?Json={pin:\"" + inputPin.indexOf(parseInt(jsonStr.pin[i])) + "\",\"val\":\"1\"}";
+                MQTT_adress += "remote control HTTP: " + window.location.host + "/aRest?data={pin:\"" + inputPin.indexOf(parseInt(jsonStr.pin[i])) + "\",\"val\":\"1\"}";
             }
         }
 
@@ -421,7 +421,7 @@ function choisedPinmode(i, makeInput) {
                 }
                 break;
             case inputPinmode[9]:
-                setVal("string_descr" + i, "192.168.1.108/aRest?Json={stat:2,val:1}");
+                setVal("string_descr" + i, "192.168.1.108/aRest?data={stat:2,val:1}");
                 break;
             case inputPinmode[100]: //IR
                 if (typeof jsonStrIR.name === "undefined") {

@@ -30,10 +30,10 @@ defaultVal[] = 1, it means, if you want to set relay to on, you have to pass "0"
 code should create something like this:
 
   backyard_light_on:
-    url: "http://192.168.1.150/sendAJAX?json={\"t\":2,\"v\":0}" where "t" is array number, and "v" is value
+    url: "http://192.168.1.150/sendAJAX?data={\"t\":2,\"v\":0}" where "t" is array number, and "v" is value
     method: GET - always will be GET request
   backyard_light_off:
-    url: "http://192.168.1.150/sendAJAX?json={\"t\":2,\"v\":1}"
+    url: "http://192.168.1.150/sendAJAX?data={\"t\":2,\"v\":1}"
     method: GET
 
 IP address 192.168.1.150 - should be taken from device address using javscript
@@ -58,7 +58,7 @@ for the sensor value it should generate sensor like this:
 
 rest:
   # Temperature Sensor
-  - resource: "http://192.168.1.150/sendAJAX?json=%7B%22t%22:5,%22v%22:0%7D"
+  - resource: "http://192.168.1.150/sendAJAX?data=%7B%22t%22:5,%22v%22:0%7D"
     scan_interval: 60 # hardcoded
     method: GET #hardcoded
     sensor:
@@ -75,7 +75,7 @@ for the slider (range) it should generate output like this:
 """
 rest_command:
   set_nightlight:
-    url: "http://192.168.1.150/sendAJAX?json={\"t\":3,\"v\":{{ value }}}" same IP address from URL, 3 - that is array number, 
+    url: "http://192.168.1.150/sendAJAX?data={\"t\":3,\"v\":{{ value }}}" same IP address from URL, 3 - that is array number, 
     method: GET
 
 input_number:
@@ -214,10 +214,10 @@ function generateSwitchConfig(description, clearDescription, index, defaultVal, 
   return {
     restCommands: `
       ${clearDescription}_on:
-        url: "http://${ip}/sendAJAX?json={\\"t\\":${index},\\"v\\":${onValue}}"
+        url: "http://${ip}/sendAJAX?data={\\"t\\":${index},\\"v\\":${onValue}}"
         method: GET
       ${clearDescription}_off:
-        url: "http://${ip}/sendAJAX?json={\\"t\\":${index},\\"v\\":${offValue}}"
+        url: "http://${ip}/sendAJAX?data={\\"t\\":${index},\\"v\\":${offValue}}"
         method: GET
     `,
     switches: `
@@ -260,7 +260,7 @@ function generateTemplateSensorConfig(clearDescription, index, ip, ip_name) {
 function generateSensorConfig(description, clearDescription, index, ip, ip_name) {
   return `
     - platform: rest
-      resource: "http://${ip}/sendAJAX?json=%7B%22t%22:${index},%22v%22:0%7D"
+      resource: "http://${ip}/sendAJAX?data=%7B%22t%22:${index},%22v%22:0%7D"
       scan_interval: 60
       method: GET
       sensors:
@@ -274,7 +274,7 @@ function generateSensorConfig(description, clearDescription, index, ip, ip_name)
 function generateTemperatureSensorConfig(description, clearDescription, index, ip, ip_name) {
   return `
     - platform: rest
-      resource: "http://${ip}/sendAJAX?json=%7B%22t%22:${index},%22v%22:0%7D"
+      resource: "http://${ip}/sendAJAX?data=%7B%22t%22:${index},%22v%22:0%7D"
       scan_interval: 60
       method: GET
       sensors:
@@ -289,7 +289,7 @@ function generateTemperatureSensorConfig(description, clearDescription, index, i
 function generateHumiditySensorConfig(description, clearDescription, index, ip, ip_name) {
   return `
     - platform: rest
-      resource: "http://${ip}/sendAJAX?json=%7B%22t%22:${index},%22v%22:0%7D"
+      resource: "http://${ip}/sendAJAX?data=%7B%22t%22:${index},%22v%22:0%7D"
       scan_interval: 60
       method: GET
       sensors:
@@ -305,7 +305,7 @@ function generateRangeConfig(description, clearDescription, index, ip, ip_name) 
   return {
     restCommands: `
       set_${clearDescription}:
-        url: "http://${ip}/sendAJAX?json={\\"t\\":${index},\\"v\\":{{ value }}}"
+        url: "http://${ip}/sendAJAX?data={\\"t\\":${index},\\"v\\":{{ value }}}"
         method: GET
     `,
     inputNumbers: `
@@ -346,7 +346,7 @@ function generateFullSensorConfig(ip, ip_name) {
   return `
     - platform: rest
       name: esp8266_status${ip_name}
-      resource: "http://${ip}/sendAJAX?json=%7B%22t%22:127,%22v%22:0%7D"
+      resource: "http://${ip}/sendAJAX?data=%7B%22t%22:127,%22v%22:0%7D"
       scan_interval: 60
       method: GET
       value_template: >
@@ -358,7 +358,7 @@ function generateFullSensorConfig(ip, ip_name) {
   `;
 }
 /*
-# - resource: "http://192.168.1.150/sendAJAX?json=%7B%22t%22:127,%22v%22:0%7D" # t=127 is status
+# - resource: "http://192.168.1.150/sendAJAX?data=%7B%22t%22:127,%22v%22:0%7D" # t=127 is status
 #   scan_interval: 60
 #   method: GET
 #   sensor:

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Выбор устройства</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 50px; }
+        .device { padding: 20px; margin: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .device:hover { background-color: #f0f0f0; cursor: pointer; }
+        .device h3 { margin: 0 0 10px 0; }
+        .device p { margin: 5px 0; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>Выберите устройство для управления</h1>
+    <div id="devices"></div>
+
+    <script>
+        async function loadDevices() {
+            try {
+                const response = await fetch('/api/devices');
+                const devices = await response.json();
+                
+                const container = document.getElementById('devices');
+                container.innerHTML = '';
+                
+                devices.forEach(device => {
+                    const div = document.createElement('div');
+                    div.className = 'device';
+                    div.onclick = () => selectDevice(device.device_id);
+                    
+                    const lastSeen = new Date(device.last_seen).toLocaleString();
+                    
+                    div.innerHTML = `
+                        <h3>${device.device_id}</h3>
+                        <p>Последняя активность: ${lastSeen}</p>
+                        <p>Пинов настроено: ${device.pin_count || 'неизвестно'}</p>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+                
+                if (devices.length === 0) {
+                    container.innerHTML = '<p>Устройства не найдены. Подключите Arduino к системе.</p>';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки устройств:', error);
+                document.getElementById('devices').innerHTML = '<p>Ошибка загрузки устройств</p>';
+            }
+        }
+        
+        function selectDevice(deviceId) {
+            window.location.href = `/api/home?device_id=${deviceId}`;
+        }
+        
+        loadDevices();
+    </script>
+</body>
+</html>

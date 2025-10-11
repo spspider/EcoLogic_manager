@@ -35,21 +35,21 @@
             <canvas id="chartUpper"></canvas>
             <canvas id="chartBottom"></canvas>
             <div class="form-group">
-                <label class="control-label col-sm-2">время нагрева:</label>
+                <label class="control-label col-sm-2">Heating time:</label>
                 <div class="col-sm-10">
                     <input class="form-control" type="range" id="mU" max="700"
-                           onclick="sendNewValue(this)">верхний</input>
+                           onclick="sendNewValue(this)">up</input>
                     <input class="form-control" type="range" id="mB" max="700"
-                           onclick="sendNewValue(this)">нижний</input>
+                           onclick="sendNewValue(this)">down</input>
                 </div>
             </div>
             <br>
-            <label class="control-label col-sm-2">температура:</label>
+            <label class="control-label col-sm-2">temp:</label>
             <div class="col-sm-10">
                 <br><input class="form-control" type="range" id="tU" onclick="sendNewValue(this)"
-                           max="500">верхний</input>
+                           max="500">up</input>
                 <input class="form-control" type="range" id="tB" onclick="sendNewValue(this)"
-                       max="250">нижний</input>
+                       max="250">down</input>
             </div>
             <div class="btn-group">
                 <button class='btn btn-block btn-default' id="btnstart" onclick="sendNewValue(this)">start</button>
@@ -57,7 +57,7 @@
             </div>
             <div class="row">
                 <div class="col-lg-6">
-                    частота обновления
+                    update frequency (ms):
                     <input type="number" class='form-control' id="refresh-rate"/>
                     <input id="run_range" class='form-control' type='range' min='500' max='10000' step='100'
                            onchange='setReloadPeriod(this)'/>
@@ -71,12 +71,12 @@
             <p id="demo1"></p>
            -->
             <div class="btn-group btn-group-justified">
-                <a class='btn btn-block btn-default' href='/'>Управление</a>
+                <a class='btn btn-block btn-default' href='/'>Control</a>
                 <a class='btn btn-block btn-default' href='/wifi'>Wifi</a>
-                <a class='btn btn-block btn-default' href='/other_setup'>подключения</a>
-                <a class='btn btn-block btn-default' href='/pin_setup'>кнопки</a>
-                <a class='btn btn-block btn-default' href='/IR_setup'>ИК</a>
-                <a class='btn btn-block btn-default' href='/condition'>условия</a>
+                <a class='btn btn-block btn-default' href='/other_setup'>Connections</a>
+                <a class='btn btn-block btn-default' href='/pin_setup'>Buttons</a>
+                <a class='btn btn-block btn-default' href='/IR_setup'>IR</a>
+                <a class='btn btn-block btn-default' href='/condition'>Conditions</a>
                 <a class='btn btn-block btn-default' href='/help'>?</a>
             </div>
             <!--

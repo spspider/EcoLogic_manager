@@ -9,7 +9,7 @@ var Naumber_in_condition = 4;
 function load() {
     id = getParameterByName('id');
 
-    readTextFile("/function?json={'cond_setup':\"1\"}", function (callback) {
+    readTextFile("/function?data={'cond_setup':\"1\"}", function (callback) {
         if (testJson(callback)) {
             JSON.parse(callback);
             var Data_limits = JSON.parse(callback);
@@ -432,7 +432,7 @@ function getCondBack(act, actOn, i) {
                 var id = document.getElementById("NumberWidget").selectedIndex;
 
 
-                readTextFile("function?json={\"NextRepeat\":1,\"NextRepeatCondition\":\"" + id + "\",\"NextRepeatNumber\":\"" + i + "\"}", function (callback) {
+                readTextFile("function?data={\"NextRepeat\":1,\"NextRepeatCondition\":\"" + id + "\",\"NextRepeatNumber\":\"" + i + "\"}", function (callback) {
                     var data = JSON.parse(callback);
                     document.getElementById("output").appendChild(alert_message(JSON.stringify(callback)));
                     var time = data.times;
@@ -775,7 +775,7 @@ function typeActChange(btnId) {
 
             break;
         case act[3]: //нажать удаленную кнопку
-            result_pins += "<input class='form-control' id='typePins" + btnId + "' type='text' placeholder='192.168.1.108/aRest?Json={\"pin\":\"1\",\"val\":\"100\"}' title='192.168.1.108/aRest?Json={\"pin\":\"1\",\"val\":\"100\"} \n 192.168.1.108- адрес устройства \n pin - номер ножки,\n val - ее значение' value='192.168.1.108/aRest?Json={pin:1,val:100}' size='100'>";
+            result_pins += "<input class='form-control' id='typePins" + btnId + "' type='text' placeholder='192.168.1.108/aRest?data={\"pin\":\"1\",\"val\":\"100\"}' title='192.168.1.108/aRest?data={\"pin\":\"1\",\"val\":\"100\"} \n 192.168.1.108- адрес устройства \n pin - номер ножки,\n val - ее значение' value='192.168.1.108/aRest?data={pin:1,val:100}' size='100'>";
             setHTML("OptionWhich" + btnId, getHTML("OptionWhich" + btnId) + result_pins);//
             break;
         case act[4]: //отправить Email
@@ -999,7 +999,7 @@ function getTimeOfNextRepeat(btnId) {
     t.setAttribute("id", "NextRepeat" + btnId);
     element.appendChild(t);
 
-    readTextFile("function?json={\"NextRepeat\":\"1\",\"NextRepeatCondition\":\"" + id + "\",\"NextRepeatNumber\":\"" + btnId + "\"}", function (callback) {
+    readTextFile("function?data={\"NextRepeat\":\"1\",\"NextRepeatCondition\":\"" + id + "\",\"NextRepeatNumber\":\"" + btnId + "\"}", function (callback) {
         var data = JSON.parse(callback);
         document.getElementById("output").appendChild(alert_message(JSON.stringify(callback)));
         var time = data.times;

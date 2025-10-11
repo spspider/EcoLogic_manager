@@ -1,118 +1,111 @@
 var set_real_time;
-var xmlHttp = createXmlHttpObject();
-
-//////////for-json
-
-function toJSONString(form) {
-    var obj = {};
-    var elements = form.querySelectorAll("input, select, textarea");
-    for (var i = 0; i < elements.length; ++i) {
-        var element = elements[i];
-        var name = element.name;
-        var value = element.value;
-
-        if (name) {
-            obj[name] = value;
-        }
-    }
-
-    return JSON.stringify(obj);
-}
 
 document.addEventListener("DOMContentLoaded", function () {
-    setHTML("btmBtns", bottomButtons());
-    load();
-
+    loadSettings();
     SendTime_onload();
-    //onLoad();
 });
 
-/*
- function onLoad() {
- var form = document.getElementById("form");
- var output = document.getElementById("output");
- form.addEventListener("submit", function (e) {
- e.preventDefault();
- var json = "jsonArray="+toJSONString(this);
- output.innerHTML = json;
- xmlHttp.open("POST", '/other_setup', true);
- xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
- xmlHttp.send(json_upload);
- alert(json);
- }, false);
- }
- */
-function CatchForm() {
-    var form = document.getElementById("form");
-    var output = document.getElementById("output");
-    var JsonString = toJSONString(form);
+function loadSettings() {
+    // Загружаем device_id с Arduino
+    setHTML("btmBtns", bottomButtons());
+    readTextFile("function?data={\"get_device_id\":1}", function (deviceId) {
+        // Загружаем настройки из файла
+        readTextFile("other_setup.txt", function (settings) {
+            const data = {};
 
-    var JsonStringParse = JSON.parse(JsonString);
-    JsonStringParse.iot_enable = getVal("iot_enable");
-    JsonStringParse.send_to_nodeRed = getVal("send_to_nodeRed");
-    JsonStringParse.geo_enable = getVal("geo_enable");
-    JsonStringParse.wifi_scan = getVal("wifi_scan");
-    JsonStringParse.ir_loop = getVal("ir_loop");
-    JsonStringParse.loop_433 = getVal("loop_433");
-    JsonStringParse.ws8211_loop = getVal("ws8211_loop");
-    JsonStringParse.save_stat = getVal("save_stat");
-    JsonStringParse.PWM_frequency = getVal("PWM_frequency");
-    JsonStringParse.IR_recieve = getVal("IR_recieve");
-    if (JsonStringParse.emaillogin) {
-        JsonStringParse.emaillogin = b64EncodeUnicode(JsonStringParse.emaillogin);
-    }
-    if (JsonStringParse.password_email) {
-        JsonStringParse.password_email = b64EncodeUnicode(JsonStringParse.password_email);
-    }
-    var json = "jsonArray=" + JSON.stringify(JsonStringParse, null, 2);
-    output.innerHTML = json;
+            // Добавляем deviceID
+            if (deviceId && deviceId !== '404') {
+                data.deviceID = deviceId;
+                localStorage.setItem('deviceID', deviceId);
+            }
 
+            // Добавляем настройки
+            if (settings && settings !== '404') {
+                try {
+                    const fileData = JSON.parse(settings);
+                    Object.assign(data, fileData);
+                    localStorage.setItem('otherSetupSettings', settings);
+                } catch (e) {
+                    console.error('Error parsing settings:', e);
+                }
+            }
 
-    saveData("other_setup.txt", JsonStringParse);
-    /*
-     xmlHttp.open("POST", '/other_setup', true);
-     xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-     xmlHttp.send(json);
-
-     xmlHttp.onloadend = function () {
-     setHTML("output", json);
-     };
-     xmlHttp.onreadystatechange = function () {
-     if (xmlHttp.readyState === 4 && xmlHttp.status == "200") {
-     //callback(xmlHttp.responseText);
-     alert(xmlHttp.responseText);
-     }
-     }
-     */
-    //alert(json);
+            applySettings(data);
+        });
+    });
 }
 
-function saveData(filename, data) {
+function applySettings(data) {
+    // Заменяем {{}} в HTML
+    let html = document.body.innerHTML;
+    Object.keys(data).forEach(key => {
+        html = html.replace(new RegExp('{{' + key + '}}', 'g'), data[key] || '');
+    });
+    document.body.innerHTML = html;
 
-    var xmlHttp = createXmlHttpObject();
-
-    var file = new Blob([JSON.stringify(data, null, 2)], { type: "text/plain;charset=utf-8" });
-    var a = new FormData();
-    a.append("data", file, filename);
-    xmlHttp.open("POST", "/edit");
-    xmlHttp.send(a);
-
-    xmlHttp.onreadystatechange = function () {
-
-        if (xmlHttp.readyState == 4) {
-            if (xmlHttp.status != 200) alert("ERROR[" + xmlHttp.status + "]: " + xmlHttp.responseText);
-            else {
-                alert(xmlHttp.responseText);
-
+    // Применяем настройки к элементам
+    Object.keys(data).forEach(key => {
+        const element = document.getElementById(key);
+        if (element) {
+            if (element.type === 'checkbox') {
+                element.checked = data[key];
+            } else {
+                element.value = data[key] || '';
             }
         }
+    });
 
+    if (data.emaillogin) setVal('emaillogin', b64DecodeUnicode(data.emaillogin));
+    if (data.password_email) setVal('password_email', b64DecodeUnicode(data.password_email));
+    if (data.PWM_frequency) setHTML("PWMfreq", parseInt(data.PWM_frequency));
 
-    }
-    xmlHttp.onloadend = function () {
+    // Добавляем кнопки только один раз
 
-    }
 }
+
+
+function CatchForm() {
+    const formData = collectFormData();
+    const jsonString = JSON.stringify(formData, null, 2);
+
+    // Отображаем JSON для диагностики
+    setHTML("output", jsonString);
+
+    localStorage.setItem('otherSetupSettings', jsonString);
+
+    saveData("other_setup.txt", formData, function (response) {
+        document.getElementById("output").appendChild(alert_message('Settings saved successfully!', 4));
+    });
+}
+
+function collectFormData() {
+    const form = document.getElementById("form");
+    const data = {};
+
+    // Собираем все поля формы
+    const elements = form.querySelectorAll("input, select, textarea");
+    elements.forEach(element => {
+        if (element.name && element.name !== 'deviceID') { // Исключаем deviceID
+            if (element.type === 'checkbox') {
+                data[element.name] = element.checked;
+            } else {
+                data[element.name] = element.value;
+            }
+        }
+    });
+
+    // Кодируем пароли
+    if (data.emaillogin) {
+        data.emaillogin = b64EncodeUnicode(data.emaillogin);
+    }
+    if (data.password_email) {
+        data.password_email = b64EncodeUnicode(data.password_email);
+    }
+
+    return data;
+}
+
+// Удаляем дублирующую функцию - используем из helper_func.js
 
 function handleServerResponse() {
     clearTimeout(set_real_time);
@@ -168,14 +161,7 @@ function restart(submit, texts) {
 }
 
 
-function createXmlHttpObject() {
-    if (window.XMLHttpRequest) {
-        xmlHttp = new XMLHttpRequest();
-    } else {
-        xmlHttp = new ActiveXObject('Microsoft.XMLHTTP');
-    }
-    return xmlHttp;
-}
+// Удалено - используем из helper_func.js
 
 
 function SetDate(submit) {
@@ -189,23 +175,9 @@ function SetDate(submit) {
     var time = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
     document.getElementById('BrowserMyDate').value = today;
     document.getElementById('BrowserMyTime').value = time;
-
-    //alert(date);
-    //var nowTime = date.getTime();
-
-    //setTimeout(SetDate(), 1000);
-    SendTime(submit);
 }
 
-function SendTime(submit) {
-    //today = document.getElementById('BrowserMyDate').value;
-    //time = document.getElementById('BrowserMyTime').value;
-    //var someDate = new Date(time);
-    //var time = Math.round(new Date().getTime() / 1000);
 
-    //SendTime_onload();
-
-}
 
 function SendTime_onload() {
 
@@ -220,10 +192,8 @@ function SendTime_onload() {
     jsonStr2["h"] = newDate.getHours();
     jsonStr2["m"] = newDate.getMinutes();
     json = JSON.stringify(jsonStr2);
-    //document.getElementById("testJSON").innerHTML = JSON.stringify(jsonStr2);
     var jsonPretty = JSON.stringify(JSON.parse(json), null, 2);
     var json_upload = "?DateTime=" + json;
-    //json_upload.append("Number", btnId);
     readTextFile("/setDate" + json_upload, function (readback) {
         try {
             var timeReadBack = JSON.parse(readback);
@@ -246,297 +216,39 @@ function SendTime_onload() {
             //////////////////////////
         }
     });
-    /*
-     var xmlHttp = createXmlHttpObject();
-     xmlHttp.open("POST", '/setDate', true);
-     xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-     xmlHttp.send(json_upload);
-     xmlHttp.onloadend = function () {
-     //setHTML("output", json);
-     };
-     xmlHttp.onreadystatechange = function () {
-     if (xmlHttp.readyState === 4 && xmlHttp.status == "200") {
-     callback(xmlHttp.responseText);
-     if (xmlHttp.responseText="TimeSetted"){
-     alert("новое время установлено!");
-     }
-     //alert(xmlHttp.responseText);
-     }
-     }
-     */
 
-    //setHTML("test", json);
-    //send_request(submit, server);
 }
 
 function setTimeBrowser(submit) {
-    //currentTime = new Date();
-    //time = currentTime.getTime();
-    //hours = currentTime.getHours();
-    //BrowserMyDate
-    //alert(time);
     document.getElementsById('BrowserMyTime').value = "10:20:00";
     server = "/setTime?Time='10:20:00'";
     send_request(submit, server);
 }
-// ...existing code...
 
 function testMQTTConnection() {
-    // Gather MQTT fields from the form
-    var form = document.getElementById("form");
-    var JsonString = toJSONString(form);
-    var JsonStringParse = JSON.parse(JsonString);
-
-    // Ensure checkboxes are included
-    JsonStringParse.iot_enable = getVal("iot_enable");
-
-    // Only send MQTT-relevant fields
-    var mqttData = {
-        iot_enable: JsonStringParse.iot_enable,
-        mqttServerName: JsonStringParse.mqttServerName,
-        mqttuser: JsonStringParse.mqttuser,
-        mqttpass: JsonStringParse.mqttpass,
-        mqttport: JsonStringParse.mqttport,
-        mqttspacing: JsonStringParse.mqttspacing,
-        deviceID: JsonStringParse.deviceID
-    };
-
-    var resultSpan = document.getElementById("mqtt_test_result");
-    resultSpan.innerHTML = "Testing...";
-
-    sendAjax("/test_mqtt", JSON.stringify(mqttData), function (response) {
-        var resultSpan = document.getElementById("mqtt_test_result");
-        try {
-            var resp = JSON.parse(response);
-            if (resp.success) {
-                resultSpan.innerHTML = "<span style='color:green'>" + resp.message + "</span>";
-            } else {
-                resultSpan.innerHTML = "<span style='color:red'>" + resp.message + "</span>";
-            }
-        } catch (e) {
-            resultSpan.innerHTML = "<span style='color:red'>Unexpected response</span>";
-        }
-    });
+    alert('MQTT test not implemented yet');
 }
 
-// ...existing code...
-function load() {
-
-    try {
-        readTextFile("other_setup.txt", function (settings) {
-            try {
-                setHTML("input", getHTML("input") + settings);
-                //jsonResponse = jsonResponse !== "" ? $.parseJSON(settings) : {};
-                jsonResponse = JSON.parse(settings);
-                loadBlock(settings);
-            } catch (e) {
-                setHTML("input", getHTML("input") + e);
-            }
-        });
-    } catch (e) {
-        setHTML("input", getHTML("input") + e);
-    }
-
+function FreqChange() {
+    setHTML("PWMfreq", parseInt(getVal("PWM_frequency")));
 }
 
-
-function readTextFile(file, callback) {
-    //var rawFile = new XMLHttpRequest();
-    var xmlHttp = createXmlHttpObject();
-    xmlHttp.overrideMimeType("application/json");
-    xmlHttp.open("GET", file, true);
-    xmlHttp.onreadystatechange = function () {
-        if (xmlHttp.readyState === 4) {
-            if (xmlHttp.status === 200) {
-                callback(xmlHttp.responseText);
-            } else {
-                callback(null);
-            }
-        } else {
-            //callback(null);
-        }
-    }
-    xmlHttp.send(null);
+function send_request(submit, server) {
+    var request = new XMLHttpRequest();
+    request.open("GET", server, true);
+    request.send();
 }
 
-/*
- function load2() {
- if (xmlHttp.readyState == 0 || xmlHttp.readyState == 4) {
- xmlHttp.open('PUT', 'settings.txt', true);
-
- xmlHttp.send(null);
- xmlHttp.onload = function (e) {
- jsonResponse = JSON.parse(xmlHttp.responseText);
- loadBlock();
-
- }
- }
- }
- */
-function b64EncodeUnicode(str) {
-    // first we use encodeURIComponent to get percent-encoded UTF-8,
-    // then we convert the percent encodings into raw bytes which
-    // can be fed into btoa.
-    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
-        function toSolidBytes(match, p1) {
-            return String.fromCharCode('0x' + p1);
-        }));
-}
-
-function b64DecodeUnicode(str) {
-    // Going backwards: from bytestream, to percent-encoding, to original string.
-    return decodeURIComponent(atob(str).split('').map(function (c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-}
+// Удалено - используем из helper_func.js
 
 function TestIOT(button) {
 
 }
 
-function loadBlock(settings) {
-    data2 = JSON.parse(settings);
-    if (data2) {
-        if (data2.emaillogin) {
-            data2.emaillogin = b64DecodeUnicode(data2.emaillogin);
-        }
-        if (data2.password_email) {
-            data2.password_email = b64DecodeUnicode(data2.password_email);
-        }
-        //data2.iot_enable
+// Удаляем loadBlock - заменена на applySettings
 
-    }
 
-    data = document.getElementsByTagName('body')[0].innerHTML;
-    var new_string;
-    for (var key in data2) {
-        new_string = data.replace(new RegExp('{{' + key + '}}', 'g'), data2[key]);
-        data = new_string;
-    }
-    document.getElementsByTagName('body')[0].innerHTML = new_string;
-    setVal("iot_enable", data2.iot_enable);
-    setVal("send_to_nodeRed", data2.send_to_nodeRed);
-    setVal("geo_enable", data2.geo_enable);
-    setVal("wifi_scan", data2.wifi_scan);
-    setVal("ir_loop", data2.ir_loop);
-    setVal("loop_433", data2.loop_433);
-    setVal("ws8211_loop", data2.ws8211_loop);
-    setVal("save_stat", data2.save_stat);
-    setVal("PWM_frequency", data2.PWM_frequency);
-    setVal("IR_recieve", data2.IR_recieve);
-    setHTML("PWMfreq", parseInt(data2.PWM_frequency));
-    //handleServerResponse();
-    //onLoad();
-}
 
-function FreqChange() {
-    setHTML("PWMfreq", parseInt(getVal("PWM_frequency")));
-    /*
-    readTextFile("function?json={\"PWM_function\":" + parseInt(getVal("PWM_frequency")) + "}", function (callback) {
-        //var data = JSON.parse(callback);
-        //document.getElementById("output").appendChild(alert_message(JSON.stringify(callback)));
-        setHTML("PWMfreq", callback*100);
-        //setHTML("NextRepeat0", time);
-    })
-
-     */
-}
-
-function send_request(submit, server) {
-    request = new XMLHttpRequest();
-    request.open("GET", server, true);
-    request.send();
-    save_status(submit, request);
-}
-
-function save_status(submit, request) {
-    old_submit = submit.value;
-    request.onreadystatechange = function () {
-        if (request.readyState != 4) return;
-        submit.value = request.responseText;
-        setTimeout(function () {
-            submit.value = old_submit;
-            submit_disabled(false);
-        }, 1000);
-    }
-    submit.value = 'Wait...';
-    submit_disabled(true);
-}
-
-function submit_disabled(request) {
-    var inputs = document.getElementsByTagName("input");
-    for (var i = 0; i < inputs.length; i++) {
-        if (inputs[i].type === 'submit') {
-            inputs[i].disabled = request;
-        }
-    }
-}
-
-function toggle(target) {
-    var curVal = document.getElementById(target).className;
-    document.getElementById(target).className = (curVal === 'hidden') ? 'show' : 'hidden';
-}
-
-function setHTML(ID, value) {
-    if (document.getElementById(ID)) {
-        document.getElementById(ID).innerHTML = value; //range
-    } else {
-        if (document.getElementById("test")) {
-            document.getElementById("test").innerHTML = "wrong_setHTML:'" + ID + "' value:" + value; //range
-        }
-    }
-}
-
-function getHTML(ID) {
-    var value;
-    if (document.getElementById(ID)) {
-        value = document.getElementById(ID).innerHTML; //range
-        return value;
-    } else {
-        if (document.getElementById("test")) {
-            document.getElementById("test").innerHTML = "wrong_getHTML:'" + ID + "'"; //range
-        }
-    }
-    return undefined;
-}
-
-function getVal(ID) {
-    var value = -1;
-    var object;
-    if (document.getElementById(ID)) {
-        object = document.getElementById(ID);
-        if (object.type == "checkbox") {
-            value = document.getElementById(ID).checked;
-            //alert(value);
-        } else {
-            value = document.getElementById(ID).value; //range
-        }
-    } else {
-        if (document.getElementById("test")) {
-            //  document.getElementById("test").innerHTML += "<br>wrong:'" + ID + "'"; //range
-        }
-    }
-    return value;
-}
-
-function setVal(ID, value) {
-    var object;
-
-    if (value !== undefined) {
-        //alert(value);
-        if (document.getElementById(ID)) {
-            object = document.getElementById(ID);
-            if (object.type == "checkbox") {
-                document.getElementById(ID).checked = value;
-            } else {
-                document.getElementById(ID).value = value;
-            }
-        } else {
-            if (document.getElementById("test")) {
-                //document.getElementById("test").innerHTML += "<br>wrong_setVal:'" + ID + "' value:" + value; //range
-            }
-        }
-    }
-}
+// Удаляем дублирующие функции - используем из helper_func.js
 
 

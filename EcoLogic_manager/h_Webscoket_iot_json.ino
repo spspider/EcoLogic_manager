@@ -1,5 +1,3 @@
-#include <ESP8266HTTPClient.h>
-
 void callback_socket(uint8_t i, int payload_is) {
   bool that_Ajax = false;
   bool saveEEPROM = false;

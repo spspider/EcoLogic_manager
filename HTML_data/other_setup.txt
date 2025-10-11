@@ -1,12 +1,10 @@
 {
-  "iot_enable": true,
   "mqttServerName": "177e3ee7cf004e6ebed04b25d4c51a26.s1.eu.hivemq.cloud",
   "mqttuser": "dev01",
   "mqttspacing": "60",
   "mqttport": "8883",
   "mqttpass": "5506487",
   "prefix": "/IoTmanager",
-  "deviceID": "dev01",
   "smtp_arr": "mail.smtp2go.com",
   "smtp_port": "2525",
   "to_email_addr": "spspider95@gmail.com",
@@ -24,5 +22,6 @@
   "PWM_frequency": "1000",
   "ir_loop": -1,
   "BOTtoken":"7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38",
-  "send_to_nodeRed":false
+  "send_to_nodeRed":false,
+  "server_url": "ecologic.pp.ua"
 }

@@ -53,7 +53,7 @@ void handleRoot() {
     "<p><br><a href='/pin_setup'><button>pin setup</button></a></p>"
     "<p><br><a href='/IR_setup'><button>IR</button></a></p>"
     "<p><br><a href='/condition'><button>condition</button></a></p>"
-    "<p><br><a href='/function?json={reboot:1}'><button>reboot</button></a></p>"));
+    "<p><br><a href='/function?data={reboot:1}'><button>reboot</button></a></p>"));
 
   server.send(200, "text / html", Page);
 }

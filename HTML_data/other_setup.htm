@@ -3,24 +3,18 @@
 
 <head>
     <title>Other setup</title>
-
-
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <link rel="stylesheet" type="text/css" href="scripts/style_generated.css">
-    <!-- <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"> -->
-    <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
     <script defer type="text/javascript" src="scripts/helper_func.js"></script>
     <script type="text/javascript" src="scripts/other_setup.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="public" />
-
 </head>
 
 <body>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             loadBootstrap();
-
         });
     </script>
     <div class="container">
@@ -30,12 +24,14 @@
                     <h4>IoT client setup</h4>
                     <div class="row">
                         <div class="col-sm-6">
+                            <!--  DO NOT ALTER THIS COMMENTS 
                             Use IoT
                             <input type='checkbox' class="form-control" name='iot_enable' id="iot_enable"
                                 value="Use IoT" />
                             Server
                             <input type='text' value="{{mqttServerName}}" class="form-control"
-                                placeholder='server (m20.cloudmqtt.com)' name='mqttServerName' /> User
+                                                                                                                                                placeholder='server (m20.cloudmqtt.com)' name='mqttServerName' />
+                                                                                                                                            User
                             <input type='text' value="{{mqttuser}}" class="form-control" placeholder='client (name)'
                                 name='mqttuser' />
                             Send interval
@@ -43,43 +39,46 @@
                                 name='mqttspacing' />
                             Port
                             <input type='text' value="{{mqttport}}" class="form-control" placeholder='port (6231)'
-                                name='mqttport' /> Password
+                                name='mqttport' />
+                            Password
                             <input type='text' value="{{mqttpass}}" class="form-control" placeholder='password (pass)'
-                                name='mqttpass' />
-
-                            Device ID:
-                            <input type='text' value="{{deviceID}}" class="form-control" placeholder='dev01-kitchen'
-                                name='deviceID' />
-                            <!-- New Test Connection Button -->
+                                name='mqttpass' /> -->
+                            Server Device ID:
+                            <input type='text' value="{{deviceID}}" class="form-control" placeholder='auto-generated' name='deviceID' readonly style='background-color: #f5f5f5;' />
+                            
+                            <!-- New Server URL Field -->
+                            Server URL:
+                            <input type='text' value='{{server_url}}' class="form-control" placeholder='ecologic.pp.ua' name='server_url'
+                                id="server_url" maxlength="32" />
+                            
+                            <!-- New Test Connection Button 
                             <button type="button" class="btn btn-info" style="margin-top:10px;" onclick="testMQTTConnection()">Test
                                 Connection</button>
                             <span id="mqtt_test_result" style="margin-left:10px;"></span>
+                            -->
                         </div>
-                        <!-- ...existing code... -->
 
                         <div class="col-sm-6">
                             <p>Email:</p>
                             </br>
                             Provider address
                             <input type='text' class="form-control" placeholder='(mail.smtp2go.com)'
-                                value='{{smtp_arr}}' name='smtp_arr' /> Port
+                                value='{{smtp_arr}}' name='smtp_arr' />
+                            Port
                             <input type='text' class="form-control" placeholder='2525' value='{{smtp_port}}'
                                 name='smtp_port' />
-
                             Recipient Email
                             <input type='text' class="form-control" placeholder='spspider@mail.ru'
-                                value='{{to_email_addr}}' name='to_email_addr' /> Sender Email
+                                value='{{to_email_addr}}' name='to_email_addr' />
+                            Sender Email
                             <input type='text' class="form-control" placeholder='from_email_addr'
                                 value='{{from_email_addr}}' name='from_email_addr' />
-
                             Sender Email login
                             <input type='text' class="form-control" placeholder='login' value='{{emaillogin}}'
-                                name='emaillogin' /> Sender Email password
+                                name='emaillogin' />
+                            Sender Email password
                             <input type='text' class="form-control" placeholder='password' value='{{password_email}}'
                                 name='password_email' />
-                            <br />
-                            <!--  <input class="btn btn-block btn-success" value="Test Email" onclick="sendEmail(this);"
-                                 type="button">-->
                             <br />
                         </div>
                     </div>
@@ -91,54 +90,13 @@
                                 name='ipport' />
                             GMT+ (timezone):
                             <input type='text' id="timezone" class="form-control" placeholder='0' value='{{timezone}}' name='timezone' />
-
-                            <div>
-                                Send location data on boot:
-                                <input type='checkbox' class="form-control" name='geo_enable' id="geo_enable"
-                                    value="location" />
-                            </div>
-                            <div>
-                                Try reconnecting to Wifi network:
-                                <input type='checkbox' class="form-control" name='wifi_scan' id="wifi_scan"
-                                    value="scan" />
-                            </div>
-                            <div>
-                                Save buttons:
-                                <input type='checkbox' class="form-control" name='save_stat' id="save_stat" value="" />
-                            </div>
                         </div>
                         <div class="col-sm-6">
-                            <div>
-                                IR Service:
-                                <input type='checkbox' class="form-control" name='ir_loop' id="ir_loop" value="" />
-                            </div>
-
-                            <div>
-                                433Mhz Service:
-                                <input type='checkbox' class="form-control" name='loop_433' id="loop_433" value="" />
-                            </div>
-
-                            <div>
-                                IR Receiver:
-                                <input type='checkbox' class="form-control" name='IR_recieve' id="IR_recieve"
-                                    value="" />
-                            </div>
-                            <div>
-                                ws8211 loop:
-                                <input type='checkbox' class="form-control" name='ws8211_loop' id="ws8211_loop"
-                                    value="" />
-                            </div>
-
                             <div>
                                 PWM frequency:<p id="PWMfreq"></p>
                                 <input type='range' class="form-control" name='PWM_frequency' id="PWM_frequency"
                                     value="" onchange="FreqChange()" min="100" max="40000" />
                             </div>
-                            <!-- <div>
-                                Device time:
-                                <strong id="time">{{time}}</strong>
-                                <p id="date">{{date}}</p>
-                            </div> -->
                         </div>
                         <br>
                     </div>
@@ -154,13 +112,12 @@
                         </div>
                         <div class="col-sm-6">
                             <strong>Node-RED Server</strong>
-                            
                             <div>
                                 Use node-red
                                 <input type='checkbox' class="form-control" name='send_to_nodeRed' id="send_to_nodeRed" value="0" />
                                 <p>Node-RED Server Address:</p>
                                 <input type='text' class="form-control" name='nodered_address' id="nodered_address"
-                                    placeholder='http://192.168.1.100:1880' value="{{nodered_address}}" />
+                                    placeholder='http://192.168.1.100:1880' value="{{nodered_address}}" maxlength="32"/>
                             </div>
                         </div>
                     </div>
@@ -176,8 +133,6 @@
             </div>
         </div>
     </div>
-
-
 </body>
 
 </html>

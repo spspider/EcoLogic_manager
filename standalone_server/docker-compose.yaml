@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: wordpress_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ecologic
+      MYSQL_USER: ecouser
+      MYSQL_PASSWORD: ecopass
+      MYSQL_ROOT_PASSWORD: root_pass
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - app_network
+    ports: # Удалить после завершения разработки, также закрой UFW
+      - "3306:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: wordpress_db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root_pass
+    depends_on:
+      - db
+    networks:
+      - app_network
+
+volumes:
+  db_data:
+
+networks:
+  app_network:
+    external: true
+
+
+# docker exec -it wordpress_db mysql -u root -proot_pass
+
+# GRANT ALL PRIVILEGES ON *.* TO 'wp_user'@'%' IDENTIFIED BY 'wp_pass'; FLUSH PRIVILEGES;
+# GRANT ALL PRIVILEGES ON *.* TO 'wp_user'@'%' IDENTIFIED BY 'wp_pass' WITH GRANT OPTION;
+# FLUSH PRIVILEGES;
+
+# database: ecologic
+# user: ecouser
+# BACKUP:
+# RESTORE:
+# docker exec -i wordpress_db mysql -u wp_user -pwp_pass wp_db < /mnt/data/wp_db_backup.sql

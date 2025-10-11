@@ -38,33 +38,33 @@ function loadOtherHelp() {
     bodyNode = window.location.host + "/WaitIR";
     setHTML("bodyNodeIR", bodyNode);
     //var bodyNode="";
-    bodyNode = "<a  href=/sendAJAX?json={t:127,v:0}>" + window.location.host + "/sendAJAX?json={t:127,v:0}</a>";
+    bodyNode = "<a  href=/sendAJAX?data={t:127,v:0}>" + window.location.host + "/sendAJAX?data={t:127,v:0}</a>";
     setHTML("bodyNodeStat", bodyNode);
     //var bodyNode="";
     bodyNode = window.location.host + "/sendEmail?Email=Message text";
     setHTML("bodyNodeEmail", bodyNode);
     //var bodyNode="";
-    bodyNode = window.location.host + "/sendAJAX?json={C:2,stat:-=Button number=-}";
+    bodyNode = window.location.host + "/sendAJAX?data={C:2,stat:-=Button number=-}";
     setHTML("bodyNodeSendIRw433", bodyNode);
     //var bodyNode="";
-    bodyNode = window.location.host + "/sendAJAX?json={C:3,st:-=HEX code=-}";
+    bodyNode = window.location.host + "/sendAJAX?data={C:3,st:-=HEX code=-}";
     setHTML("bodyNodeIRHex", bodyNode);
     //var bodyNode="";
-    bodyNode = window.location.host + "/sendAJAX?json={C:4,st:-=Raw IR code=-}";
+    bodyNode = window.location.host + "/sendAJAX?data={C:4,st:-=Raw IR code=-}";
     setHTML("bodyNodeIRRaw", bodyNode);
 
     bodyNode = window.location.host + "/setDate?DateTime={}";
     setHTML("bodyNodeActualTime", bodyNode);
 
-    bodyNode = window.location.host + "/ws2811AJAX?json={\"from\":[0],\"to\":[88],\"type\":[2],\"dir\":[0],\"col\":['+col+'],\"wh\":[254],\"br_\":[255],\"num\":1,\"sp\":100,\"dr\":255,\"fd\":45,\"fdt\":3,\"br\":12}";
+    bodyNode = window.location.host + "/ws2811AJAX?data={\"from\":[0],\"to\":[88],\"type\":[2],\"dir\":[0],\"col\":['+col+'],\"wh\":[254],\"br_\":[255],\"num\":1,\"sp\":100,\"dr\":255,\"fd\":45,\"fdt\":3,\"br\":12}";
     setHTML("bodyNodeLed", bodyNode);
 
 
     //var bodyNode="";
-    bodyNode = "<a  href=/function?json={reboot:1}>" + window.location.host + "/function?json={reboot:1}</a>";
+    bodyNode = "<a  href=/function?data={reboot:1}>" + window.location.host + "/function?data={reboot:1}</a>";
     setHTML("bodyNodeReboot", bodyNode);
 
-    readTextFile("/function?json={'wifi_mac':1}", function (callback) {
+    readTextFile("/function?data={'wifi_mac':1}", function (callback) {
         setHTML("wifi_mac_address", callback);
     });
 }
@@ -128,7 +128,7 @@ function loadConditons(id) {
 //                     if ((parseInt(Conditions[condID].bySignal[i]) == 2) || (parseInt(Conditions[condID].bySignal[i]) == 3)) {
 //                         MQTT_subscribe = dataOther.deviceID + "/PLUS/" + condID + "/" + i + "\n";
 //                         MQTT_control = dataOther.deviceID + "/PLUS/" + condID + "/" + i + "/" + "status" + "\n";
-//                         HTTP_control = window.location.host + "/aRest?Json={C:1,pin:" + condID + ",stat:" + i + ",val:" + Conditions[condID].bySignalPWM[i] + "}\n";
+//                         HTTP_control = window.location.host + "/aRest?data={C:1,pin:" + condID + ",stat:" + i + ",val:" + Conditions[condID].bySignalPWM[i] + "}\n";
 //                         bodyNode +=
 //                             "<tr><td><code>" +
 //                         MQTT_subscribe +
@@ -166,10 +166,10 @@ function loadBody() {
         MQTT_subscribe = dataOther.deviceID + "/" + [i] + "/status\n";
         MQTT_control = dataOther.deviceID + "/" + i + "\n";
         status_val = PinSetup.defaultVal[i] ^ 1;
-        var http_request = "/sendAJAX?json={\"t\":" + i + ",\"v\":" + status_val + "}";
+        var http_request = "/sendAJAX?data={\"t\":" + i + ",\"v\":" + status_val + "}";
         HTTP_control = "<a href=" + http_request + ">" + window.location.host + http_request + "</a>";
 
-        HTTP_control_read = "<a href=/aRest?Json={stat:" + i + "}>" + window.location.host + "/aRest?Json={stat:" + i + "}</a>";
+        HTTP_control_read = "<a href=/aRest?data={stat:" + i + "}>" + window.location.host + "/aRest?data={stat:" + i + "}</a>";
         bodyNode +=
             "<td>" + PinSetup.descr[i] + "</td>" +
             "<td>" +

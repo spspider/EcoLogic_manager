@@ -4,13 +4,11 @@
 
 
 function createXmlHttpObject() {
-    var xmlHttp;
     if (window.XMLHttpRequest) {
-        xmlHttp = new XMLHttpRequest();
+        return new XMLHttpRequest();
     } else {
-        xmlHttp = new ActiveXObject('Microsoft.XMLHTTP');
+        return new ActiveXObject('Microsoft.XMLHTTP');
     }
-    return xmlHttp;
 }
 
 
@@ -86,6 +84,7 @@ function readTextFile(file, callback) {
 
     xmlHttp.send(null);
 }
+
 function readTextFiles_array(files, callback) {
     if (files.length === 0) {
         // All files have been read, call final callback function
@@ -191,9 +190,14 @@ function getHTML(ID) {
     if (document.getElementById(ID)) {
         value = document.getElementById(ID).innerHTML; //range
         return value;
+    } else {
+        if (document.getElementById("test")) {
+            //document.getElementById("test").innerHTML += "<br>wrong_getHTML:'" + ID + "'"; //range
+        }
     }
     return undefined;
 }
+
 function createTD(tr, text) {
     var td = document.createElement('td');
     if (typeof (text) === "object") {
@@ -282,7 +286,7 @@ function makeinOption_child(inputOption, id, onChange) {
 
 function send_code_back() {
     var code = getVal('activation_input');
-    readTextFile("/function?json={\"Activation\":\"2\",\"code\":\"" + code + "\"}", function (callback) {
+    readTextFile("/function?data={\"Activation\":\"2\",\"code\":\"" + code + "\"}", function (callback) {
         if (parseInt(callback) === 1) {
             alert("activated:");
         } else {
@@ -294,7 +298,7 @@ function send_code_back() {
 
 function ActivateDialog() {
     if (document.getElementById('activation_input')) return;
-    readTextFile('/function?json={\"Activation\":\"1\"}', function (callback) {
+    readTextFile('/function?data={\"Activation\":\"1\"}', function (callback) {
         //var x = prompt("ActivationCode:\n" + callback, "");
 
 
@@ -310,19 +314,37 @@ function ActivateDialog() {
     });
 }
 
+
 function check_if_activated() {
+    var license_code = "<a id ='activation_button' class='btn btn-block btn-default' onclick='ActivateDialog()' type='button'>activate</a>";
+    // readTextFile('/function?data={\"Activation\":\"0\"}', function (callback) {//проверить если активирован
+    //     if (parseInt(callback) === 1) {//Activated
+    //         Activation = 1;
+    //         setHTML("activation_button", "");
+    //         return 1;
+
+    //     } else {//не активирован
+    //         Activation = 0;
+    //         setHTML("btmBtns", getHTML("btmBtns") + license_code);
+    //         return 0;
+    //     }
+    // });
     return 1;
 }
+
 function bottomButtons() {
+    //check_if_activated();
     var btmBtns =
         "<div class='btn-group btn-group-justified'>" +
         "<a class='btn btn-block btn-default' type='button' href='/'>cont</a>" +
         "<a class='btn btn-block btn-default' type='button' href='/wifi'>Wifi</a>" +
         "<a class='btn btn-block btn-default' type='button' href='/other_setup'>conn</a>" +
         "<a class='btn btn-block btn-default' type='button' href='/pin_setup'>buttons</a>" +
+        // "<a class='btn btn-block btn-default' href='/IR_setup'>IR</a>" +
         "<a class='btn btn-block btn-default' type='button' href='/condition'>condition</a>" +
         "<a class='btn btn-block btn-default' type='button' href='/ws2811.html'>ws2811</a>" +
         "<a class='btn btn-block btn-default' type='button' href='/help'>?</a>" +
+        //       "<a class='btn btn-block btn-default' id = 'activation' onclick='ActivateDialog()' type='button'></a>"+
         " </div>";
     return btmBtns;
 }
@@ -348,17 +370,4 @@ function bottomButtons2() {
         btmBtns.appendChild(a);
     });
     return btmBtns;
-}
-
-function b64EncodeUnicode(str) {
-    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
-        function toSolidBytes(match, p1) {
-            return String.fromCharCode('0x' + p1);
-        }));
-}
-
-function b64DecodeUnicode(str) {
-    return decodeURIComponent(atob(str).split('').map(function (c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
 }

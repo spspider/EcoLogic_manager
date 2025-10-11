@@ -56,7 +56,7 @@ function load() {
     var Stringify = JSON.stringify(JsonString);
     var length_str=Stringify.length/200;
     console.log(length_str);
-    var link = "192.168.1.112/ws2811AJAXset?json=" + JSON.stringify(JsonString);
+    var link = "192.168.1.112/ws2811AJAXset?data=" + JSON.stringify(JsonString);
     //msg.url=link;
     //return msg;
     console.log(link);

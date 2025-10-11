@@ -47,7 +47,7 @@ function load() {
 
     function loadMainJson() {
         readTextFile(
-            '/function?json={"ws2811_setup":"1"}',
+            '/function?data={"ws2811_setup":"1"}',
             function (callback) {
                 if (testJson(callback)) {
                     Data_limits = JSON.parse(callback);
@@ -483,7 +483,7 @@ function send_New_values_to_ESP() {
     var send_that_json = JSON.stringify(jsonOut);
     setHTML("output", send_that_json);
 
-    readTextFile("/ws2811AJAX?json=".concat(send_that_json), function (callback) {
+    readTextFile("/ws2811AJAX?data=".concat(send_that_json), function (callback) {
 
     });
     return jsonOut;

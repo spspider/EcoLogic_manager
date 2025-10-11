@@ -16,19 +16,10 @@ bool loadConfig(File jsonConfig) {
     strcpy(password, jsonDocument["password"]);
   }
 
-  if (jsonDocument.containsKey("deviceID")) {
-    strncpy(softAP_ssid, jsonDocument["deviceID"], sizeof(softAP_ssid) - 1);
-    softAP_ssid[sizeof(softAP_ssid) - 1] = '\0';
-    strncpy(deviceID, jsonDocument["deviceID"], sizeof(deviceID) - 1);
-    deviceID[sizeof(deviceID) - 1] = '\0';
-  } else {
-    String defName = "ecologic_" + String(ESP.getChipId());
-    // Truncate defName if needed to fit deviceID and softAP_ssid arrays
-    strncpy(softAP_ssid, defName.c_str(), sizeof(softAP_ssid) - 1);
-    softAP_ssid[sizeof(softAP_ssid) - 1] = '\0';
-    strncpy(deviceID, defName.c_str(), sizeof(deviceID) - 1);
-    deviceID[sizeof(deviceID) - 1] = '\0';
-  }
+  // device_id теперь генерируется автоматически и не читается из конфигурации
+  String defName = "ecologic_" + String(ESP.getChipId());
+  strncpy(softAP_ssid, defName.c_str(), sizeof(softAP_ssid) - 1);
+  softAP_ssid[sizeof(softAP_ssid) - 1] = '\0';
 
 #if defined(USE_PUBSUBCLIENT)
   IOT_Manager_loop = jsonDocument["iot_enable"];
@@ -69,6 +60,10 @@ bool loadConfig(File jsonConfig) {
   if (jsonDocument.containsKey("nodered_address")) {
     strncpy(nodered_address, jsonDocument["nodered_address"], sizeof(nodered_address) - 1);
     nodered_address[sizeof(nodered_address) - 1] = '\0';
+  }
+  if (jsonDocument.containsKey("server_url")) {
+    strncpy(server_url, jsonDocument["server_url"], sizeof(server_url) - 1);
+    server_url[sizeof(server_url) - 1] = '\0';
   }
   //  String jsonConfig_string = readCommonFiletoJson("pin_setup");
   if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {

@@ -8,7 +8,7 @@ void SSDP_init(void) {
   SSDP.setDeviceType("upnp:rootdevice");
   SSDP.setSchemaURL("description.xml");
   SSDP.setHTTPPort(ipport);
-  SSDP.setName(deviceID);
+  SSDP.setName(device_id);
   SSDP.setSerialNumber("001788102201");
   SSDP.setURL("/");
   SSDP.setModelName("LED");

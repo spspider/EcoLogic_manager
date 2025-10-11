@@ -114,6 +114,12 @@ void handleFileUpload() {
       uploadFile.close();
     }
     DBG_OUTPUT_PORT.println(String("Upload: END, Size: ") + upload.totalSize);
+
+    if (upload.filename.equals("pin_setup.txt")) {
+      // Вызываем пользовательскую функцию
+      uploadConfig_ecologicclient();
+    }
+
     replyOKWithMsg("OK");
   }
 }
@@ -400,7 +406,7 @@ void setup_FS(void) {
 }
 void handleAJAX() {
   DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
-  DeserializationError error = deserializeJson(jsonDocument, server.arg("json"));
+  DeserializationError error = deserializeJson(jsonDocument, server.arg("data"));
   if (error) {
     Serial.print(F("deserializeJson() failed with handleAJAX code "));
     Serial.println(error.c_str());
@@ -414,7 +420,7 @@ void handleAJAX() {
 void FunctionHTTP() {
   DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
 
-  DeserializationError error = deserializeJson(jsonDocument, server.arg("json"));
+  DeserializationError error = deserializeJson(jsonDocument, server.arg("data"));
   if (error) {
     Serial.print(F("deserializeJson() FunctionHTTP failed with code "));
     Serial.println(error.c_str());
@@ -547,12 +553,17 @@ void FunctionHTTP() {
     server.send(200, "text/plain", server.arg("json"));
 #endif
   }
+  
+  if (jsonDocument.containsKey("get_device_id")) {
+    generate_device_id();
+    server.send(200, "text/plain", device_id);
+  }
 }
 
 void handlews2811() {
 #if defined(ws2811_include)
   char buffer[200];
-  server.arg("json").toCharArray(buffer, sizeof buffer);
+  server.arg("data").toCharArray(buffer, sizeof buffer);
   if (LoadData(buffer)) {  // include ws2811.in
     server.send(200, "text / plain", "OK");
   }
@@ -561,7 +572,7 @@ void handlews2811() {
 }
 void handlews2811set() {
   char buffer[400];
-  server.arg("json").toCharArray(buffer, sizeof buffer);
+  server.arg("data").toCharArray(buffer, sizeof buffer);
 #if defined(ws2811_include)
   if (LoadData_set_leds(buffer)) {  // include ws2811.in
     server.send(200, "text / plain", "OK");
@@ -618,33 +629,7 @@ void server_init() {
   server.on("/WaitIR", []() {  // получаем методом AJAX включаем IR
     Page_IR_opened = true;
   });
-  /*
-    server.on("/SaveIR", []() {//!!!!!!!!!!!!!!!!!!можно переделать
-      handle_saveIR();
-      //setup_IR(true);
-    });
-  */
-  /*
-    server.on("/IRButtons.txt", []() {
-    String jsonConfig = readCommonFiletoJson("IRButtons");
-    server.send(200, "text/json", jsonConfig);
-    });
-  */
-  ////////////////////////////////////
-  // server.on("/pin_setup.txt", handle_ConfigJSON_pinSetup); // формирование configs.json страницы для передачи данных в web интерфейс
-  /*
-    server.on("/pin_setup", HTTP_POST, []() {
-    String jsonrecieve = server.arg("json_name");
-    Serial.println(jsonrecieve);
-    if (saveCommonFiletoJson("pin_setup", jsonrecieve)) {
-      Serial.println("new Pinsetup");
-    }
-    updatepinsetup(jsonrecieve);
-    Serial.println();
-    Serial.println("recieve nested");
-    handleFileRead("/pin_setup.htm");
-    });
-  */
+
   server.on("/pin_setup", []() {
     handleFileRead("/pin_setup.htm");
   });
@@ -655,30 +640,6 @@ void server_init() {
   server.on("/help", []() {
     handleFileRead("/help.htm");
   });
-  // server.on("/test_mqtt", HTTP_POST, []() {
-  //   String json = server.arg("plain");
-  //   bool result = loadConfig(json);
-  //   String response;
-  //   if (result) {
-  //     response = "{\"success\":true,\"message\":\"MQTT config loaded\"}";
-  //   } else {
-  //     response = "{\"success\":false,\"message\":\"Failed to load MQTT config\"}";
-  //   }
-  //   server.send(200, "application/json", response);
-  // });
-  /*
-    server.on("/License", []() {
-    if (server.arg("code")) {
-      char code[5];
-      server.arg("code").toCharArray(code, 5);
-      saveEEPROM(0, code);
-    } else {
-      char* isLicensed = getEEPROM(0);
-      server.send(404, "text/plain", isLicensed);
-    }
-    });
-  */
-  // server.on("/home", HTTP_POST, [](){ server.send(200, "text/plain", ""); }, handleFileRead("/home.htm"));
 
   server.on("/edit", HTTP_GET, []() {
     if (!handleFileRead("/edit.htm")) server.send(404, "text/plain", "FileNotFound");

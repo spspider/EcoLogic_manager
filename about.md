@@ -33,14 +33,14 @@ EcoLogic Manager is a highly flexible, open-source automation platform designed 
 ## Device Control & Integration
 ### HTTP API
 - **Direct Pin Control:**
-  - Example: `http://<device_ip>/sendAJAX?json={"t":0,"v":1}` — Set pin 0 to HIGH.
-  - Read status: `http://<device_ip>/aRest?Json={stat:0}`
+  - Example: `http://<device_ip>/sendAJAX?data={"t":0,"v":1}` — Set pin 0 to HIGH.
+  - Read status: `http://<device_ip>/aRest?data={stat:0}`
 - **IR/RF Code Management:**
   - Learn, send, and manage codes via HTTP endpoints.
 - **Email Sending:**
   - Example: `http://<device_ip>/sendEmail?Email=MessageText`
 - **Reboot/Time Sync:**
-  - Example: `http://<device_ip>/function?json={reboot:1}`
+  - Example: `http://<device_ip>/function?data={reboot:1}`
 
 ### MQTT Topics
 - **Status Topic:** `<deviceID>/<pin>/status` — Publishes pin state changes.

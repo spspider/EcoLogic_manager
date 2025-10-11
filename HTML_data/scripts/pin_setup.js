@@ -89,7 +89,7 @@ function fetchTableDataAndUpdateUI() {
 }
 let max_number_chosed = 12;
 function loadlimits() {
-    readTextFile("/function?json={\"pin_setup_limits\":\"1\"}", function (callback) {
+    readTextFile("/function?data={\"pin_setup_limits\":\"1\"}", function (callback) {
         max_number_chosed = (callback !== 404 && isNaN(parseInt(callback))) ? 8 : parseInt(callback) || 12;
         // Load IRButtons.txt before fetching table data
         readTextFile("IRButtons.txt", function (irResult) {

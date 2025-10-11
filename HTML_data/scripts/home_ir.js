@@ -80,7 +80,7 @@ function sendNewValue(thatVal) {
         't': thatVal.id,
         'v': thatVal.value
     });
-    var callJson = "IR_Station" + "?json=" + sendJSON;
+    var callJson = "IR_Station" + "?data=" + sendJSON;
     readTextFile(callJson, setValuesCallback);
     setHTML("output", callJson);
     run();
@@ -92,7 +92,7 @@ function loadValuesRun_AJAX() {
         'v': 0
     });
     if (running) {
-//        readTextFile(("IRStation?json=" + sendJSON), setValuesCallback);
+        //        readTextFile(("IRStation?data=" + sendJSON), setValuesCallback);
         readTextFile(("IR_Station.txt"), setValuesCallback);
         clearTimeout(timeOut);
         timeOut = setTimeout(loadValuesRun_AJAX, reloadPeriod);

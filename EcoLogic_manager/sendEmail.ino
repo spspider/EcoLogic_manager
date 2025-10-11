@@ -104,7 +104,7 @@ byte sendEmail(String message) {
   wclient.print("From: ");
   wclient.println(from_email_addr);
   wclient.print("Subject:");
-  wclient.print(deviceID);
+  wclient.print(device_id);
   wclient.println();
 
   uint8_t lenMessage = (message.length() / 50) + 1;

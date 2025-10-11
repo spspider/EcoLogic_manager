@@ -1,12 +1,11 @@
 {
-  "iot_enable": false,
-  "mqttServerName": "m20.cloudmqtt.com",
-  "mqttuser": "spspider",
+  "iot_enable": true,
+  "mqttServerName": "177e3ee7cf004e6ebed04b25d4c51a26.s1.eu.hivemq.cloud",
+  "mqttuser": "dev01",
   "mqttspacing": "60",
-  "mqttport": "16238",
+  "mqttport": "8883",
   "mqttpass": "5506487",
   "prefix": "/IoTmanager",
-
   "smtp_arr": "mail.smtp2go.com",
   "smtp_port": "2525",
   "to_email_addr": "spspider95@gmail.com",
@@ -23,5 +22,6 @@
   "save_stat": false,
   "PWM_frequency": "1000",
   "ir_loop": -1,
-  "BOTtoken":"6921614283:AAGhiuQYd-WbitNJzCGTyrUT3M1mt1mOUU4"
+  "BOTtoken":"7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38",
+  "send_to_nodeRed":false
 }
