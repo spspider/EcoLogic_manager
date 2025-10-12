@@ -78,7 +78,7 @@ void callback(char *topic, byte *payload, uint8_t length)  // callback for recie
   payloadBuffer[copyLen] = '\0';
   char *end;
   int newValue = strtol(payloadBuffer, &end, 10);
-  callback_socket(i, newValue);
+  write_new_widjet_value(i, newValue);
   //pub status back
 
   Serial.print(F("callback:"));
@@ -147,7 +147,7 @@ void pubClientOneSecEvent() {  //this event call each second, for reduce load on
     if (onesec_255 > mqttspacing_oldtime + mqttspacing) {
       char sTopic_ch[20];
       for (uint8_t i = 0; i < nWidgets; i++) {
-        float x = get_new_pin_value(i);
+        float x = get_new_widjet_value(i);
         stat[i] = (int)x;
         snprintf(sTopic_ch, sizeof(sTopic_ch), "%s/%d/status", device_id, i);
         pubStatus(sTopic_ch, setStatus(x));

@@ -78,7 +78,7 @@ void setup_telegram() {
 //      Serial.print("value:");
 //      Serial.println(part2);
 //
-//      callback_socket(Topic, atoi(part2));
+//      write_new_widjet_value(Topic, atoi(part2));
 //
 //      // Clear the contents of part1 and part2
 //      memset(part1, 0, sizeof(part1));
@@ -88,7 +88,7 @@ void setup_telegram() {
 //    char fullanswer[256] = "";
 //    for (int i = 0; i < nWidgets; i++) {
 //      char answer[50];
-//      sprintf(answer, "%s: %.2f\n", descr[i], get_new_pin_value(i));
+//      sprintf(answer, "%s: %.2f\n", descr[i], get_new_widjet_value(i));
 //      strcat(fullanswer, answer);
 //    }
 //    myBot.sendMessage(msg.sender.id, fullanswer);
@@ -120,14 +120,14 @@ void loop_telegram() {
       messageText[colonIndex] = '\0';
       int Topic = atoi(messageText);
       int part2 = atoi(messageText + colonIndex + 1);
-      callback_socket(Topic, part2);
+      write_new_widjet_value(Topic, part2);
     } else {
       snprintf(fullanswer, sizeof(fullanswer), "%s\nnot found,\nusing:\n0:1 - number:value\n", messageText);
     }
 
     for (uint8_t i = 0; i < nWidgets; i++) {
       char valueStr[10];
-      dtostrf(get_new_pin_value(i), 2, 2, valueStr);  // Use `dtostrf` for float conversion
+      dtostrf(get_new_widjet_value(i), 2, 2, valueStr);  // Use `dtostrf` for float conversion
       snprintf(fullanswer + strlen(fullanswer), sizeof(fullanswer) - strlen(fullanswer), "%s: %s\n", descr[i], valueStr);
     }
 
@@ -155,7 +155,7 @@ void loop_telegram() {
 //       //      Serial.print("value:");
 //       //      Serial.println(part2);
 //
-//       callback_socket(Topic, part2.toInt());
+//       write_new_widjet_value(Topic, part2.toInt());
 //     } else {
 //       fullanswer += messageText + "\n";
 //       fullanswer += "\nnot found,\nusing:\n0:1 - number:value";
@@ -165,7 +165,7 @@ void loop_telegram() {
 //
 //     // Assuming nWidgets is defined somewhere
 //     for (uint8_t i = 0; i < nWidgets; i++) {
-//       String valueStr = String(get_new_pin_value(i), 2);
+//       String valueStr = String(get_new_widjet_value(i), 2);
 //       fullanswer += String(descr[i]) + ": " + valueStr + "\n";
 //     }
 //     /////////////////////////////////////////

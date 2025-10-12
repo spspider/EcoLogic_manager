@@ -1,31 +1,20 @@
-unsigned long lastCheck = 0;
-const unsigned long checkInterval = 5000; // 5 seconds
+unsigned char lastCheck = 0;
+const unsigned char checkInterval = 5; // 5 seconds
 
 
-// void loop_ecologicclient() {
-//   if (millis() - lastCheck > checkInterval) {
-//     checkForUpdates();
-//     lastCheck = millis();
-//   }
-//   delay(100);
-// }
+void loop_ecologicclient() {
+  if ((unsigned char)(onesec_255 - lastCheck) >= checkInterval) {
+    syncWithServer();
+    lastCheck = onesec_255;
+  }
+}
 // Буферы для экономии памяти
 char device_id[32];  // Увеличенный размер для MAC (глобальная)
 static char device_token[] = "tk01";  // Короткий токен
-static bool device_id_generated = false;
 
-void generate_device_id() {
-  if (!device_id_generated) {
-    String mac = WiFi.macAddress();
-    mac.replace(":", "");
-    uint32_t chip = ESP.getChipId();
-    snprintf(device_id, sizeof(device_id), "esp%06X_%s", chip & 0xFFFFFF, mac.c_str());
-    device_id_generated = true;
-  }
-}
+
 
 void uploadConfig_ecologicclient() {
-  generate_device_id();  // Генерируем ID однажды
   
   if (!LittleFS.begin()) {
     Serial.println("LittleFS fail");
@@ -74,24 +63,46 @@ void uploadConfig_ecologicclient() {
   http.end();
 }
 
-// void checkForUpdates() {
-//   http.begin(wclient, String(serverURL) + "/api/get_state");
-//   int httpCode = http.GET();
+void syncWithServer() {
+  DynamicJsonDocument doc(512);
+  JsonArray statArray = doc.createNestedArray("stat");
+  for (int i = 0; i < nWidgets; i++) {
+    float value = get_new_widjet_value(i);
+    statArray.add(String(value, 2));
+  }
   
-//   if (httpCode == 200) {
-//     String payload = http.getString();
-//     DynamicJsonDocument doc(1024);
-//     deserializeJson(doc, payload);
+  String jsonString;
+  serializeJson(doc, jsonString);
+  
+  String url = String(server_url) + "/api/sync?id=" + device_id + "&tk=" + device_token;
+  
+  if (!http.begin(wclient, url)) {
+    Serial.println("HTTP begin fail");
+    return;
+  }
+  
+  http.addHeader("Content-Type", "application/json");
+  http.setTimeout(5000);
+  
+  int httpCode = http.POST(jsonString);
+  
+  if (httpCode == 200) {
+    String payload = http.getString();
+    DynamicJsonDocument responseDoc(512);
+    deserializeJson(responseDoc, payload);
     
-//     if (doc.containsKey("stat")) {
-//       JsonArray states = doc["stat"];
-//       for (int i = 0; i < states.size(); i++) {
-//         int pinState = states[i].as<int>();
-//         // Apply pin state to actual hardware pins
-//         // digitalWrite(pinMap[i], pinState);
-//         Serial.printf("Pin %d: %d\n", i, pinState);
-//       }
-//     }
-//   }
-//   http.end();
-// }
+    if (responseDoc.containsKey("stat")) {
+      JsonArray states = responseDoc["stat"];
+      // Apply desired states to pins
+      for (int i = 0; i < states.size() && i < nWidgets; i++) {
+        int pinState = states[i].as<int>();
+        write_new_widjet_value(i, pinState);
+      }
+    }
+    Serial.println("Sync OK");
+  } else {
+    Serial.printf("Sync failed: %d\n", httpCode);
+  }
+  
+  http.end();
+}

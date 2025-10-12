@@ -266,11 +266,11 @@ void one_sec() {
 
     if (new_value_count > 1) {
     //new_value_count = 0;
-    get_new_pin_value_ = true;
+    get_new_widjet_value_ = true;
     }
     if (new_value_count > 9) {
     new_value_count = 0;
-    get_new_pin_value_ = false;
+    get_new_widjet_value_ = false;
     }
   */
   if (one_min >= 60) {

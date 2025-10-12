@@ -62,7 +62,7 @@ void check_code_w433(String codeIR) {
         if (String(descr[i1]) == name_i) {
           Serial.print("do action:");
           Serial.println(name_i);
-          callback_socket(i1, int(stat[i1]) ^ 1);
+          write_new_widjet_value(i1, int(stat[i1]) ^ 1);
         }
       }
     }

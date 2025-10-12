@@ -1,6 +1,11 @@
 
-
-float get_new_pin_value(uint8_t i) {
+void generate_device_id() {
+    String mac = WiFi.macAddress();
+    mac.replace(":", "");
+    uint32_t chip = ESP.getChipId();
+    snprintf(device_id, sizeof(device_id), "esp%06X_%s", chip & 0xFFFFFF, mac.c_str());
+}
+float get_new_widjet_value(uint8_t i) {
 
   float that_stat = (float)stat[i];
 
@@ -162,7 +167,7 @@ void makeAres_sim(String json) {
           if (root.containsKey("val")) {
             stat[that_stat] = that_val;
           } else {
-            that_val = get_new_pin_value(that_stat);  // только чтение
+            that_val = get_new_widjet_value(that_stat);  // только чтение
           }
         }
 

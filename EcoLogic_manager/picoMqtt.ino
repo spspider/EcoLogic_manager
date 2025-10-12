@@ -65,7 +65,7 @@ bool setup_picoMqtt() {
                 idx = (char)temp;
             }
             int newValue = atoi(payload);
-            callback_socket(idx, newValue);
+            write_new_widjet_value(idx, newValue);
             Serial.printf("callback: %d Payload: %d\n", (int)idx, newValue);
         });
     }

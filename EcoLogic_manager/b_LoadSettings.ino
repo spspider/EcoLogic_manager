@@ -303,7 +303,7 @@ bool load_stat() {
     short int stat_js = jsonDocument_stat["stat"][i];
     if (stat_js) {
       stat[i] = stat_js;
-      // callback_socket(i, stat_js);
+      // write_new_widjet_value(i, stat_js);
     }
     // Serial.println(stat_js);
   }
@@ -313,7 +313,7 @@ bool load_stat() {
 
 void callback_from_stat() {
   for (uint8_t i = 0; i < nWidgets; i++) {
-    callback_socket(i, stat[i]);
+    write_new_widjet_value(i, stat[i]);
     // Serial.println(stat_js);
   }
 }

@@ -1,4 +1,4 @@
-void callback_socket(uint8_t i, int payload_is) {
+void write_new_widjet_value(uint8_t i, int payload_is) {
   bool that_Ajax = false;
   bool saveEEPROM = false;
   if (i == 127) {  // выслать только статус
@@ -30,7 +30,6 @@ void callback_socket(uint8_t i, int payload_is) {
   else if (pinmode[i] == 1)
   { // in
     stat[i] = (uint8_t)payload_is;
-    digitalWrite(pin[i], payload_is);
 #if defined(timerAlarm)
     check_if_there_timer_once(i);
 #endif
@@ -42,7 +41,7 @@ void callback_socket(uint8_t i, int payload_is) {
 void pubStatusFULLAJAX_String(bool save_eeprom) {  // отправка на сервер _nobuffer
   String stat1 = "{\"stat\":[";
   for (uint8_t i = 0; i < nWidgets; i++) {
-    float that_stat = get_new_pin_value(i);
+    float that_stat = get_new_widjet_value(i);
     stat1 += "\"";
     stat1 += String(that_stat, 2);
     stat1 += "\"";
@@ -53,7 +52,7 @@ void pubStatusFULLAJAX_String(bool save_eeprom) {  // отправка на се
   server.send(200, "text / json", buffer);
 }
 void pubStatusShortAJAX_String(uint8_t i) {
-  server.send(200, "text / plain", String(get_new_pin_value(i)));
+  server.send(200, "text / plain", String(get_new_widjet_value(i)));
 }
 #if defined(USE_IRUTILS)
 void sendIRCode_toServer(uint32_t code) {
@@ -95,7 +94,7 @@ void check_new_status_and_send_nodeRed() {
   if (millis() - lastNodeRedSend < 10000) return; // Ограничиваем частоту
   
   for (int i = 0; i < N_WIDGETS; i++) {
-    int new_value = get_new_pin_value(i);
+    int new_value = get_new_widjet_value(i);
     if (new_value != stat[i]) {
       sendPinStatus_toNodeRed(i, new_value);
       stat[i] = new_value;
@@ -106,6 +105,6 @@ void check_new_status_and_send_nodeRed() {
 // void pubStatusShortAJAX_String(uint8_t i)
 // {
 //   char buffer[6]; // Adjust the size based on the maximum length of the short int
-//   snprintf(buffer, sizeof(buffer), "%d", get_new_pin_value(i));
+//   snprintf(buffer, sizeof(buffer), "%d", get_new_widjet_value(i));
 //   server.send(200, "text/plain", buffer);
 // }

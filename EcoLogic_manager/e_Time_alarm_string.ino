@@ -162,7 +162,7 @@ void check_for_changes() {
     for (uint8_t i1 = 0; i1 < Condition; i1++) {  // пробегаемся по всем кнопкам
       uint8_t idWidget = i1;
       for (uint8_t i = 0; i < Numbers; i++) {  // от всего колимчества таймеров
-        stat[idWidget] = (int)get_new_pin_value(idWidget);
+        stat[idWidget] = (int)get_new_widjet_value(idWidget);
         if (type_a[idWidget][i] == 2) {  // равно (по уровню)
           if (type_value[idWidget][i] == stat[idWidget]) {
             MakeIfTrue(idWidget, i);
@@ -264,7 +264,7 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
       uint8_t max_values = 3;
       uint8_t values_back[max_values];
       parseStringToArray(actBtn_a_ch_string(that_condtion_widget, that_number_cond), values_back, max_values);
-      callback_socket(values_back[0], values_back[1]);
+      write_new_widjet_value(values_back[0], values_back[1]);
       // values_back[0] - первое второе и т.д.
     } else if ((act_a[that_condtion_widget][that_number_cond] == 4) && (!opposite)) {  //"отправить Email"//////////////////////////////////////////////////////////
       String buffer;
@@ -283,7 +283,7 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
       uint8_t max_values = 3;
       uint8_t values_back[max_values];
       parseStringToArray(actBtn_a_ch_string(that_condtion_widget, that_number_cond), values_back, max_values);
-      callback_socket(values_back[0], values_back[1]);
+      write_new_widjet_value(values_back[0], values_back[1]);
     }
 
     else if (act_a[that_condtion_widget][that_number_cond] == 3) {  ///////////////////////////удаленная кнопка///////////////////////////////////////////////////
@@ -323,7 +323,7 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
 #endif
     } else if (act_a[that_condtion_widget][that_number_cond] == 9) {  /////////////////////////timer///////////////////////////
       //      switch_action(that_condtion_widget, that_number_cond, opposite);
-      //      callback_socket(values_back[0], values_back[1]);
+      //      write_new_widjet_value(values_back[0], values_back[1]);
       uint8_t max_values = 5;
       uint8_t values_back[max_values];
       parseStringToArray(actBtn_a_ch_string(that_condtion_widget, that_number_cond), values_back, max_values);
@@ -379,7 +379,7 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
 
     else if (act_a[that_condtion_widget][that_number_cond] == 10) {  /////////////////////////////передвинуть сл///////////////////////////////////////////
 
-      float payload = get_new_pin_value(that_condtion_widget);  // узнаем какой уровень на пине который опрашиваем
+      float payload = get_new_widjet_value(that_condtion_widget);  // узнаем какой уровень на пине который опрашиваем
       uint8_t minTemp, maxTemp, button_;
       if (payload != 0) {
         char *pEnd;
@@ -397,7 +397,7 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
         payload = payload > 1024 ? 1024 : payload;
 
         // uint8_t id_button = strtol(actBtn_a_ch[that_condtion_widget][that_number_cond], NULL, 10);
-        callback_socket(button_, payload);
+        write_new_widjet_value(button_, payload);
       }
     }
   }

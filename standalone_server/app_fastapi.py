@@ -113,26 +113,6 @@ async def upload_config_short(request: Request):
     
     return {"ok": 1}
 
-@app.get("/api/desired")
-async def get_desired_state(id: Optional[str] = "default", tk: Optional[str] = "default_token"):
-    """
-    API для Arduino: получение желаемого состояния пинов от пользователя
-    Arduino опрашивает этот endpoint и применяет настройки
-    """
-    conn = get_conn()
-    if conn:
-        try:
-            with conn.cursor() as cur:
-                cur.execute("SELECT desired_status FROM devices WHERE device_id=%s AND token=%s", (id, tk))
-                row = cur.fetchone()
-                if row and row.get("desired_status"):
-                    status = json.loads(row["desired_status"])
-                    return {"stat": status.get("stat", [])}
-        finally:
-            conn.close()
-    
-    return {"stat": []}
-
 @app.post("/api/update_status")
 async def update_status(payload: dict):
     """
@@ -156,35 +136,46 @@ async def update_status(payload: dict):
     
     return {"ok": True}
 
-@app.post("/api/real")
-async def update_real_status(request: Request):
+@app.post("/api/sync")
+async def sync_status(request: Request):
     """
-    API для Arduino: обновление реального статуса датчиков
+    Оптимизированный API для Arduino: отправляет real status и получает desired status
     Arduino отправляет POST с JSON: {"stat": ["1.00", "0.00", "25.5", ...]}
+    Возвращает: {"stat": ["1", "0", "25", ...]} - desired status
     """
     device_id = request.query_params.get("id", "default")
     token = request.query_params.get("tk", "default_token")
     
     body = await request.body()
     try:
-        status_data = json.loads(body.decode('utf-8'))
+        real_status = json.loads(body.decode('utf-8'))
     except:
         return JSONResponse({"error": "invalid json"}, status_code=400)
     
     conn = get_conn()
+    desired_status = {"stat": []}
+    
     if conn:
         try:
             with conn.cursor() as cur:
-                # Обновляем реальный статус датчиков
+                # Обновляем реальный статус
                 cur.execute(
                     "UPDATE devices SET real_status=%s, last_seen=%s WHERE device_id=%s AND token=%s",
-                    (json.dumps(status_data), datetime.utcnow(), device_id, token)
+                    (json.dumps(real_status), datetime.utcnow(), device_id, token)
                 )
+                
+                # Получаем желаемый статус
+                cur.execute("SELECT desired_status FROM devices WHERE device_id=%s AND token=%s", (device_id, token))
+                row = cur.fetchone()
+                if row and row.get("desired_status"):
+                    status = json.loads(row["desired_status"])
+                    desired_status = {"stat": status.get("stat", [])}
+                
                 conn.commit()
         finally:
             conn.close()
     
-    return {"ok": True}
+    return desired_status
 
 @app.get("/api/config")
 async def get_config(id: Optional[str] = "default"):

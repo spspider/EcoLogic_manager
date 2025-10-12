@@ -1,7 +1,6 @@
 /**
  * Created by sergey on 24.09.2017.
  */
-var Other_setup = {};
 var Conditions = [{}];
 var Pin_Setup = {};
 var reloadPeriod = 10000;
@@ -20,15 +19,10 @@ async function firstload() {
         const pinSetupText = await loadFileAsync("pin_setup.txt");
         if (pinSetupText) {
             createButtons_pin_setup(JSON.parse(pinSetupText));
-            // Load other_setup.txt and set up other settings after pin_setup.txt has been processed
-            const otherSetupText = await loadFileAsync("other_setup.txt");
-            if (otherSetupText && testJson(otherSetupText)) {
-                const otherSetup = JSON.parse(otherSetupText);
-                document.title = otherSetup.deviceID;
-
-                // Handle license loading only after other_setup.txt has been processed
-                // await loadLicense();
-            }
+            readTextFile("function?data={\"get_device_id\":1}", function (deviceId) {
+                localStorage.setItem('deviceID', deviceId);
+                document.title = deviceId;
+            });
         }
         // Final AJAX settings
         sendAJAX(this, JSON.stringify({ t: 127, v: 0 }));

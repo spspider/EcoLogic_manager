@@ -209,6 +209,7 @@ delay(100); // Время для стабилизации
 #if defined(will_use_serial)
   Serial.begin(115200);
 #endif
+generate_device_id();
 #if defined(USE_LITTLEFS)
   Serial.println("LittleFS init");
   if (!LittleFS.begin()) {
@@ -358,6 +359,7 @@ void loop() {
 #endif
       millis_strart_one_sec = getMillis();
       check_new_status_and_send_nodeRed();
+      loop_ecologicclient();
     }
     // int interim = onesec - lastConnectTry;
     // Serial.print(interim, DEC);
@@ -386,10 +388,11 @@ void loop() {
     uint8_t topic = atoi(strtok(incomingPacket, ":"));
     int value = atoi(strtok(NULL, ":"));
 
-    callback_socket(topic, value);
+    write_new_widjet_value(topic, value);
   }
 #endif
 #if defined(USE_PLAY_AUDIO_WAV) || defined(USE_PLAY_AUDIO_MP3)
   loop_player();
 #endif
+
 }

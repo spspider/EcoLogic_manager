@@ -414,7 +414,7 @@ void handleAJAX() {
   }
   uint8_t Topic_is = jsonDocument["t"].as<uint8_t>();  //
   int newValue = jsonDocument["v"];
-  callback_socket(Topic_is, newValue);
+  write_new_widjet_value(Topic_is, newValue);
 }
 
 void FunctionHTTP() {
@@ -555,7 +555,7 @@ void FunctionHTTP() {
   }
   
   if (jsonDocument.containsKey("get_device_id")) {
-    generate_device_id();
+
     server.send(200, "text/plain", device_id);
   }
 }
