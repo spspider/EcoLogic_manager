@@ -91,12 +91,17 @@ void syncWithServer() {
     DynamicJsonDocument responseDoc(512);
     deserializeJson(responseDoc, payload);
     
-    if (responseDoc.containsKey("stat")) {
-      JsonArray states = responseDoc["stat"];
-      // Apply desired states to pins
-      for (int i = 0; i < states.size() && i < nWidgets; i++) {
-        int pinState = states[i].as<int>();
-        write_new_widjet_value(i, pinState);
+    if (responseDoc.containsKey("stat") && responseDoc.containsKey("upd")) {
+      unsigned char has_updates = responseDoc["upd"].as<int>();
+      
+      // Применяем изменения только если есть обновления
+      if (has_updates == 1) {
+        JsonArray states = responseDoc["stat"];
+        for (int i = 0; i < states.size() && i < nWidgets; i++) {
+          int pinState = states[i].as<int>();
+          write_new_widjet_value(i, pinState);
+        }
+        Serial.println("Updates applied");
       }
     }
     Serial.println("Sync OK");

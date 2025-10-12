@@ -480,7 +480,6 @@ function sendNewValue(button, id) {
 function sendAJAX(submit, sendJSON) {
     const deviceId = window.currentDeviceId || 'default';
     server = `/api/ajax?data=${encodeURIComponent(sendJSON)}&device_id=${deviceId}`;
-
     readTextFile(server, (responseText) => RespondCode(responseText, server, sendJSON));
     return false;
 }
@@ -493,6 +492,12 @@ function RespondCode(responseText, server, sendJSON) {
     try {
         const parsedResponse = JSON.parse(responseText);
         const newStatusText = {};
+
+        // Проверяем флаг has_updates - если 1, то не обновляем UI
+        if (parsedResponse.has_updates == 1) {
+            console.log("Pending changes, UI not updated");
+            return;
+        }
 
         for (let i = 0; i < parsedResponse.stat.length; i++) {
             newStatusText.sTopic = `${i}/${Pin_Setup.widget[i]}/${i}`;

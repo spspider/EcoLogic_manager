@@ -141,7 +141,7 @@ async def sync_status(request: Request):
     """
     Оптимизированный API для Arduino: отправляет real status и получает desired status
     Arduino отправляет POST с JSON: {"stat": ["1.00", "0.00", "25.5", ...]}
-    Возвращает: {"stat": ["1", "0", "25", ...]} - desired status
+    Возвращает: {"stat": ["1", "0", "25", ...], "upd": 1} - desired status с флагом обновления
     """
     device_id = request.query_params.get("id", "default")
     token = request.query_params.get("tk", "default_token")
@@ -153,7 +153,7 @@ async def sync_status(request: Request):
         return JSONResponse({"error": "invalid json"}, status_code=400)
     
     conn = get_conn()
-    desired_status = {"stat": []}
+    desired_status = {"stat": [], "upd": 0}
     
     if conn:
         try:
@@ -164,12 +164,19 @@ async def sync_status(request: Request):
                     (json.dumps(real_status), datetime.utcnow(), device_id, token)
                 )
                 
-                # Получаем желаемый статус
-                cur.execute("SELECT desired_status FROM devices WHERE device_id=%s AND token=%s", (device_id, token))
+                # Получаем желаемый статус и флаг обновления
+                cur.execute("SELECT desired_status, has_updates FROM devices WHERE device_id=%s AND token=%s", (device_id, token))
                 row = cur.fetchone()
-                if row and row.get("desired_status"):
-                    status = json.loads(row["desired_status"])
-                    desired_status = {"stat": status.get("stat", [])}
+                if row:
+                    if row.get("desired_status"):
+                        status = json.loads(row["desired_status"])
+                        desired_status["stat"] = status.get("stat", [])
+                    
+                    desired_status["upd"] = 1 if row.get("has_updates") else 0
+                    
+                    # Если есть обновления, сбрасываем флаги после отправки
+                    if row.get("has_updates"):
+                        cur.execute("UPDATE devices SET has_updates=FALSE, device_synced=TRUE WHERE device_id=%s AND token=%s", (device_id, token))
                 
                 conn.commit()
         finally:
@@ -213,18 +220,20 @@ async def send_ajax(request: Request):
     
     conn = get_conn()
     
-    if data['t'] == 127:  # Status request - возвращаем реальный статус
+    if data['t'] == 127:  # Status request - возвращаем реальный статус с флагом обновлений
         if conn:
             try:
                 with conn.cursor() as cur:
-                    cur.execute("SELECT real_status FROM devices WHERE device_id=%s", (device_id,))
+                    cur.execute("SELECT real_status, has_updates, device_synced FROM devices WHERE device_id=%s", (device_id,))
                     row = cur.fetchone()
                     if row and row.get("real_status"):
                         status_data = json.loads(row["real_status"])
+                        # Блокируем обновления если есть изменения И устройство еще не синхронизировалось
+                        status_data["has_updates"] = 1 if (row.get("has_updates") or not row.get("device_synced", True)) else 0
                         return JSONResponse(status_data)
             finally:
                 conn.close()
-        return JSONResponse({"stat": []})
+        return JSONResponse({"stat": [], "has_updates": 0})
     else:  # Pin control - обновляем желаемый статус
         if conn:
             try:
@@ -253,8 +262,8 @@ async def send_ajax(request: Request):
                     if data['t'] < len(states["stat"]):
                         states["stat"][data['t']] = str(data['v'])
                     
-                    # Сохраняем в базу
-                    cur.execute("UPDATE devices SET desired_status=%s WHERE device_id=%s", 
+                    # Сохраняем в базу и устанавливаем флаги
+                    cur.execute("UPDATE devices SET desired_status=%s, has_updates=TRUE, device_synced=FALSE WHERE device_id=%s", 
                                (json.dumps(states), device_id))
                     conn.commit()
             finally:
