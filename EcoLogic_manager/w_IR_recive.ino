@@ -34,6 +34,7 @@ decode_results results;
 
 void setup_IR() {
   pinMode(SEND_PIN, OUTPUT);
+  pinMode(RECV_PIN, INPUT);
   irrecv.setUnknownThreshold(MIN_UNKNOWN_SIZE);
   Serial.println("Setup IR");
   irrecv.enableIRIn();  // Start the receiver

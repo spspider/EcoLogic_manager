@@ -1,10 +1,10 @@
-
 void generate_device_id() {
-    String mac = WiFi.macAddress();
-    mac.replace(":", "");
-    uint32_t chip = ESP.getChipId();
-    snprintf(device_id, sizeof(device_id), "esp%06X_%s", chip & 0xFFFFFF, mac.c_str());
+    String mac = WiFi.macAddress();  // Get MAC address
+    mac.replace(":", "");            // Remove colons
+    strncpy(device_id, mac.c_str(), sizeof(device_id));  // Copy to char array
+    device_id[sizeof(device_id) - 1] = '\0';  // Ensure null-termination
 }
+
 float get_new_widjet_value(uint8_t i) {
 
   float that_stat = (float)stat[i];
@@ -37,13 +37,13 @@ float get_new_widjet_value(uint8_t i) {
   if (pinmode[i] == 5) {  // dht Temp
 #if defined(USE_DHT)
     float temperature = dht.getTemperature();
-    Serial.println("DHT11 Temperature reading: " + String(temperature));
+    // Serial.println("DHT11 Temperature reading: " + String(temperature));
     if (!isnan(temperature) && temperature != 0) {
       that_stat = temperature;
       stat[i] = that_stat;
-      Serial.println("DHT11 Temperature OK: " + String(that_stat));
+      // Serial.println("DHT11 Temperature OK: " + String(that_stat));
     } else {
-      Serial.println("DHT11 Temperature ERROR - using previous value: " + String(stat[i]));
+      // Serial.println("DHT11 Temperature ERROR - using previous value: " + String(stat[i]));
       that_stat = stat[i];  // Use previous value
     }
 #endif
@@ -52,13 +52,13 @@ float get_new_widjet_value(uint8_t i) {
   if (pinmode[i] == 6) {  // dht Humidity
 #if defined(USE_DHT)
     float humidity = dht.getHumidity();
-    Serial.println("DHT11 Humidity reading: " + String(humidity));
+    // Serial.println("DHT11 Humidity reading: " + String(humidity));
     if (!isnan(humidity) && humidity != 0) {
       that_stat = humidity;
       stat[i] = that_stat;
-      Serial.println("DHT11 Humidity OK: " + String(that_stat));
+      // Serial.println("DHT11 Humidity OK: " + String(that_stat));
     } else {
-      Serial.println("DHT11 Humidity ERROR - using previous value: " + String(stat[i]));
+      // Serial.println("DHT11 Humidity ERROR - using previous value: " + String(stat[i]));
       that_stat = stat[i];  // Use previous value
     }
 #endif

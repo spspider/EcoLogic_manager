@@ -4,13 +4,14 @@ const unsigned char checkInterval = 5; // 5 seconds
 
 void loop_ecologicclient() {
   if ((unsigned char)(onesec_255 - lastCheck) >= checkInterval) {
-    syncWithServer();
-    lastCheck = onesec_255;
+      syncWithServer();
+      lastCheck = onesec_255;
   }
 }
 // Буферы для экономии памяти
 char device_id[32];  // Увеличенный размер для MAC (глобальная)
 static char device_token[] = "tk01";  // Короткий токен
+static bool updates_applied = false;  // Флаг применения обновлений
 
 
 
@@ -36,8 +37,11 @@ void uploadConfig_ecologicclient() {
     return;
   }
 
-  // Короткий URL
-  String url = String(server_url) + "/api/cfg?id=" + device_id + "&tk=" + device_token;
+  // Получаем IP адрес
+  String ip_address = WiFi.localIP().toString();
+
+  // Короткий URL с IP адресом
+  String url = String(server_url) + "/api/cfg?id=" + device_id + "&tk=" + device_token + "&ip=" + ip_address;
   
   if (url.length() > 200) {  // Проверяем длину URL
     Serial.println("URL too long");
@@ -71,6 +75,12 @@ void syncWithServer() {
     statArray.add(String(value, 2));
   }
   
+  // Добавляем флаг синхронизации если были применены обновления
+  if (updates_applied) {
+    doc["synced"] = 1;
+    updates_applied = false;
+  }
+  
   String jsonString;
   serializeJson(doc, jsonString);
   
@@ -101,10 +111,12 @@ void syncWithServer() {
           int pinState = states[i].as<int>();
           write_new_widjet_value(i, pinState);
         }
+        updates_applied = true;  // Устанавливаем флаг что обновления применены
         Serial.println("Updates applied");
+        syncWithServer();  // Немедленно синхронизируем снова для отправки подтверждения и нового статуса
       }
     }
-    Serial.println("Sync OK");
+    // Serial.println("Sync OK");
   } else {
     Serial.printf("Sync failed: %d\n", httpCode);
   }

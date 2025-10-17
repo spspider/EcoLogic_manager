@@ -473,6 +473,10 @@ function sendNewValue(button, id) {
 
     setHTML("input", sendJSON);
 
+    // Show alert message that command was sent
+    var alertDiv = alert_message("Command sent to device, waiting for sync...", 3);
+    document.body.appendChild(alertDiv);
+
     sendAJAX(button = button, sendJSON = sendJSON);
 
 }

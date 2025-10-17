@@ -86,10 +86,11 @@ async def upload_pin_setup(request: Request):
 async def upload_config_short(request: Request):
     """
     Короткий endpoint для Arduino (экономия памяти)
-    Параметры: id, tk
+    Параметры: id, tk, ip
     """
     device_id = request.query_params.get("id", "default")
     token = request.query_params.get("tk", "default_token")
+    ip_address = request.query_params.get("ip", "unknown")
     
     body = await request.body()
     try:
@@ -102,11 +103,11 @@ async def upload_config_short(request: Request):
         try:
             with conn.cursor() as cur:
                 sql = """
-                INSERT INTO devices (device_id, token, pin_setup, last_seen)
-                VALUES (%s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE token = VALUES(token), pin_setup = VALUES(pin_setup), last_seen = VALUES(last_seen)
+                INSERT INTO devices (device_id, token, pin_setup, ip_address, last_seen)
+                VALUES (%s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE token = VALUES(token), pin_setup = VALUES(pin_setup), ip_address = VALUES(ip_address), last_seen = VALUES(last_seen)
                 """
-                cur.execute(sql, (device_id, token, json.dumps(pin_setup), datetime.utcnow()))
+                cur.execute(sql, (device_id, token, json.dumps(pin_setup), ip_address, datetime.utcnow()))
                 conn.commit()
         finally:
             conn.close()
@@ -164,6 +165,10 @@ async def sync_status(request: Request):
                     (json.dumps(real_status), datetime.utcnow(), device_id, token)
                 )
                 
+                # Проверяем флаг синхронизации от устройства
+                if real_status.get("synced") == 1:
+                    cur.execute("UPDATE devices SET device_synced=TRUE WHERE device_id=%s AND token=%s", (device_id, token))
+                
                 # Получаем желаемый статус и флаг обновления
                 cur.execute("SELECT desired_status, has_updates FROM devices WHERE device_id=%s AND token=%s", (device_id, token))
                 row = cur.fetchone()
@@ -174,9 +179,9 @@ async def sync_status(request: Request):
                     
                     desired_status["upd"] = 1 if row.get("has_updates") else 0
                     
-                    # Если есть обновления, сбрасываем флаги после отправки
+                    # Если есть обновления, сбрасываем has_updates
                     if row.get("has_updates"):
-                        cur.execute("UPDATE devices SET has_updates=FALSE, device_synced=TRUE WHERE device_id=%s AND token=%s", (device_id, token))
+                        cur.execute("UPDATE devices SET has_updates=FALSE WHERE device_id=%s AND token=%s", (device_id, token))
                 
                 conn.commit()
         finally:
@@ -190,10 +195,12 @@ async def get_config(id: Optional[str] = "default"):
     if conn:
         try:
             with conn.cursor() as cur:
-                cur.execute("SELECT pin_setup FROM devices WHERE device_id=%s", (id,))
+                cur.execute("SELECT pin_setup, ip_address FROM devices WHERE device_id=%s", (id,))
                 row = cur.fetchone()
                 if row and row.get("pin_setup"):
-                    return json.loads(row["pin_setup"])
+                    config = json.loads(row["pin_setup"])
+                    config["ip_address"] = row.get("ip_address", "unknown")
+                    return config
         finally:
             conn.close()
     
@@ -228,8 +235,8 @@ async def send_ajax(request: Request):
                     row = cur.fetchone()
                     if row and row.get("real_status"):
                         status_data = json.loads(row["real_status"])
-                        # Блокируем обновления если есть изменения И устройство еще не синхронизировалось
-                        status_data["has_updates"] = 1 if (row.get("has_updates") or not row.get("device_synced", True)) else 0
+                        # Блокируем обновления если устройство еще не синхронизировалось
+                        status_data["has_updates"] = 1 if not row.get("device_synced", True) else 0
                         return JSONResponse(status_data)
             finally:
                 conn.close()
@@ -281,7 +288,7 @@ async def get_devices():
         try:
             with conn.cursor() as cur:
                 cur.execute("""
-                    SELECT device_id, last_seen, 
+                    SELECT device_id, last_seen, ip_address,
                            JSON_LENGTH(pin_setup, '$.descr') as pin_count
                     FROM devices 
                     ORDER BY last_seen DESC

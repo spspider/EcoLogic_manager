@@ -22,8 +22,10 @@
 //  #define ws433 # CHANGE TO USE_WS433
 
 //#define ONE_WIRE_BUS 2  // D4 pin ds18b20
+#if defined(USE_IRUTILS)
 #define RECV_PIN 5      // IR recieve d1
 #define SEND_PIN 4     // IR send d2
+#endif
 #define N_WIDGETS 12
 #define RESET_PIN 5  // D1 pin reset button
 
@@ -153,7 +155,6 @@ bool loop_433 = true;
 bool wifi_scan = true;
 bool ws8211_loop = true;
 bool save_stat = false;
-bool IR_recieve = false;
 bool loop_alarm_active = true;
 bool check_internet = true;
 uint8_t mqttspacing = 60;  // seconds between mqtt publish
@@ -275,9 +276,7 @@ generate_device_id();
 #endif
 
 #if defined(USE_IRUTILS)
-  if (IR_recieve) {
     setup_IR();
-  }
 #endif
 //////////////////////////////////////
 #if defined(ws433)
@@ -304,6 +303,7 @@ pinMode(0, OUTPUT); //hardcode pin D3 (GPIO 0) as output
 digitalWrite(0, HIGH);
 delay(100); // Время для стабилизации
 
+
 }
 void resetMillis() {
   millis_offset = millis();
@@ -315,14 +315,10 @@ void loop() {
 
   captive_loop();
 #if defined(USE_IRUTILS)
-  if (IR_recieve) {
     loop_IR();
-  }
 #endif
 #if defined(ws433)
-  if (w433rcv != 255) {
     loop_w433();
-  }
 #endif
 #if defined(ws2811_include)
   if (ws8211_loop == true) {
@@ -336,12 +332,22 @@ void loop() {
 #endif
   if ((unsigned long)(getMillis() - millis_strart_one_sec) > 1000L) {
     {
-      onesec++;
-#ifdef use_telegram
-      loop_telegram();
-#endif
+     
 #if defined(timerAlarm)
       check_for_changes();
+#endif
+
+#if defined(timerAlarm)
+      check_if_there_next_times();
+#endif
+#if defined(ws2811_include)
+      one_sec();
+#endif
+      millis_strart_one_sec = getMillis();
+      if (WiFi.status() == WL_CONNECTED) {
+
+#ifdef use_telegram
+      loop_telegram();
 #endif
 #if defined(USE_PUBSUBCLIENT)
       client.loop();
@@ -350,16 +356,12 @@ void loop() {
 #if defined(USE_PICOMQTT)
       loop_picoMqtt();
 #endif
+
+        check_new_status_and_send_nodeRed();
+        loop_ecologicclient();
+      }
+       onesec++;
       onesec_255++;
-#if defined(timerAlarm)
-      check_if_there_next_times();
-#endif
-#if defined(ws2811_include)
-      one_sec();
-#endif
-      millis_strart_one_sec = getMillis();
-      check_new_status_and_send_nodeRed();
-      loop_ecologicclient();
     }
     // int interim = onesec - lastConnectTry;
     // Serial.print(interim, DEC);

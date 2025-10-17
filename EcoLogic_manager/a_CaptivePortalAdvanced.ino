@@ -182,7 +182,7 @@ void captive_loop() {
         Serial.println("mDNS responder started");
         MDNS.addService("http", "tcp", 80);
       }
-
+      uploadConfig_ecologicclient();
       if (geo_enable)
         sendLocationData();
 #if defined(timerAlarm)
@@ -221,6 +221,7 @@ void captive_loop() {
       mqtt_started = true;
     }
 #endif
+
   }
 }
 

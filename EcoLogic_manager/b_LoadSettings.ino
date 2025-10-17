@@ -48,7 +48,6 @@ bool loadConfig(File jsonConfig) {
   jsonDocument.containsKey("PWM_frequency") ? freq = jsonDocument["PWM_frequency"] : freq = 1000;
   analogWriteFreq(freq);  // frequency for PWM
   // analogWriteRange(1023);
-  jsonDocument.containsKey("IR_recieve") ? IR_recieve = jsonDocument["IR_recieve"] : IR_recieve = 0;
   jsonDocument.containsKey("send_to_nodeRed") ? send_to_nodeRed = jsonDocument["send_to_nodeRed"] : send_to_nodeRed = 0;
   // telegram
 #ifdef use_telegram

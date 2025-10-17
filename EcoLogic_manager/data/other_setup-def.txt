@@ -17,7 +17,6 @@
   "geo_enable": false,
   "wifi_scan": true,
   "loop_433": false,
-  "IR_recieve": true,
   "ws8211_loop": true,
   "save_stat": false,
   "PWM_frequency": "1000",
