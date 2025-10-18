@@ -9,6 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 import pymysql
 from dotenv import load_dotenv
 from typing import Optional
+import secrets
 
 load_dotenv()
 
@@ -46,9 +47,23 @@ def get_conn():
         return None
 
 def verify_basic(credentials: HTTPBasicCredentials = Depends(security)):
-    if credentials.username != BASIC_USER or credentials.password != BASIC_PASS:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    return credentials.username
+    conn = get_conn()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT username FROM users WHERE username=%s AND password=%s", 
+                           (credentials.username, credentials.password))
+                user = cur.fetchone()
+                if user:
+                    return credentials.username
+        finally:
+            conn.close()
+    
+    # Fallback to admin credentials
+    if credentials.username == BASIC_USER and credentials.password == BASIC_PASS:
+        return "admin"
+    
+    raise HTTPException(status_code=401, detail="Unauthorized")
 
 @app.post("/api/upload_pin_setup")
 async def upload_pin_setup(request: Request):
@@ -98,16 +113,55 @@ async def upload_config_short(request: Request):
     except:
         return {"err": 1}
     
+    # Получаем owner из device_settings или ставим admin
+    owner = "admin"
+    conn = get_conn()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT other_setup FROM device_settings WHERE device_id=%s", (device_id,))
+                settings = cur.fetchone()
+                if settings and settings.get("other_setup"):
+                    other_data = json.loads(settings["other_setup"])
+                    owner = other_data.get("user_name", "admin")
+                
+                sql = """
+                INSERT INTO devices (device_id, token, pin_setup, ip_address, owner, last_seen)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE token = VALUES(token), pin_setup = VALUES(pin_setup), ip_address = VALUES(ip_address), last_seen = VALUES(last_seen)
+                """
+                cur.execute(sql, (device_id, token, json.dumps(pin_setup), ip_address, owner, datetime.utcnow()))
+                conn.commit()
+        finally:
+            conn.close()
+    
+    return {"ok": 1}
+
+@app.post("/api/other")
+async def upload_other_setup(request: Request):
+    """
+    Загрузка other_setup.txt с Arduino
+    Параметры: id, tk
+    """
+    device_id = request.query_params.get("id", "default")
+    token = request.query_params.get("tk", "default_token")
+    
+    body = await request.body()
+    try:
+        other_setup = json.loads(body.decode('utf-8'))
+    except:
+        return {"err": 1}
+    
     conn = get_conn()
     if conn:
         try:
             with conn.cursor() as cur:
                 sql = """
-                INSERT INTO devices (device_id, token, pin_setup, ip_address, last_seen)
-                VALUES (%s, %s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE token = VALUES(token), pin_setup = VALUES(pin_setup), ip_address = VALUES(ip_address), last_seen = VALUES(last_seen)
+                INSERT INTO device_settings (device_id, other_setup)
+                VALUES (%s, %s)
+                ON DUPLICATE KEY UPDATE other_setup = VALUES(other_setup)
                 """
-                cur.execute(sql, (device_id, token, json.dumps(pin_setup), ip_address, datetime.utcnow()))
+                cur.execute(sql, (device_id, json.dumps(other_setup)))
                 conn.commit()
         finally:
             conn.close()
@@ -189,13 +243,94 @@ async def sync_status(request: Request):
     
     return desired_status
 
-@app.get("/api/config")
-async def get_config(id: Optional[str] = "default"):
+@app.post("/api/register")
+async def register_user(username: str = Form(), password: str = Form()):
+    """
+    Регистрация нового пользователя (без авторизации)
+    """
+    import re
+    if len(username) < 3 or len(username) > 16 or len(password) < 6:
+        return HTMLResponse("""
+        <html><body style="font-family: Arial; margin: 50px;">
+        <h2>Registration Error</h2>
+        <p>Username: 3-16 characters, password: min 6 characters.</p>
+        <p><a href="/api/register">Try again</a></p>
+        </body></html>
+        """)
+    
+    if not re.match(r'^[a-zA-Z0-9_]+$', username):
+        return HTMLResponse("""
+        <html><body style="font-family: Arial; margin: 50px;">
+        <h2>Registration Error</h2>
+        <p>Username can only contain letters, numbers and underscore.</p>
+        <p><a href="/api/register">Try again</a></p>
+        </body></html>
+        """)
+    
     conn = get_conn()
     if conn:
         try:
             with conn.cursor() as cur:
-                cur.execute("SELECT pin_setup, ip_address FROM devices WHERE device_id=%s", (id,))
+                # Проверяем, существует ли пользователь
+                cur.execute("SELECT username FROM users WHERE username=%s", (username,))
+                if cur.fetchone():
+                    return HTMLResponse("""
+                    <html><body style="font-family: Arial; margin: 50px;">
+                    <h2>Registration Error</h2>
+                    <p>Username already exists. Please choose another.</p>
+                    <p><a href="/api/register">Try again</a></p>
+                    </body></html>
+                    """)
+                
+                # Создаем пользователя
+                cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
+                conn.commit()
+                return HTMLResponse("""
+                <html><body style="font-family: Arial; margin: 50px;">
+                <h2>Registration Successful!</h2>
+                <p>User registered successfully. You can now login.</p>
+                <p><a href="/api/device_selector">Go to login</a></p>
+                </body></html>
+                """)
+        finally:
+            conn.close()
+    
+    return HTMLResponse("""
+    <html><body style="font-family: Arial; margin: 50px;">
+    <h2>Registration Error</h2>
+    <p>Database error. Please try again later.</p>
+    <p><a href="/api/register">Try again</a></p>
+    </body></html>
+    """)
+
+@app.get("/api/register", response_class=HTMLResponse)
+async def register_form():
+    return HTMLResponse("""
+    <!DOCTYPE html>
+    <html>
+    <head><title>Register</title></head>
+    <body style="font-family: Arial; margin: 50px;">
+        <h2>Register New User</h2>
+        <form method="post">
+            <p><input name="username" placeholder="Username (3-16 chars, a-z 0-9 _)" pattern="[a-zA-Z0-9_]{3,16}" required></p>
+            <p><input name="password" type="password" placeholder="Password (min 6 chars)" required></p>
+            <p><button type="submit">Register</button></p>
+        </form>
+        <p><a href="/api/device_selector">Back to login</a></p>
+    </body>
+    </html>
+    """)
+
+@app.get("/api/config")
+async def get_config(id: Optional[str] = "default", user: str = Depends(verify_basic)):
+    conn = get_conn()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                if user == "admin":
+                    cur.execute("SELECT pin_setup, ip_address FROM devices WHERE device_id=%s", (id,))
+                else:
+                    cur.execute("SELECT pin_setup, ip_address FROM devices WHERE device_id=%s AND owner=%s", (id, user))
                 row = cur.fetchone()
                 if row and row.get("pin_setup"):
                     config = json.loads(row["pin_setup"])
@@ -207,7 +342,7 @@ async def get_config(id: Optional[str] = "default"):
     return {}
 
 @app.get("/api/ajax")
-async def send_ajax(request: Request):
+async def send_ajax(request: Request, user: str = Depends(verify_basic)):
     """
     Обратная совместимость с старым JS кодом
     Параметр data: {"t":127,"v":0} - запрос реального статуса
@@ -223,6 +358,18 @@ async def send_ajax(request: Request):
         
     except Exception as e:
         return JSONResponse({"error": f"invalid json: {e}"}, status_code=400)
+    
+    # Проверяем права доступа к устройству
+    conn = get_conn()
+    if conn and user != "admin":
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT owner FROM devices WHERE device_id=%s", (device_id,))
+                device = cur.fetchone()
+                if not device or device["owner"] != user:
+                    return JSONResponse({"error": "access denied"}, status_code=403)
+        finally:
+            conn.close()
 
     
     conn = get_conn()
@@ -279,20 +426,31 @@ async def send_ajax(request: Request):
         return PlainTextResponse(str(data['v']))
 
 @app.get("/api/devices")
-async def get_devices():
+async def get_devices(user: str = Depends(verify_basic)):
     """
-    Получение списка всех устройств в системе
+    Получение списка устройств пользователя
     """
     conn = get_conn()
     if conn:
         try:
             with conn.cursor() as cur:
-                cur.execute("""
-                    SELECT device_id, last_seen, ip_address,
-                           JSON_LENGTH(pin_setup, '$.descr') as pin_count
-                    FROM devices 
-                    ORDER BY last_seen DESC
-                """)
+                if user == "admin":
+                    # Админ видит все устройства
+                    cur.execute("""
+                        SELECT device_id, last_seen, ip_address, owner,
+                               JSON_LENGTH(pin_setup, '$.descr') as pin_count
+                        FROM devices 
+                        ORDER BY last_seen DESC
+                    """)
+                else:
+                    # Обычный пользователь видит только свои устройства
+                    cur.execute("""
+                        SELECT device_id, last_seen, ip_address, owner,
+                               JSON_LENGTH(pin_setup, '$.descr') as pin_count
+                        FROM devices 
+                        WHERE owner = %s
+                        ORDER BY last_seen DESC
+                    """, (user,))
                 devices = cur.fetchall()
                 return devices
         finally:
@@ -303,7 +461,37 @@ async def get_devices():
 async def device_selector(user: str = Depends(verify_basic)):
     with open("src/device_selector.html", "r", encoding="utf-8") as f:
         html = f.read()
+    
+    # Добавляем подсказку с именем пользователя и убираем ссылку регистрации
+    html = html.replace('<h1>Select Device to Control</h1>', 
+                       f'<h1>Select Device to Control</h1><div style="background: #e8f4fd; padding: 15px; border-radius: 5px; margin-bottom: 20px;"><strong>Device Registration:</strong> To register new device to your account, change name in \"connection\" settings, power on, and connect device to WiFi network</code></div>')
+    html = html.replace('<p><a href="/api/register">Register new user</a></p>', '')
+    
     return HTMLResponse(html)
+
+@app.get("/", response_class=HTMLResponse)
+@app.get("/login", response_class=HTMLResponse)
+async def login_page():
+    return HTMLResponse("""
+    <!DOCTYPE html>
+    <html>
+    <head><title>EcoLogic Manager - Login</title></head>
+    <body style="font-family: Arial; margin: 50px;">
+        <h1>EcoLogic Manager</h1>
+        <h2>Login</h2>
+        <p>Please use your browser's authentication or <a href="/api/register">register a new account</a></p>
+        <p><a href="/api/device_selector">Continue to device selection</a></p>
+        <hr>
+        <h3>Clear Authentication Data:</h3>
+        <p>If you need to clear saved login data:</p>
+        <ul>
+            <li><strong>Chrome/Edge:</strong> Settings → Privacy → Clear browsing data → Passwords and other sign-in data</li>
+            <li><strong>Firefox:</strong> Settings → Privacy → Clear Data → Saved Logins and Passwords</li>
+            <li><strong>Or use Incognito/Private mode</strong></li>
+        </ul>
+    </body>
+    </html>
+    """)
 
 @app.get("/api/home", response_class=HTMLResponse)
 async def index(user: str = Depends(verify_basic), device_id: Optional[str] = None):

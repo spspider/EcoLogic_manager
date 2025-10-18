@@ -9,5 +9,6 @@
   "ipport": "80",
   "timezone": "2",
   "PWM_frequency": "1000",
-  "BOTtoken":"7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38"
+  "BOTtoken":"7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38",
+  "server_url":"ecologic.pp.ua"
 }

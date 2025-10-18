@@ -16,45 +16,54 @@ static bool updates_applied = false;  // Флаг применения обно�
 
 
 void uploadConfig_ecologicclient() {
-  
   if (!LittleFS.begin()) {
     Serial.println("LittleFS fail");
     return;
   }
 
+  // Отправляем other_setup.txt
+  File otherFile = LittleFS.open("/other_setup.txt", "r");
+  if (otherFile) {
+    String otherConfig = otherFile.readString();
+    otherFile.close();
+    
+    String otherUrl = String(server_url) + "/api/other?id=" + device_id + "&tk=" + device_token;
+    if (http.begin(wclient, otherUrl)) {
+      http.addHeader("Content-Type", "application/json");
+      http.setTimeout(5000);
+      int otherCode = http.POST(otherConfig);
+      if (otherCode == 200) {
+        Serial.println("Other setup uploaded OK");
+      }
+      http.end();
+    }
+  }
+
+  // Отправляем pin_setup.txt
   File file = LittleFS.open("/pin_setup.txt", "r");
   if (!file) {
     Serial.println("pin_setup.txt not found");
     return;
   }
 
-  // Читаем файл порциями для экономии памяти
   String config = file.readString();
   file.close();
   
-  if (config.length() > 800) {  // Ограничиваем размер
+  if (config.length() > 800) {
     Serial.println("Config too large");
     return;
   }
 
-  // Получаем IP адрес
   String ip_address = WiFi.localIP().toString();
-
-  // Короткий URL с IP адресом
   String url = String(server_url) + "/api/cfg?id=" + device_id + "&tk=" + device_token + "&ip=" + ip_address;
   
-  if (url.length() > 200) {  // Проверяем длину URL
-    Serial.println("URL too long");
-    return;
-  }
-
   if (!http.begin(wclient, url)) {
     Serial.println("HTTP begin fail");
     return;
   }
 
   http.addHeader("Content-Type", "application/json");
-  http.setTimeout(5000);  // 5 сек таймаут
+  http.setTimeout(5000);
 
   int httpCode = http.POST(config);
   

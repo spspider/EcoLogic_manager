@@ -51,6 +51,10 @@
                             <input type='text' value='{{server_url}}' class="form-control" placeholder='ecologic.pp.ua' name='server_url'
                                 id="server_url" maxlength="32" />
                             
+                            User Name:
+                            <input type='text' value='{{user_name}}' class="form-control" placeholder='admin' name='user_name'
+                                id="user_name" maxlength="16" pattern="[a-zA-Z0-9_]+" title="Only letters, numbers and underscore allowed" />
+                            
                             <!-- New Test Connection Button 
                             <button type="button" class="btn btn-info" style="margin-top:10px;" onclick="testMQTTConnection()">Test
                                 Connection</button>

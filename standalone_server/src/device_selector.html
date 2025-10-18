@@ -13,6 +13,7 @@
 <body>
     <h1>Select Device to Control</h1>
     <div id="devices"></div>
+    <p><a href="/api/register">Register new user</a></p>
 
     <script>
         async function loadDevices() {
@@ -32,6 +33,7 @@
                     
                     div.innerHTML = `
                         <h3>${device.device_id}</h3>
+                        <p>Owner: ${device.owner || 'unknown'}</p>
                         <p>Last activity: ${lastSeen}</p>
                         <p>Pins configured: ${device.pin_count || 'unknown'}</p>
                         <p>IP address: ${device.ip_address || 'unknown'}</p>
