@@ -64,6 +64,20 @@ bool loadConfig(File jsonConfig) {
     strncpy(server_url, jsonDocument["server_url"], sizeof(server_url) - 1);
     server_url[sizeof(server_url) - 1] = '\0';
   }
+  
+  use_static_ip = jsonDocument.containsKey("use_static_ip") ? jsonDocument["use_static_ip"] : false;
+  if (jsonDocument.containsKey("static_ip")) {
+    strncpy(static_ip, jsonDocument["static_ip"], sizeof(static_ip) - 1);
+    static_ip[sizeof(static_ip) - 1] = '\0';
+  }
+  if (jsonDocument.containsKey("gateway")) {
+    strncpy(gateway, jsonDocument["gateway"], sizeof(gateway) - 1);
+    gateway[sizeof(gateway) - 1] = '\0';
+  }
+  if (jsonDocument.containsKey("subnet")) {
+    strncpy(subnet, jsonDocument["subnet"], sizeof(subnet) - 1);
+    subnet[sizeof(subnet) - 1] = '\0';
+  }
   //  String jsonConfig_string = readCommonFiletoJson("pin_setup");
   if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {
     Serial.println("Widgets Loaded");

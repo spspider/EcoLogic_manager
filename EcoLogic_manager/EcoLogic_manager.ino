@@ -202,6 +202,10 @@ Adafruit_ADS1015 ads(0x48);
 ///////////////////////////////
 char nodered_address[32] = { 0 };
 char server_url[32] = "https://ecologic.pp.ua";
+bool use_static_ip = false;
+char static_ip[16] = { 0 };
+char gateway[16] = { 0 };
+char subnet[16] = { 0 };
 
 void setup() {
 pinMode(0, OUTPUT); //hardcode pin D3 (GPIO 0) as output

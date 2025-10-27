@@ -42,159 +42,181 @@ void setup_IR() {
 }
 void updateIR() {
   File irJson = fileSystem->open("/IRButtons.txt", "r");
-  DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
-
+  if (!irJson) { // Проверяем открытие файла
+    Serial.println("Failed to open IRButtons.txt");
+    return;
+  }
+  
+  DynamicJsonDocument jsonDocument(1024);
   DeserializationError error = deserializeJson(jsonDocument, irJson);
+  irJson.close(); // Закрываем файл сразу после чтения
+  
   if (error) {
-    Serial.print(F("deserializeJson() failed with code updateIR"));
+    Serial.print(F("deserializeJson() failed in updateIR: "));
     Serial.println(error.c_str());
     return;
   }
 
+  // Получаем количество IR кодов
   unsigned int numberChosed = jsonDocument["num"];
   if (numberChosed > IRCodeString_numbers_array) {
-    numberChosed = IRCodeString_numbers_array;
+    numberChosed = IRCodeString_numbers_array; // Ограничиваем максимум
   }
   IRCodeId_numbers = numberChosed;
 
+  // Загружаем IR коды в массив
   for (uint8_t i = 0; i < numberChosed; i++) {
     const char* IRCode = jsonDocument["code"][i].as<const char*>();
     if (IRCode) {
       strncpy(IRCodeString[i], IRCode, sizeof(IRCodeString[i]) - 1);
-      IRCodeString[i][sizeof(IRCodeString[i]) - 1] = '\0';  // Ensure null-termination
+      IRCodeString[i][sizeof(IRCodeString[i]) - 1] = '\0'; // Обеспечиваем null-termination
+      Serial.println("Loaded IR code " + String(i) + ": " + String(IRCodeString[i]));
     }
   }
+  Serial.println("IR codes loaded: " + String(IRCodeId_numbers));
 }
 
 
 uint64_t StrToHex(const char* str) {
-  return (uint64_t)strtoul(str, 0, 16);
+  return (uint64_t)strtoul(str, 0, 16); // Конвертируем HEX строку в число
 }
-long long toLongLong(String x) {
-  unsigned long long y = 0;
-  for (int i = 0; i < x.length(); i++) {
-    char c = x.charAt(i);
-    if (c < '0' || c > '9') break;
-    y *= 10;
-    y += (c - '0');
-  }
-  return y;
-}
+// Удалена неиспользуемая функция toLongLong
 void send_IR_code(const char* full_code_char) {
   String full_code = String(full_code_char);
-  if (full_code.length() < 2) {  //цифра вместо кода
-    //    String jsonSend = readCommonFiletoJson("IrRaw_Code" + full_code);
+  
+  if (full_code.length() < 2) { // Короткий код - значит это RAW сигнал
     File jsonSend = fileSystem->open("/IrRaw_Code" + full_code + ".txt", "r");
-    DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
+    if (!jsonSend) {
+      Serial.println("Failed to open RAW IR file: IrRaw_Code" + full_code + ".txt");
+      return;
+    }
+    
+    DynamicJsonDocument jsonDocument(1024);
     DeserializationError error = deserializeJson(jsonDocument, jsonSend);
+    jsonSend.close(); // Закрываем файл
+    
     if (error) {
-      Serial.print(F("deserializeJson() failed with code send_IR_code"));
+      Serial.print(F("deserializeJson() failed in send_IR_code: "));
       Serial.println(error.c_str());
       return;
     }
+    
     int codeLen = jsonDocument["len"];
-    if (codeLen > 250) return;
+    if (codeLen > 250 || codeLen <= 0) { // Проверяем длину
+      Serial.println("Invalid RAW signal length: " + String(codeLen));
+      return;
+    }
+    
     uint16_t Signal_ON_0[250];
     for (int i = 0; i < codeLen; i++) {
-      Signal_ON_0[i] = jsonDocument["c"][i];
-      // Serial.print(Signal_ON_0[i]);
+      Signal_ON_0[i] = jsonDocument["c"][i]; // Загружаем RAW данные
     }
-    irsend.sendRaw(Signal_ON_0, codeLen, 38);
+    irsend.sendRaw(Signal_ON_0, codeLen, 38); // Отправляем RAW сигнал
+    Serial.println("Sent RAW IR signal, length: " + String(codeLen));
   } else {
-    irsend.sendNEC(StrToHex(full_code_char), 32);
+    irsend.sendNEC(StrToHex(full_code_char), 32); // Отправляем NEC код
+    Serial.println("Sent NEC IR code: " + String(full_code_char));
   }
 }
 
 void send_IR(char ButtonNumber) {
-
-  if (ButtonNumber != char(-1)) {
-    if (IrButtonID[ButtonNumber] != 255) {
-      Serial.println("send_IR:" + String(ButtonNumber, DEC));
-      if (IrButtonID[ButtonNumber] < IRCodeString_numbers_array) {
-        //int code = IRCodeString[IrButtonID[ButtonNumber]];
-        Serial.println("SEND IR IRCodeString:" + String(IRCodeString[IrButtonID[ButtonNumber]]) + "IrButtonID:" + String(IrButtonID[ButtonNumber], DEC));
-        /*   uint64_t number = toLongLong(IRCodeString[IrButtonID[ButtonNumber]]);
-           unsigned long long1 = (unsigned long)((number & 0xFFFF0000) >> 16 );
-           unsigned long long2 = (unsigned long)((number & 0x0000FFFF));
-        */
-
-        send_IR_code(IRCodeString[IrButtonID[ButtonNumber]]);
-      } else {
-        Serial.println("Fail IrButtonID[ButtonNumber]" + String(IrButtonID[ButtonNumber], DEC));
-      }
-    }
+  // Проверяем корректность номера кнопки
+  if (ButtonNumber == char(-1) || IrButtonID[ButtonNumber] == 255) {
+    return; // Некорректный номер или нет IR кода
   }
+  
+  // Проверяем что IR код существует
+  if (IrButtonID[ButtonNumber] >= IRCodeString_numbers_array) {
+    Serial.println("IR code index out of range: " + String(IrButtonID[ButtonNumber], DEC));
+    return;
+  }
+  
+  Serial.println("Sending IR for button " + String(ButtonNumber, DEC) + ", code: " + String(IRCodeString[IrButtonID[ButtonNumber]]));
+  send_IR_code(IRCodeString[IrButtonID[ButtonNumber]]); // Отправляем IR код
 }
 
 
 void check_code_IR(String codeIR) {
+  // Проходим по всем IR кодам из файла IRButtons.txt
   for (uint8_t i = 0; i < IRCodeId_numbers; i++) {
-    //if (IRCodeString[i] == codeIR) {//совпадение найдено
+    // Проверяем совпадение полученного кода с кодом из файла
     if (strcmp(IRCodeString[i], codeIR.c_str()) == 0) {
+      // Ищем кнопку с соответствующим IR кодом
       for (uint8_t i1 = 0; i1 < nWidgets; i1++) {
-        if (IrButtonID[i1] == i) {
+        if (IrButtonID[i1] == i) { // Найдена кнопка с этим IR кодом
           Serial.println("FIND IR:" + String(descr[i1]) + " IrButtonID[i1]:" + String(IrButtonID[i1], DEC) + " i:" + String(i, DEC));
-          stat[i1] ^= 1;
-          //          save_stat_void();
-          digitalWrite(pin[i1], stat[i1]);
-          //stat[i1] = new_state;
-          delay(300);
+          
+          // Определяем тип кнопки и переключаем соответственно
+          if (pinmode[i1] == 2) { // Switch (цифровой выход)
+            stat[i1] = stat[i1] ? 0 : 1; // Переключаем 0↔1
+            digitalWrite(pin[i1], stat[i1]); // Применяем к пину
+          } 
+          else if (pinmode[i1] == 3) { // PWM
+            stat[i1] = (stat[i1] > 0) ? 0 : 1024; // Переключаем 0↔1024
+            analogWrite(pin[i1], stat[i1]); // Применяем PWM
+          }
+          
+          delay(300); // Защита от дребезга
+          break; // Выходим из цикла поиска кнопки
         }
       }
+      break; // Выходим из цикла поиска кода (код найден)
     }
   }
 }
 
 void loop_IR() {
-  if (irrecv.decode(&results)) {
-    irrecv.resume();  // Always resume as early as possible
+  if (!irrecv.decode(&results)) return; // Нет сигнала - выходим
+  
+  irrecv.resume(); // Возобновляем прием как можно раньше
 
-    // Filter out very short signals (likely noise)
-    if (results.rawlen < 30 || results.value == 0xFFFFFFFF || results.value == 0) {
-      irrecv.resume();
-      return;
+  // Фильтруем шум и повторы
+  if (results.rawlen < 30 || results.value == 0xFFFFFFFF || results.value == 0) {
+    return; // irrecv.resume() уже вызван выше
+  }
+
+  // Обработка RAW сигнала для настройки IR
+  if (results.rawlen > 100 && Page_IR_opened) {
+    StaticJsonDocument<1024> doc;
+    JsonArray array = doc.createNestedArray("c");
+    doc["raw"] = true;
+    doc["len"] = results.rawlen;
+
+    for (uint16_t i = 1; i < results.rawlen; i++) {
+      uint32_t usecs = results.rawbuf[i] * RAWTICK;
+      while (usecs > UINT16_MAX) {
+        array.add(UINT16_MAX);
+        array.add(0);
+        usecs -= UINT16_MAX;
+      }
+      array.add(usecs);
     }
 
-    // Handle RAW long signal
-    if (results.rawlen > 100 && Page_IR_opened) {
-      StaticJsonDocument<1024> doc;
-      JsonArray array = doc.createNestedArray("c");
-      doc["raw"] = true;
-      doc["len"] = results.rawlen;
+    String sendJSON;
+    serializeJson(doc, sendJSON);
+    server.send(200, "application/json", sendJSON);
+    Page_IR_opened = false;
+    return;
+  }
 
-      for (uint16_t i = 1; i < results.rawlen; i++) {
-        uint32_t usecs = results.rawbuf[i] * RAWTICK;
-        while (usecs > UINT16_MAX) {
-          array.add(UINT16_MAX);
-          array.add(0);
-          usecs -= UINT16_MAX;
-        }
-        array.add(usecs);
-      }
+  // Обработка стандартного кода (NEC и др.)
+  if (results.value != 0xFFFFFFFF && results.value != 0) {
+    char codeHex[21];
+    sprintf(codeHex, "%X", results.value); // Конвертируем в HEX строку
+    Serial.println("IR code received: " + String(codeHex));
 
-      String sendJSON;
-      serializeJson(doc, sendJSON);
-      server.send(200, "application/json", sendJSON);
+    String codeIR = String(codeHex);
+    
+    // Основная логика - проверяем код и переключаем кнопки
+    check_code_IR(codeIR);
+
+    // Отправляем код на сервер Node-RED (если настроен)
+    sendIRCode_toServer(strtoul(codeHex, nullptr, 16));
+    
+    // Отправляем код в веб-интерфейс (если страница IR открыта)
+    if (Page_IR_opened) {
+      server.send(200, "text/plain", codeIR);
       Page_IR_opened = false;
-      return;
-    }
-
-    // Handle standard code (NEC, etc.)
-    if (results.value != 0xFFFFFFFF && results.value != 0) {
-      char codeHex[21];
-      sprintf(codeHex, "%X", results.value);
-      Serial.println("short code: " + String(codeHex));
-
-      String codeIR = String(codeHex);
-
-      // Only handle known codes
-      check_code_IR(codeIR);
-
-      sendIRCode_toServer(strtoul(codeHex, nullptr, 16));
-      if (Page_IR_opened) {
-        server.send(200, "text/plain", codeIR);
-        Page_IR_opened = false;
-      }
     }
   }
 }

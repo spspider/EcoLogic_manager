@@ -10,5 +10,5 @@
   "timezone": "2",
   "PWM_frequency": "1000",
   "BOTtoken":"7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38",
-  "server_url":"ecologic.pp.ua"
+  "server_url":"https://ecologic.pp.ua"
 }

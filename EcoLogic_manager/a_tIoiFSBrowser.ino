@@ -117,6 +117,9 @@ void handleFileUpload() {
 
     if (upload.filename.equals("pin_setup.txt")) {
       // Вызываем пользовательскую функцию
+      if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {
+        Serial.println("Widgets Loaded");
+      }
       uploadConfig_ecologicclient();
     }
 
@@ -687,9 +690,6 @@ void server_init() {
     json += ", \"gpio\":" + String((uint32_t)(((GPI | GPO) & 0xFFFF) | ((GP16I & 0x01) << 16)));
     json += ", \"wifi\":" + String(WiFi.RSSI());
     json += ", \"uptime\":" + String(millis());
-    json += ", \"cpu_freq\":" + String(ESP.getCpuFreqMHz());
-    json += ", \"free_sketch\":" + String(ESP.getFreeSketchSpace());
-    json += ", \"status\":" + String(WiFi.status());
     json += ", \"bssid\":\"" + WiFi.BSSIDstr() + "\"";
     json += ", \"channel\":" + String(WiFi.channel());
     json += ", \"ap_clients\":" + String(WiFi.softAPgetStationNum());

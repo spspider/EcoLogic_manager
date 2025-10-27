@@ -58,9 +58,8 @@ function applySettings(data) {
     if (data.emaillogin) setVal('emaillogin', b64DecodeUnicode(data.emaillogin));
     if (data.password_email) setVal('password_email', b64DecodeUnicode(data.password_email));
     if (data.PWM_frequency) setHTML("PWMfreq", parseInt(data.PWM_frequency));
-
-    // Добавляем кнопки только один раз
-
+    
+    toggleStaticIP();
 }
 
 
@@ -231,6 +230,12 @@ function testMQTTConnection() {
 
 function FreqChange() {
     setHTML("PWMfreq", parseInt(getVal("PWM_frequency")));
+}
+
+function toggleStaticIP() {
+    const checkbox = document.getElementById('use_static_ip');
+    const fields = document.getElementById('static_ip_fields');
+    fields.style.display = checkbox.checked ? 'block' : 'none';
 }
 
 function send_request(submit, server) {

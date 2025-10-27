@@ -71,6 +71,14 @@ void connectWifi(char ssid_that[32], char password_that[32]) {
     WiFi.disconnect();
     status = WL_IDLE_STATUS;
     WiFi.mode(WIFI_STA);
+    if (use_static_ip && strlen(static_ip) > 0) {
+      IPAddress ip, gw, sn;
+      ip.fromString(static_ip);
+      gw.fromString(gateway);
+      sn.fromString(subnet);
+      WiFi.config(ip, gw, sn);
+      Serial.println("Using static IP: " + String(static_ip));
+    }
     Serial.println("Connecting as wifi client...");
     Serial.println(ssid_that);
     WiFi.begin(ssid_that, strlen(password_that) > 0 ? password_that : nullptr);

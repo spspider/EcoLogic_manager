@@ -34,5 +34,7 @@ __pycache__/
 build/**
 # Ignore all subfolders of builded
 builded/**
+# Docker build dependencies
+docker-build/project_libraries/
 # Exceptions
 !bootstrap.min.css.gz

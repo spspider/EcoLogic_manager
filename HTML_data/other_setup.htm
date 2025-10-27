@@ -94,6 +94,20 @@
                                 name='ipport' />
                             GMT+ (timezone):
                             <input type='text' id="timezone" class="form-control" placeholder='0' value='{{timezone}}' name='timezone' />
+                            <br>
+                            Use Static IP:
+                            <input type='checkbox' class="form-control" name='use_static_ip' id="use_static_ip" onchange="toggleStaticIP()" />
+                            <div id="static_ip_fields" style="display:none;">
+                                Static IP:
+                                <input type='text' class="form-control" placeholder='192.168.1.100' value='{{static_ip}}'
+                                    name='static_ip' id='static_ip' pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" />
+                                Gateway:
+                                <input type='text' class="form-control" placeholder='192.168.1.1' value='{{gateway}}'
+                                    name='gateway' id='gateway' pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" />
+                                Subnet:
+                                <input type='text' class="form-control" placeholder='255.255.255.0' value='{{subnet}}'
+                                    name='subnet' id='subnet' pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" />
+                            </div>
                         </div>
                         <div class="col-sm-6">
                             <div>
