@@ -23,5 +23,5 @@
   "ir_loop": -1,
   "BOTtoken":"7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38",
   "send_to_nodeRed":false,
-  "server_url": "ecologic.pp.ua"
+  "server_url": "https://ecologic.pp.ua"
 }

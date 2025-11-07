@@ -206,6 +206,8 @@ bool use_static_ip = false;
 char static_ip[16] = { 0 };
 char gateway[16] = { 0 };
 char subnet[16] = { 0 };
+char dns1[16] = { 0 };
+char dns2[16] = { 0 };
 
 void setup() {
 pinMode(0, OUTPUT); //hardcode pin D3 (GPIO 0) as output

@@ -78,6 +78,14 @@ bool loadConfig(File jsonConfig) {
     strncpy(subnet, jsonDocument["subnet"], sizeof(subnet) - 1);
     subnet[sizeof(subnet) - 1] = '\0';
   }
+  if (jsonDocument.containsKey("dns1")) {
+    strncpy(dns1, jsonDocument["dns1"], sizeof(dns1) - 1);
+    dns1[sizeof(dns1) - 1] = '\0';
+  }
+  if (jsonDocument.containsKey("dns2")) {
+    strncpy(dns2, jsonDocument["dns2"], sizeof(dns2) - 1);
+    dns2[sizeof(dns2) - 1] = '\0';
+  }
   //  String jsonConfig_string = readCommonFiletoJson("pin_setup");
   if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {
     Serial.println("Widgets Loaded");

@@ -318,6 +318,8 @@ void handle_setTime() {
   serializeJson(json, buffer);
   Serial.println(buffer);
   server.send(200, "text/json", buffer);
+#else
+  server.send(200, "text/json", "{\"h\":0,\"m\":0,\"s\":0,\"d\":0,\"n\":0,\"y\":0,\"t\":0}");
 #endif
 }
 

@@ -10,5 +10,8 @@
   "timezone": "2",
   "PWM_frequency": "1000",
   "BOTtoken":"7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38",
-  "server_url":"https://ecologic.pp.ua"
+  "server_url":"https://ecologic.pp.ua",
+  "static_ip":"192.168.1.200",
+  "gateway":"192.168.1.1",
+  "subnet":"255.255.255.0"
 }

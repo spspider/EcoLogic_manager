@@ -72,11 +72,22 @@ void connectWifi(char ssid_that[32], char password_that[32]) {
     status = WL_IDLE_STATUS;
     WiFi.mode(WIFI_STA);
     if (use_static_ip && strlen(static_ip) > 0) {
-      IPAddress ip, gw, sn;
+      IPAddress ip, gw, sn, d1, d2;
       ip.fromString(static_ip);
       gw.fromString(gateway);
       sn.fromString(subnet);
-      WiFi.config(ip, gw, sn);
+      if (strlen(dns1) > 0) {
+        d1.fromString(dns1);
+        if (strlen(dns2) > 0) {
+          d2.fromString(dns2);
+          WiFi.config(ip, gw, sn, d1, d2);
+        } else {
+          WiFi.config(ip, gw, sn, d1);
+        }
+      } else {
+        d1 = gw;
+        WiFi.config(ip, gw, sn, d1);
+      }
       Serial.println("Using static IP: " + String(static_ip));
     }
     Serial.println("Connecting as wifi client...");
