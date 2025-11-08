@@ -334,16 +334,13 @@ function check_if_activated() {
 
 function bottomButtons() {
     //check_if_activated();
+    var deviceParam = window.DEVICE_ID ? '?device_id=' + window.DEVICE_ID : '';
     var btmBtns =
         "<div class='btn-group btn-group-justified'>" +
-        "<a class='btn btn-block btn-default' type='button' href='/'>cont</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/wifi'>Wifi</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/other_setup'>conn</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/pin_setup'>buttons</a>" +
-        // "<a class='btn btn-block btn-default' href='/IR_setup'>IR</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/condition'>condition</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/ws2811.html'>ws2811</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/help'>?</a>" +
+        "<a class='btn btn-block btn-default' type='button' href='/api/device_selector" + deviceParam + "'>devices</a>" +
+        "<a class='btn btn-block btn-default' type='button' href='/api/home" + deviceParam + "'>home</a>" +
+        "<a class='btn btn-block btn-default' type='button' href='/api/condition" + deviceParam + "'>condition</a>" +
+
         //       "<a class='btn btn-block btn-default' id = 'activation' onclick='ActivateDialog()' type='button'></a>"+
         " </div>";
     return btmBtns;
@@ -352,14 +349,15 @@ function bottomButtons() {
 function bottomButtons2() {
     const btmBtns = document.createElement('div');
     btmBtns.className = 'btn-group btn-group-justified';
+    const deviceParam = window.DEVICE_ID ? '?device_id=' + window.DEVICE_ID : '';
     const buttons = [
         { href: '/', text: 'cont' },
         { href: '/wifi', text: 'Wifi' },
         { href: '/other_setup', text: 'conn' },
         { href: '/pin_setup', text: 'buttons' },
-        { href: '/condition', text: 'condition' },
-        { href: '/ws2811.html', text: 'ws2811' },
-        { href: '/help', text: '?' }
+        { href: '/api/condition' + deviceParam, text: 'condition' },
+        { href: '/api/ws2811' + deviceParam, text: 'ws2811' },
+        { href: '/api/help' + deviceParam, text: '?' }
     ];
     buttons.forEach(button => {
         const a = document.createElement('a');

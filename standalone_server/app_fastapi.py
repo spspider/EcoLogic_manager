@@ -10,6 +10,8 @@ import pymysql
 from dotenv import load_dotenv
 from typing import Optional
 import secrets
+import asyncio
+from datetime import time as dt_time
 
 load_dotenv()
 
@@ -493,22 +495,162 @@ async def login_page():
     </html>
     """)
 
-@app.get("/api/home", response_class=HTMLResponse)
-async def index(user: str = Depends(verify_basic), device_id: Optional[str] = None):
+@app.get("/api/pin_setup")
+async def get_pin_setup(device_id: str = "default", user: str = Depends(verify_basic)):
+    conn = get_conn()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                if user == "admin":
+                    cur.execute("SELECT pin_setup FROM devices WHERE device_id=%s", (device_id,))
+                else:
+                    cur.execute("SELECT pin_setup FROM devices WHERE device_id=%s AND owner=%s", (device_id, user))
+                row = cur.fetchone()
+                if row and row.get("pin_setup"):
+                    return json.loads(row["pin_setup"])
+        finally:
+            conn.close()
+    return {}
+
+@app.get("/api/conditions")
+async def get_conditions(device_id: str = "default", user: str = Depends(verify_basic)):
+    conn = get_conn()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                if user == "admin":
+                    cur.execute("SELECT conditions FROM devices WHERE device_id=%s", (device_id,))
+                else:
+                    cur.execute("SELECT conditions FROM devices WHERE device_id=%s AND owner=%s", (device_id, user))
+                row = cur.fetchone()
+                if row and row.get("conditions"):
+                    return json.loads(row["conditions"])
+        finally:
+            conn.close()
+    return []
+
+@app.post("/api/conditions")
+async def save_conditions(request: Request, device_id: str = "default", user: str = Depends(verify_basic)):
+    body = await request.body()
+    try:
+        conditions = json.loads(body.decode('utf-8'))
+    except:
+        return JSONResponse({"error": "invalid json"}, status_code=400)
+    
+    conn = get_conn()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                if user == "admin":
+                    cur.execute("UPDATE devices SET conditions=%s WHERE device_id=%s", 
+                               (json.dumps(conditions), device_id))
+                else:
+                    cur.execute("UPDATE devices SET conditions=%s WHERE device_id=%s AND owner=%s", 
+                               (json.dumps(conditions), device_id, user))
+                conn.commit()
+        finally:
+            conn.close()
+    return {"ok": True}
+
+@app.get("/api/{page}", response_class=HTMLResponse)
+async def page_handler(page: str, request: Request, user: str = Depends(verify_basic), device_id: Optional[str] = None):
+    # Исключаем специальные эндпоинты
+    if page in ["ajax", "devices", "device_selector", "register", "static", "sync", "pin_setup", "conditions"]:
+        raise HTTPException(status_code=404)
+    
     if not device_id:
-        # Перенаправляем на страницу выбора устройства
         return HTMLResponse('<script>window.location.href="/api/device_selector"</script>')
     
-    with open("src/home.htm", "r", encoding="utf-8") as f:
+    with open(f"src/{page}.htm", "r", encoding="utf-8") as f:
         html = f.read()
     
-    # Исправляем пути к статическим файлам
     html = html.replace('src="scripts/', 'src="/api/static/')
     html = html.replace('href="scripts/', 'href="/api/static/')
-    
-    # Добавляем device_id в JavaScript
     html = html.replace('</head>', f'<script>window.DEVICE_ID = "{device_id}";</script></head>')
     return HTMLResponse(html)
+
+async def check_conditions():
+    """Фоновая задача для проверки условий"""
+    while True:
+        await asyncio.sleep(10)  # Проверка каждые 10 секунд
+        conn = get_conn()
+        if not conn:
+            continue
+        
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT device_id, conditions, real_status, desired_status, pin_setup FROM devices WHERE conditions IS NOT NULL")
+                devices = cur.fetchall()
+                
+                for device in devices:
+                    device_id = device["device_id"]
+                    conditions = json.loads(device["conditions"]) if device.get("conditions") else []
+                    real_status = json.loads(device["real_status"]) if device.get("real_status") else {"stat": []}
+                    desired_status = json.loads(device["desired_status"]) if device.get("desired_status") else {"stat": []}
+                    pin_setup = json.loads(device["pin_setup"]) if device.get("pin_setup") else {}
+                    
+                    # Проверяем каждое условие
+                    for cond in conditions:
+                        if not cond.get("enabled"):
+                            continue
+                        
+                        condition_met = False
+                        cond_type = cond.get("conditionType")
+                        cond_value = cond.get("conditionValue")
+                        
+                        source_pin = cond.get("sourcePin")
+                        
+                        # Проверка условия по времени
+                        if cond_type == "on time reached" and cond_value:
+                            now = datetime.now().strftime("%H:%M")
+                            if now == cond_value:
+                                condition_met = True
+                        
+                        # Проверка условий сравнения (equal, greater, less)
+                        elif cond_type in ["equal", "greater than", "less than"] and source_pin is not None:
+                            try:
+                                pin_idx = int(source_pin)
+                                if pin_idx < len(real_status.get("stat", [])):
+                                    current_val = float(real_status["stat"][pin_idx])
+                                    target_val = float(cond_value)
+                                    
+                                    if cond_type == "equal" and current_val == target_val:
+                                        condition_met = True
+                                    elif cond_type == "greater than" and current_val > target_val:
+                                        condition_met = True
+                                    elif cond_type == "less than" and current_val < target_val:
+                                        condition_met = True
+                            except (ValueError, IndexError):
+                                pass
+                        
+                        # Проверка условия таймера
+                        elif cond_type == "timer":
+                            pass
+                        
+                        # Выполняем действие если условие выполнено
+                        if condition_met:
+                            action_type = cond.get("actionType")
+                            action_pin = cond.get("actionPin")
+                            action_value = cond.get("actionValue")
+                            
+                            if action_type == "switch pin" and action_pin:
+                                pin_idx = int(action_pin)
+                                if pin_idx < len(desired_status["stat"]):
+                                    if action_value == "PWM":
+                                        desired_status["stat"][pin_idx] = str(cond.get("pwmValue", "0"))
+                                    else:
+                                        desired_status["stat"][pin_idx] = "1" if action_value == "1" else "0"
+                                    
+                                    # Обновляем desired_status в БД
+                                    cur.execute("UPDATE devices SET desired_status=%s, has_updates=TRUE WHERE device_id=%s",
+                                               (json.dumps(desired_status), device_id))
+                                    conn.commit()
+        finally:
+            conn.close()
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(check_conditions())
 
 if __name__ == "__main__":
     import uvicorn
