@@ -7,7 +7,6 @@
 
     <script defer type="text/javascript" src="scripts/helper_func.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
-    <!-- <script type="text/javascript" src="scripts/chart.min.js"></script> -->
 
     <script type="text/javascript" src="scripts/script_home.js"></script>
     <title id="title">Dev</title>
@@ -20,15 +19,14 @@
 <body>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // loadBootstrap();
             if (typeof Chart === 'undefined') {
                 loadjQuery("scripts/chart.min.js", function () {
-                    firstload();
+                    // Chart loaded from local storage
                 });
             }
-
         });
     </script>
+
     <div class="container">
         <div class="row" style="text-align:center;">
             <div class="col-sm-offset-2 col-sm-8 col-md-offset-3 col-md-6">

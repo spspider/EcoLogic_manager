@@ -4,10 +4,12 @@
     <title>Device Selection</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 50px; }
-        .device { padding: 20px; margin: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .device { padding: 20px; margin: 10px; border: 1px solid #ccc; border-radius: 5px; position: relative; }
         .device:hover { background-color: #f0f0f0; cursor: pointer; }
         .device h3 { margin: 0 0 10px 0; }
         .device p { margin: 5px 0; color: #666; }
+        .ip-btn { position: absolute; top: 20px; right: 20px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 14px; }
+        .ip-btn:hover { background: #0056b3; }
     </style>
 </head>
 <body>
@@ -31,12 +33,15 @@
                     
                     const lastSeen = new Date(device.last_seen).toLocaleString();
                     
+                    const deviceTitle = device.device_name ? `${device.device_name} (${device.device_id})` : device.device_id;
+                    
                     div.innerHTML = `
-                        <h3>${device.device_id}</h3>
+                        <h3>${deviceTitle}</h3>
                         <p>Owner: ${device.owner || 'unknown'}</p>
                         <p>Last activity: ${lastSeen}</p>
                         <p>Pins configured: ${device.pin_count || 'unknown'}</p>
                         <p>IP address: ${device.ip_address || 'unknown'}</p>
+                        ${device.ip_address ? `<a href="http://${device.ip_address}" target="_blank" class="ip-btn" onclick="event.stopPropagation()">Open Locally</a>` : ''}
                     `;
                     
                     container.appendChild(div);

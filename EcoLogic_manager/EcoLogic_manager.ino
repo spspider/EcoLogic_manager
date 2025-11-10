@@ -21,7 +21,9 @@
 //  #define USE_EMON  //electric monitor
 //  #define ws433 # CHANGE TO USE_WS433
 
-//#define ONE_WIRE_BUS 2  // D4 pin ds18b20
+#if defined(USE_DS18B20)
+#define ONE_WIRE_BUS 2  // D4 pin ds18b20
+#endif
 #if defined(USE_IRUTILS)
 #define RECV_PIN 5      // IR recieve d1
 #define SEND_PIN 4     // IR send d2

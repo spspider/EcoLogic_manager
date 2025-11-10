@@ -51,18 +51,20 @@
                             <input type='text' value='{{server_url}}' class="form-control" placeholder='ecologic.pp.ua' name='server_url'
                                 id="server_url" maxlength="32" />
                             
-                            User Name:
+                            Owner:
                             <input type='text' value='{{user_name}}' class="form-control" placeholder='admin' name='user_name'
                                 id="user_name" maxlength="16" pattern="[a-zA-Z0-9_]+" title="Only letters, numbers and underscore allowed" />
-                            
-                            <!-- New Test Connection Button 
+                            Device name:
+                            <input type='text' value='{{device_name}}' class="form-control" placeholder='Device Name' name='device_name'
+                                id="device_name" maxlength="16" pattern="[a-zA-Z0-9_]+" title="Only letters, numbers and underscore allowed" />
+                            <!-- New Test Connection Button
                             <button type="button" class="btn btn-info" style="margin-top:10px;" onclick="testMQTTConnection()">Test
                                 Connection</button>
                             <span id="mqtt_test_result" style="margin-left:10px;"></span>
                             -->
                         </div>
 
-                        <div class="col-sm-6">
+                        <!-- <div class="col-sm-6">
                             <p>Email:</p>
                             </br>
                             Provider address
@@ -84,7 +86,7 @@
                             <input type='text' class="form-control" placeholder='password' value='{{password_email}}'
                                 name='password_email' />
                             <br />
-                        </div>
+                        </div> -->
                     </div>
                     <hr>
                     <div class="row">
@@ -126,14 +128,14 @@
                     </div>
                     <hr>
                     <div class="row">
-                        <div class="col-sm-6">
+                        <!-- <div class="col-sm-6">
                             <h4>Telegram setup</h4>
                             <div>
                                 Telegram BOTtoken:<p id="BOTtoken_"></p>
                                 <input type='text' class="form-control" name='BOTtoken' id="BOTtoken" value="{{BOTtoken}}" />
                             </div>
                             <br>
-                        </div>
+                        </div> -->
                         <div class="col-sm-6">
                             <strong>Node-RED Server</strong>
                             <div>

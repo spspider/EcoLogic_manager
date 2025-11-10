@@ -1,343 +1,192 @@
-/**
- * Created by sergey on 24.09.2017.
- */
-var Conditions = [{}];
-var Pin_Setup = {};
-var reloadPeriod = 10000;
-var MAX_COND_NUMBER = 4;
-var running = false
-var defineFuel = 0;
-DEBUG = false
+// Universal Home Script - Works on ESP8266 and Server
+// Auto-detects environment by checking URL
+const IS_SERVER = window.location.pathname.startsWith('/api/');
+const API_PREFIX = IS_SERVER ? '/api' : '';
 
-
-async function firstload() {
-    try {
-        makeStartStopButton();
-        setHTML("btmBtns", bottomButtons());
-
-        // Load pin_setup.txt and create buttons based on its content
-        const pinSetupText = await loadFileAsync("pin_setup.txt");
-        if (pinSetupText) {
-            createButtons_pin_setup(JSON.parse(pinSetupText));
-            readTextFile("function?data={\"get_device_id\":1}", function (deviceId) {
-                localStorage.setItem('deviceID', deviceId);
-                document.title = deviceId;
-            });
-        }
-        // Final AJAX settings
-        sendAJAX(this, JSON.stringify({ t: 127, v: 0 }));
-    } catch (error) {
-        console.error("Error in firstload:", error);
-    }
-}
-async function loadFileAsync(filePath) {
-    return new Promise((resolve) => {
-        readTextFile(filePath, (text) => resolve(text || null));
-    });
+// Get device_id from URL if on server
+function getDeviceId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('device_id') || window.DEVICE_ID || 'default';
 }
 
+let pinSetup = {};
+let reloadPeriod = 1000;
+let running = false;
+let timeOut, timeOut_answer;
+const DEBUG = false;
 
-async function loadLicense() {
-    try {
-        const licenseText = await loadFileAsync("License");
-        if (licenseText) setTimeoutLicenseCode();
-    } catch (error) {
-        console.warn("License file not found, skipping...");
-    }
-}
+// Widget state storage
+const widgetState = {
+    topics: [],
+    widgets: [],
+    descriptions: [],
+    statuses: [],
+    charts: {},
+    chartData: {},
+    graphs: {}
+};
 
+document.addEventListener('DOMContentLoaded', init);
 
-document.addEventListener('DOMContentLoaded', function () {
-    firstload();
-}, false);
+function init() {
+    makeStartStopButton();
+    document.getElementById("btmBtns").appendChild(bottomButtons());
 
-var LicenseCodeTimeout;
-function setTimeoutLicenseCode() {
-    StartProgram();
-}
+    const deviceId = getDeviceId();
+    const filePath = IS_SERVER ? `/api/pin_setup?device_id=${deviceId}` : "pin_setup.txt";
 
-function StartProgram() {
-    sendAJAX(this, JSON.stringify({ t: 127, v: 0 }));
-    run();
-}
-
-
-var myChart = [{}];
-var DataChart = [{}];
-
-var Graph = [{}];
-var timeOut;
-var timeOut_answer;
-
-var running = false;
-
-function clearMyTimeout() {
-    clearTimeout(timeOut); //останавливаем слудующий таймер, так как этот таймер не остановлен
-    running = false;
-    clearTimeout(timeOut_answer);
-}
-
-function createButtons_pin_setup(data) {
-    Pin_Setup = data;
-    var n = data.numberChosed;
-    //alert(n);
-    var parsetext = {};
-
-    for (i = 0; i < n; i++) {
-        parsetext.id = i;
-        parsetext.descr = data.descr[i];
-        parsetext.widget = data.widget[i];
-        parsetext.topic = parsetext.id + "/" + parsetext.widget + "/" + parsetext.id;
-        new ParseAndCreateButtons(parsetext);
-    }
-}
-
-function loadfile(file, callbackPARSE) {
-    var data = {};
-    try {
-        readTextFile(file, function (text) {
-            try {
-                data = JSON.parse(text);
-                callbackPARSE(data);
-                return data;
-            } catch (e) {
-                return null;
-            }
-        });
-    } catch (e) {
-        return null;
-    }
-}
-
-function createXmlHttpObject() {
-    if (window.XMLHttpRequest) {
-        xmlHttp = new XMLHttpRequest();
+    if (IS_SERVER) {
+        fetch(filePath)
+            .then(res => res.json())
+            .then(data => {
+                pinSetup = data;
+                createButtons();
+                sendAJAX(null, JSON.stringify({ t: 127, v: 0 }));
+                run();
+            })
+            .catch(error => console.error("Init error:", error));
     } else {
-        xmlHttp = new ActiveXObject('Microsoft.XMLHTTP');
-    }
-    return xmlHttp;
-}
+        readTextFile(filePath, (text) => {
+            if (text) {
+                try {
+                    pinSetup = JSON.parse(text);
+                    createButtons();
 
-function setReloadPeriod(thisItem) {
-    reloadPeriod = thisItem.value;
-    var refreshInput = document.getElementById("refresh-rate");
-    set_cookie("reloadPeriod", reloadPeriod);
-    refreshInput.value = reloadPeriod;
-    refreshInput.onchange = function (e) {
-        var value = parseInt(e.target.value);
-        reloadPeriod = (value > 0) ? value : 0;
-        e.target.value = reloadPeriod;
-    }
-    running = false;
-    run();
-}
-
-function loadValuesRun_AJAX() {
-    if (!running) return;
-    //sendStatus();
-    var sendJSON = JSON.stringify({
-        't': 127,
-        'v': 0
-    });
-    if (running) {
-        sendAJAX(false, sendJSON);
-        clearTimeout(timeOut);
-        timeOut = setTimeout(loadValuesRun_AJAX, reloadPeriod);
-        clearTimeout(timeOut_answer);
-        timeOut_answer = setTimeout(clearMyTimeout, (reloadPeriod + 10000));//2 сек Для ответа, если ответа нет - соединение потеряно
-    }
-}
-
-function run() {
-    if (!running) {
-        running = true;
-        loadValuesRun_AJAX();
-    }
-}
-
-function makeStartStopButton() {
-    var refreshInput = document.getElementById("refresh-rate");
-    reloadPeriod = parseInt(get_cookie("reloadPeriod"));
-    reloadPeriod = (reloadPeriod < 1000 || isNaN(reloadPeriod)) ? 1000 : reloadPeriod;
-    //reloadPeriod = isNaN(reloadPeriod)?1000:reloadPeriod;
-    refreshInput.value = reloadPeriod;
-    setVal("run_range", reloadPeriod);
-    refreshInput.onchange = function (e) {
-        var value = parseInt(e.target.value);
-        reloadPeriod = (value > 0) ? value : 500;
-        e.target.value = reloadPeriod;
-    }
-} Pin_Setup
-
-
-function SetClassName(status, default_val) {
-    var newstatus = status ^ default_val;
-    var NewclassName = "btn btn-block btn-default";
-    if (newstatus === 1) {
-        NewclassName = parseInt(default_val) === 0 ? "btn btn-block btn-success" : "btn btn-block btn btn-primary";
-    } else {
-        NewclassName = "btn btn-block btn-default";
-    }
-    return NewclassName;
-}
-
-function setValueName(newstatus) {
-
-    var name = "выкл";
-    if (newstatus == 1) {
-        name = "вкл";
-    } else {
-        name = "выкл";
-    }
-    return name;
-}
-
-var parsetext = {};
-
-function SetNewStatus(Statusmessage) {
-    parsetext = Statusmessage;
-    var id = parsetext.id;
-    if (!sTopic[id]) {
-        return;
-    }
-
-    var nameWidget = Pin_Setup.widget[id];
-    var NewStatus = 0;
-    if (document.getElementById(parsetext.sTopic)) {
-        NewStatus = document.getElementById(parsetext.sTopic);
-    } else if (document.getElementById(nameWidget)) {
-        NewStatus = document.getElementById(nameWidget);
-    } else {
-        return;
-    }
-
-    switch (Pin_Setup.widget[id]) {
-        case "toggle":
-        case 1:
-            //NewStatus.value = Pin_Setup.descr[id] + " " + setValueName(parsetext.status ^ Pin_Setup.defaultVal[id]);
-            NewStatus.value = Pin_Setup.descr[id] + " " + parsetext.status;
-            NewStatus.className = SetClassName(parsetext.status, Pin_Setup.defaultVal[id]);
-            break;
-        case "range":
-        case 3:
-            NewStatus.value = parsetext.status;
-            textID = sTopic[id] + "/text";
-            setHTML(textID, parsetext.status);
-            break;
-        case "progress-bar":
-        case 4:
-            var progress = (parsetext.status * 100 / 1024);
-            NewStatus.style = "width:" + progress + "%";
-            textID = sTopic[id] + "/text";
-            setHTML(textID, parsetext.status);
-            break;
-        case "simple-btn":
-        case 2:
-            NewStatus.value = sDescr[id] + " " + setValueName(parsetext.status ^ Pin_Setup.defaultVal[id]);
-            NewStatus.className = SetClassName(parsetext.status, Pin_Setup.defaultVal[id]);
-            break;
-        case "chart":
-        case 5:
-            if (!isEmpty(Graph[id])) {
-                Graph[id].add(parsetext.status);
-            }
-            if (!isEmpty(myChart[id])) {
-                var date = new Date();
-                var time = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
-
-                var random = Math.floor(Math.random() * (1000 - 10)) + 10;
-                DataChart[id].datasets[0].data.push(parsetext.status);
-                DataChart[id].labels.push(time);
-                if (DataChart[id].datasets[0].data.length > 1000) {
-                    DataChart[id].datasets[0].data.splice(0, 1);
-                    DataChart[id].labels.splice(0, 1);
+                    readTextFile("function?data={\"get_device_id\":1}", (deviceId) => {
+                        localStorage.setItem('deviceID', deviceId);
+                        document.title = deviceId;
+                    });
+                } catch (error) {
+                    console.error("Init error:", error);
                 }
-                DataChart[id].datasets[0].label = Pin_Setup.descr[id] + ": " + parsetext.status;
-                myChart[id].update();
             }
-            break;
-
-        case 6://данные - текст
-
-            NewStatus.innerHTML = Pin_Setup.descr[id] + ":" + "<h1>" + parsetext.status + "</h1>";
-            break;
-        case deault:
-            NewStatus.innerHTML = Pin_Setup.descr[id] + ":" + "<h1>" + parsetext.status + "</h1>";
-            //NewStatus.value = sDescr[id] + " " + "unknown";
-            break;
+            sendAJAX(null, JSON.stringify({ t: 127, v: 0 }));
+            run();
+        });
     }
-    sStatus(id, parsetext.status);
 }
 
-function isEmpty(obj) {
-    for (var prop in obj) {
-        if (obj.hasOwnProperty(prop))
-            return false;
-    }
+function createButtons() {
+    const n = pinSetup.numberChosed || 0;
 
-    return true;
+    for (let i = 0; i < n; i++) {
+        const widget = {
+            id: i,
+            descr: pinSetup.descr[i],
+            widget: pinSetup.widget[i],
+            topic: `${i}/${pinSetup.widget[i]}/${i}`
+        };
+        createWidget(widget);
+    }
 }
 
-function ParseAndCreateButtons(parsetext) {
-    setHTML("demo", getHTML("demo") + "</br>");
-    sTopic(parsetext.id, parsetext.topic);
-    sDescr(parsetext.id, parsetext.descr);
-    sWidget(parsetext.id, parsetext.widget);
-    sId(parsetext.topic, parsetext.id);
-    var id = parsetext.id;
-    var makeWidjet = "";
-    textID = parsetext.topic + "/text";
-    switch (parsetext.widget) {
+function createWidget(widget) {
+    const { id, descr, widget: widgetType, topic } = widget;
 
+    widgetState.topics[id] = topic;
+    widgetState.descriptions[id] = descr;
+    widgetState.widgets[id] = widgetType;
+
+    const container = document.getElementById("demo");
+    const textID = `${topic}/text`;
+    let element;
+
+    switch (widgetType) {
         case 'toggle':
         case 1:
-            makeWidjet = "<input id='" + parsetext.topic + "' class='btn btn-block btn-success' type='button' value='" + parsetext['descr'] + "' onclick='sendNewValue(this," + parsetext.id + ");' /></br>";
+            element = document.createElement('input');
+            element.id = topic;
+            element.className = 'btn btn-block btn-success';
+            element.type = 'button';
+            element.value = descr;
+            element.onclick = () => sendNewValue(element, id);
             break;
+
         case 'range':
         case 3:
-            makeWidjet = parsetext.descr + " <p1 id='" + textID + "'></p1><input id='" + parsetext.topic + "' class='form-control'  type='range' min='0' max='1024' step='1' onchange='sendNewValue(this," + parsetext.id + ");'/></br>";
+            const rangeContainer = document.createElement('div');
+            const label = document.createElement('span');
+            label.textContent = descr + ' ';
+            const valueDisplay = document.createElement('span');
+            valueDisplay.id = textID;
+            const range = document.createElement('input');
+            range.id = topic;
+            range.className = 'form-control';
+            range.type = 'range';
+            range.min = '0';
+            range.max = '1024';
+            range.step = '1';
+            range.onchange = () => sendNewValue(range, id);
+            rangeContainer.appendChild(label);
+            rangeContainer.appendChild(valueDisplay);
+            rangeContainer.appendChild(range);
+            element = rangeContainer;
             break;
+
         case 'progress-bar':
         case 4:
-            var value_max = 1024;
-            var value_min = 0;
-            if (Pin_Setup.pin[id] === 17) {
-                value_max = 1024 / (Pin_Setup.aDiv ? parseInt(Pin_Setup.aDiv) : 1) - (!isNaN(parseInt(Pin_Setup.aSusbt)) ? parseInt(Pin_Setup.aSusbt) : 0);
-                value_min = (!isNaN(parseInt(Pin_Setup.aSusbt)) ? parseInt(Pin_Setup.aSusbt) : 0);
+            let valueMax = 1024;
+            let valueMin = 0;
+            if (pinSetup.pin[id] === 17) {
+                valueMax = 1024 / (pinSetup.aDiv || 1) - (pinSetup.aSusbt || 0);
+                valueMin = pinSetup.aSusbt || 0;
             }
-            //var value_max=1;
-            makeWidjet = parsetext.descr + "<div class='progress'><div id='" + parsetext.topic + "' class='progress-bar' role='progressbar' aria-valuenow='0' aria-valuemin='" + value_min + "' aria-valuemax='" + value_max + "' style='width:100%'><p1 id='" + textID + "'></p1></div></div>";
+            const progressContainer = document.createElement('div');
+            progressContainer.innerHTML = descr;
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'progress';
+            const progressBar = document.createElement('div');
+            progressBar.id = topic;
+            progressBar.className = 'progress-bar';
+            progressBar.setAttribute('role', 'progressbar');
+            progressBar.setAttribute('aria-valuenow', '0');
+            progressBar.setAttribute('aria-valuemin', valueMin);
+            progressBar.setAttribute('aria-valuemax', valueMax);
+            progressBar.style.width = '100%';
+            const progressText = document.createElement('span');
+            progressText.id = textID;
+            progressBar.appendChild(progressText);
+            progressDiv.appendChild(progressBar);
+            progressContainer.appendChild(progressDiv);
+            element = progressContainer;
             break;
+
         case 'simple-btn':
         case 2:
-            makeWidjet = "<input id='" + parsetext.topic + "' class='btn btn-block btn-success' type='button' value='" + parsetext['descr'] + "' onmousedown='mouseDownBtn(" + parsetext.id + ",this)' onmouseup='mouseUpBtn(" + parsetext.id + ",this)' /></br>";
+            element = document.createElement('input');
+            element.id = topic;
+            element.className = 'btn btn-block btn-success';
+            element.type = 'button';
+            element.value = descr;
+            element.onmousedown = () => mouseDownBtn(id, element);
+            element.onmouseup = () => mouseUpBtn(id, element);
             break;
+
         case 'chart':
         case 5:
-            if (!isEmpty(Chart)) {
-                var that_topic = parsetext.topic;
-                var nameChart = that_topic;
-                var countup = this;
-                var newNode = document.createElement('canvas');
-                newNode.className = nameChart;
-                newNode.id = nameChart;
-                document.getElementById("charts").appendChild(newNode);
-                var ctx = document.getElementById(nameChart).getContext('2d');
-                DataChart[parsetext.id] = {
+            if (typeof Chart !== 'undefined') {
+                const canvas = document.createElement('canvas');
+                canvas.id = topic;
+                canvas.className = topic;
+                document.getElementById("charts").appendChild(canvas);
+
+                widgetState.chartData[id] = {
                     labels: [],
                     datasets: [{
                         data: [],
                         fill: false,
-                        label: parsetext.descr,
+                        label: descr,
                         radius: 0,
                         backgroundColor: "rgba(33, 170, 191,1)",
                         borderColor: "rgba(33, 170, 191,1)"
                     }]
                 };
+
                 try {
-                    myChart[parsetext.id] = new Chart(ctx, {
+                    const ctx = canvas.getContext('2d');
+                    widgetState.charts[id] = new Chart(ctx, {
                         type: 'line',
-                        data: DataChart[parsetext.id],
+                        data: widgetState.chartData[id],
                         options: {
                             tooltips: {
                                 mode: 'index',
@@ -346,180 +195,271 @@ function ParseAndCreateButtons(parsetext) {
                         }
                     });
                 } catch (e) {
+                    console.error("Chart creation error:", e);
                 }
-            } else {
-
             }
+            return;
+
+        case 6:
+            element = document.createElement('div');
+            element.id = topic;
             break;
-        case 6://ADC
-            makeWidjet = "<div id='" + parsetext.topic + "'/></div></br>";
-            break;
+
         case 7:
-            if (typeof createGraph !== "undefined") {
-                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!EEEEEEEEEEEEEERRRRRRRRRRRRRRRRRROOOOOOOOOOOORRRRRRRRRR
-                var g = document.createElement('div');
-                g.v = 0;
-                g.setAttribute("id", "" + parsetext.topic);
-                var mainGraph = document.getElementById("graph");
-                mainGraph.appendChild(g);
-                Graph[parsetext.id] = createGraph(document.getElementById("" + parsetext.topic), "Analog Input", 100, 128, 0, 1023, false, "cyan");
+            if (typeof createGraph !== 'undefined') {
+                const graphDiv = document.createElement('div');
+                graphDiv.id = topic;
+                document.getElementById("graph").appendChild(graphDiv);
+                widgetState.graphs[id] = createGraph(graphDiv, "Analog Input", 100, 128, 0, 1023, false, "cyan");
+            }
+            return;
+
+        default:
+            return;
+    }
+
+    if (element) {
+        container.appendChild(element);
+        container.appendChild(document.createElement('br'));
+    }
+}
+
+function setNewStatus(statusMsg) {
+    const { id, status, sTopic, widget } = statusMsg;
+
+    if (!widgetState.topics[id]) return;
+
+    const element = document.getElementById(sTopic || widgetState.topics[id]);
+    if (!element) return;
+
+    widgetState.statuses[id] = status;
+    saveToLocalStorage();
+
+    switch (widget || widgetState.widgets[id]) {
+        case 'toggle':
+        case 1:
+            element.value = `${pinSetup.descr[id]} ${status}`;
+            element.className = getClassName(status, pinSetup.defaultVal[id]);
+            break;
+
+        case 'range':
+        case 3:
+            element.value = status;
+            setHTML(`${widgetState.topics[id]}/text`, status);
+            break;
+
+        case 'progress-bar':
+        case 4:
+            const progress = (status * 100 / 1024);
+            element.style.width = `${progress}%`;
+            setHTML(`${widgetState.topics[id]}/text`, status);
+            break;
+
+        case 'simple-btn':
+        case 2:
+            element.value = `${pinSetup.descr[id]} ${status}`;
+            element.className = getClassName(status, pinSetup.defaultVal[id]);
+            break;
+
+        case 'chart':
+        case 5:
+            if (widgetState.graphs[id]) {
+                widgetState.graphs[id].add(status);
+            }
+            if (widgetState.charts[id]) {
+                const date = new Date();
+                const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+
+                widgetState.chartData[id].datasets[0].data.push(status);
+                widgetState.chartData[id].labels.push(time);
+
+                if (widgetState.chartData[id].datasets[0].data.length > 1000) {
+                    widgetState.chartData[id].datasets[0].data.shift();
+                    widgetState.chartData[id].labels.shift();
+                }
+
+                widgetState.chartData[id].datasets[0].label = `${pinSetup.descr[id]}: ${status}`;
+                widgetState.charts[id].update();
             }
             break;
+
+        case 6:
+            element.innerHTML = `${pinSetup.descr[id]}: <h1>${status}</h1>`;
+            break;
+
         default:
+            element.innerHTML = `${pinSetup.descr[id]}: <h1>${status}</h1>`;
+            break;
     }
+}
 
-    if (makeWidjet) {
-        setHTML("demo", getHTML("demo") + makeWidjet);//" pin: "+Pin_Setup.pin[id]+" "+
+function getClassName(status, defaultVal) {
+    const newStatus = status ^ defaultVal;
+    if (newStatus === 1) {
+        return parseInt(defaultVal) === 0 ? 'btn btn-block btn-success' : 'btn btn-block btn-primary';
     }
-
-}
-
-var Cond_load = 0;
-
-
-var timeOut_saveCond;
-
-var timeOut_button = [];
-
-function mouseDownBtn(id, button) {
-    //sStatus[id] = switchToggle(Pin_Setup.defaultVal[id] ^ 1);
-    sStatus[id] = switchToggle(Pin_Setup.defaultVal[id] ^ 1);
-    button.className = ('btn btn-block btn btn-danger');
-    sendNewValue(button, id);
-    timeOut_button[id] = setTimeout(mouseUpBtn, 10000, id, button);
-}
-
-function mouseUpBtn(id, button) {
-    clearTimeout(timeOut_button[id]);
-    sStatus[id] = switchToggle(Pin_Setup.defaultVal[id] ^ 0);
-    //sStatus[id] = (1);
-    if (Pin_Setup.defaultVal[id] ^ 1 === 1) {
-        button.className = ('btn btn-block btn btn-success');
-    }
-    if (Pin_Setup.defaultVal[id] ^ 1 === 0) {
-        button.className = ('btn btn-block btn btn-primary');
-    }
-    sendNewValue(button, id);
-}
-
-//var sTopic=[];
-function sTopic(id, topic) {
-    sTopic[id] = topic;
-}
-
-function sWidget(id, widget) {
-    sWidget[id] = widget;
-}
-
-function sDescr(id, descr) {
-    sDescr[id] = descr;
-}
-
-function sId(topic, id) {
-    sId[topic] = id;
-}
-
-function sStatus(id, status) {
-    sStatus[id] = status;
-}
-
-function switchToggle(value) {
-    if (value >= 1) {
-        value = 1;
-    } else if (value <= 0) {
-        value = 0;
-    }
-    return value ^ 1;
+    return 'btn btn-block btn-default';
 }
 
 function sendNewValue(button, id) {
-    //PreVvalue = parseInt(sStatus[id]);
-    //PreVvalue = parseInt(Pin_Setup.defaultVal[id]);
-    PreVvalue = sStatus[id]; //& Pin_Setup.defaultVal[id];
-    //PreVvalue =0;
-    var topic = id + "/" + Pin_Setup.widget[id] + "/" + id;
-    NewValue = getVal(topic);
-    textID = topic + "/t";
-    setHTML(textID, NewValue);
-    switch (sWidget[id]) {
-        case "toggle":
+    const prevValue = widgetState.statuses[id];
+    const topic = widgetState.topics[id];
+    const newValue = getVal(topic);
+
+    setHTML(`${topic}/text`, newValue);
+
+    let setValue;
+    switch (widgetState.widgets[id]) {
+        case 'toggle':
         case 1:
-            setvalue = switchToggle(PreVvalue);
-            break;
-        case "simple-btn":
+        case 'simple-btn':
         case 2:
-            setvalue = switchToggle(PreVvalue);
+            setValue = switchToggle(prevValue);
             break;
-        case "range":
+        case 'range':
         case 3:
-            setvalue = NewValue;
+            setValue = newValue;
             break;
-        case "chart":
-        case 5:
-            break;
+        default:
+            return;
     }
-    sendJSON = JSON.stringify({
-        't': id,
-        'v': setvalue
-    });
 
+    widgetState.statuses[id] = setValue;
+    saveToLocalStorage();
+
+    if (IS_SERVER) {
+        const alertDiv = alert_message("Command sent, waiting for device sync...", 3);
+        document.body.appendChild(alertDiv);
+    }
+
+    const sendJSON = JSON.stringify({ t: id, v: setValue });
     setHTML("input", sendJSON);
+    sendAJAX(button, sendJSON);
+}
 
-    sendAJAX(button = button, sendJSON = sendJSON);
+function switchToggle(value) {
+    return (value >= 1 ? 1 : 0) ^ 1;
+}
 
+let timeOutButton = [];
+
+function mouseDownBtn(id, button) {
+    widgetState.statuses[id] = switchToggle(pinSetup.defaultVal[id] ^ 1);
+    button.className = 'btn btn-block btn-danger';
+    sendNewValue(button, id);
+    timeOutButton[id] = setTimeout(() => mouseUpBtn(id, button), 10000);
+}
+
+function mouseUpBtn(id, button) {
+    clearTimeout(timeOutButton[id]);
+    widgetState.statuses[id] = switchToggle(pinSetup.defaultVal[id] ^ 0);
+    button.className = pinSetup.defaultVal[id] ^ 1 === 1 ? 'btn btn-block btn-success' : 'btn btn-block btn-primary';
+    sendNewValue(button, id);
 }
 
 function sendAJAX(submit, sendJSON) {
-    server = "/sendAJAX?data=" + sendJSON;
-    if (DEBUG == true) {
-        var stat_respond = [];
-        for (var i = 0; i < Pin_Setup.length; i++) {
-            stat_respond.push("1.00");
-        }
-        var respond_code = JSON.stringify({ "stat": stat_respond });
-        console.log(respond_code);
-        RespondCode(respond_code, server, sendJSON);
+    let server;
+    if (IS_SERVER) {
+        const deviceId = getDeviceId();
+        server = `/api/ajax?data=${sendJSON}&device_id=${deviceId}`;
+    } else {
+        server = `/sendAJAX?data=${sendJSON}`;
     }
-    else {
-        // readTextFile(server, RespondCode);
-        readTextFile(server, (responseText) => RespondCode(responseText, server, sendJSON));
+
+    if (DEBUG) {
+        const statRespond = Array(pinSetup.numberChosed).fill("1.00");
+        const respondCode = JSON.stringify({ stat: statRespond });
+        console.log(respondCode);
+        respondCode(respondCode, server, sendJSON);
+    } else {
+        readTextFile(server, (responseText) => respondCode(responseText, server, sendJSON));
     }
     return false;
 }
 
-function RespondCode(responseText, server, sendJSON) {
+function respondCode(responseText, server, sendJSON) {
     if (responseText === null) {
         clearMyTimeout();
+        return;
     }
+
     setHTML("output", responseText);
+
     try {
         const parsedResponse = JSON.parse(responseText);
-        const newStatusText = {};
+
+        if (IS_SERVER && parsedResponse.has_updates == 1) {
+            console.log("Pending changes, waiting for device sync...");
+            return;
+        }
 
         for (let i = 0; i < parsedResponse.stat.length; i++) {
-            newStatusText.sTopic = `${i}/${Pin_Setup.widget[i]}/${i}`;
-            newStatusText.status = parseFloat(parsedResponse.stat[i].toString());
-            newStatusText.id = i;
-            newStatusText.widget = Pin_Setup.widget[i];
-            SetNewStatus(newStatusText);
+            setNewStatus({
+                sTopic: widgetState.topics[i],
+                status: parseFloat(parsedResponse.stat[i]),
+                id: i,
+                widget: pinSetup.widget[i]
+            });
         }
-    } catch (e) {// in case of text plain value coming
+    } catch (e) {
         try {
-            const newStatusText = {};
             const request = JSON.parse(sendJSON);
-            newStatusText.id = request.t;
-            newStatusText.status = responseText
-            newStatusText.sTopic = `${request.t}/${Pin_Setup.widget[request.t]}/${request.t}`;
-            newStatusText.widget = Pin_Setup.widget[request.t];
-            SetNewStatus(newStatusText);
-        }
-        catch (e) {
-            setHTML(
-                "output",
-                getHTML("output") +
-                `<div> Server: ${server}<br>Request: ${sendJSON}</div>`
-            );
+            setNewStatus({
+                id: request.t,
+                status: responseText,
+                sTopic: widgetState.topics[request.t],
+                widget: pinSetup.widget[request.t]
+            });
+        } catch (e2) {
+            setHTML("output", getHTML("output") + `<div>Server: ${server}<br>Request: ${sendJSON}</div>`);
         }
     }
 }
 
+function run() {
+    if (!running) {
+        running = true;
+        loadValuesRun();
+    }
+}
+
+function loadValuesRun() {
+    if (!running) return;
+
+    const sendJSON = JSON.stringify({ t: 127, v: 0 });
+    sendAJAX(false, sendJSON);
+
+    clearTimeout(timeOut);
+    timeOut = setTimeout(loadValuesRun, reloadPeriod);
+
+    clearTimeout(timeOut_answer);
+    timeOut_answer = setTimeout(clearMyTimeout, reloadPeriod + 10000);
+}
+
+function clearMyTimeout() {
+    clearTimeout(timeOut);
+    clearTimeout(timeOut_answer);
+    running = false;
+}
+
+function makeStartStopButton() {
+    const refreshInput = document.getElementById("refresh-rate");
+    const savedPeriod = parseInt(get_cookie("reloadPeriod"));
+    reloadPeriod = (savedPeriod >= 1000 && !isNaN(savedPeriod)) ? savedPeriod : 1000;
+
+    refreshInput.value = reloadPeriod;
+    setVal("run_range", reloadPeriod);
+
+    refreshInput.onchange = (e) => {
+        const value = parseInt(e.target.value);
+        reloadPeriod = value > 0 ? value : 500;
+        e.target.value = reloadPeriod;
+        set_cookie("reloadPeriod", reloadPeriod);
+        running = false;
+        run();
+    };
+}
+
+function saveToLocalStorage() {
+    localStorage.setItem('widgetState', JSON.stringify(widgetState));
+}

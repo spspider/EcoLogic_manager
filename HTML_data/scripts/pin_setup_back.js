@@ -5,7 +5,7 @@ function loadlimits() {
         max_number_chosed = (callback !== 404 && isNaN(parseInt(callback))) ? 8 : parseInt(callback) || 12;
         Activation_check();
     });
-    setHTML("btmBtns", bottomButtons());
+    document.getElementById("btmBtns").appendChild(bottomButtons());
 }
 
 document.addEventListener("DOMContentLoaded", loadlimits);

@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function loadSettings() {
     // Загружаем device_id с Arduino
-    setHTML("btmBtns", bottomButtons());
+    document.getElementById("btmBtns").appendChild(bottomButtons());
     readTextFile("function?data={\"get_device_id\":1}", function (deviceId) {
         // Загружаем настройки из файла
         readTextFile("other_setup.txt", function (settings) {
@@ -36,6 +36,9 @@ function loadSettings() {
 }
 
 function applySettings(data) {
+    // Debug: показываем загруженный JSON
+    setHTML("input", JSON.stringify(data, null, 2));
+
     // Заменяем {{}} в HTML
     let html = document.body.innerHTML;
     Object.keys(data).forEach(key => {
@@ -88,7 +91,10 @@ function collectFormData() {
             if (element.type === 'checkbox') {
                 data[element.name] = element.checked;
             } else {
-                data[element.name] = element.value;
+                let value = element.value || "";
+                // Заменяем {{placeholder}} на пустую строку
+                value = value.replace(/\{\{[^}]*\}\}/g, "");
+                data[element.name] = value;
             }
         }
     });

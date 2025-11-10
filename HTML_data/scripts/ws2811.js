@@ -22,7 +22,7 @@ function load() {
     createTable();
     loadAddButton();
     loadSecondTable();
-    setHTML("btmBtns", bottomButtons());
+    document.getElementById("btmBtns").appendChild(bottomButtons());
     loadMainJson();
 
     var val = 0;
@@ -109,6 +109,7 @@ function Save_ws8211(val) {
     saveData("ws8211/" + val + ".txt", jsonOut, function (callback) {
         main_.appendChild(alert_message(callback));
         Data_all_settings[val] = jsonOut;
+        localStorage.setItem('ws8211_' + val, JSON.stringify(jsonOut));
     });
 }
 
@@ -117,7 +118,11 @@ function loadSettings(json) {
     while (Parent.hasChildNodes()) {
         Parent.removeChild(Parent.firstChild);
     }
-    if (!testJson(json)) return;
+    if (!testJson(json)) {
+        const stored = localStorage.getItem('ws8211_' + getVal("NumbersSave"));
+        if (stored) json = stored;
+        else return;
+    }
 
     jsonObject = JSON.parse(json);
     numberElements = jsonObject.num !== undefined ? jsonObject.num : 0;
@@ -406,11 +411,6 @@ function run() {
 
 function send_New_values_to_ESP() {
     jsonOut = {};
-    //jsonOut.num = numberElements;
-    var json =
-        "{\"from\":[0],\"to\":[40],\"type\":[2],\"dir\":[4],\"col\":[1],\"num\":1,\"sp\":10,\"fd\":200,\"br\":2}";
-
-    //jsonOut.sp=
     var act_elements = 0;
     for (var i = 0; i < numberElements; i++) {
         if (getVal("range1" + i) !== -1) {

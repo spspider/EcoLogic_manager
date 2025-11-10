@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Load WiFi list and process the callback
     readTextFile("wifiList", callbackWifiList);
-    setHTML("btmBtns", bottomButtons());
+    document.getElementById("btmBtns").appendChild(bottomButtons());
     //send_request("wifiList", callbackWifiList);
     //callbackWifiList(JSON.stringify(data));
 });

@@ -9,7 +9,7 @@ var MAX_COND_NUMBER = 4;
 var STAT = [];
 
 function readSTAT() {
-    //setHTML("btmBtns", bottomButtons());
+    //document.getElementById("btmBtns").appendChild(bottomButtons());
     readTextFile("stat.txt", function (callback) {
         if (testJson(callback)) {
             STAT = JSON.parse(callback);
@@ -19,7 +19,7 @@ function readSTAT() {
 }
 
 function loadPinSetup() {
-    setHTML("btmBtns", bottomButtons());
+    document.getElementById("btmBtns").appendChild(bottomButtons());
     readTextFile("pin_setup.txt", PinSetupLoaded);
 
 }
@@ -154,10 +154,10 @@ function loadBody() {
         "<tr><td>" +
     "Description: " +
     "</td><td>" +
-    "MQTT subscribe topic: " +
-        "</td><td>" +
-    "MQTT command topic: " +
-        "</td><td>" +
+    // "MQTT subscribe topic: " +
+    //     "</td><td>" +
+    // "MQTT command topic: " +
+    //     "</td><td>" +
     "control by HTTP: " +
         "</td><td>" +
     "read HTTP: " +
@@ -172,14 +172,15 @@ function loadBody() {
         HTTP_control_read = "<a href=/aRest?data={stat:" + i + "}>" + window.location.host + "/aRest?data={stat:" + i + "}</a>";
         bodyNode +=
             "<td>" + PinSetup.descr[i] + "</td>" +
-            "<td>" +
-            "<code>" +
-        MQTT_subscribe +
-            "</code>" +
-        "</td><td><code>" +
-            MQTT_control +
-        "</code></td><td>" +
-            "<code>" +
+        //     "<td>" +
+        //     "<code>" +
+        // MQTT_subscribe +
+        //     "</code>" +
+        // "</td><td><code>" +
+        //     MQTT_control +
+        // "</code></td>" +
+        "<td>" +
+        "<code>" +
         HTTP_control +
             "</code>" +
             "</td><td>" +

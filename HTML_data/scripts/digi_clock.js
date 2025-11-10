@@ -2,12 +2,12 @@
  * Created by Tanja on 07.08.2019.
  */
 document.addEventListener("DOMContentLoaded", function () {
-    setHTML("btmBtns", bottomButtons());
+    document.getElementById("btmBtns").appendChild(bottomButtons());
     load();
 });
 
 function load() {
-    setHTML("btmBtns", bottomButtons());
+    document.getElementById("btmBtns").appendChild(bottomButtons());
     readTextFile("digi_clock.txt", function (settings) {
         setHTML("input", getHTML("input") + settings);
         testJson(settings) ? loadBlock(settings) : null;

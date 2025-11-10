@@ -14,13 +14,12 @@
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof Chart === 'undefined') {
                 loadjQuery("scripts/chart.min.js", function () {
-                    firstload();
+                    // Chart loaded from local storage
                 });
-            } else {
-                firstload();
             }
         });
     </script>
+
     <div class="container">
         <div class="row" style="text-align:center;">
             <div class="col-sm-offset-2 col-sm-8 col-md-offset-3 col-md-6">

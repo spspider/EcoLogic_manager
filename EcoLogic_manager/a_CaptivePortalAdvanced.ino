@@ -34,7 +34,7 @@ static bool connecting = false;
 static char wifiAttempt = 0;
 
 void connect_as_AccessPoint() {
-  delay(1000);
+  yield();  // Replace blocking delay
   Serial.print("Configuring access point...");
   /* You can remove the password parameter if you want the AP to be open. */
   WiFi.disconnect();
@@ -47,7 +47,7 @@ void connect_as_AccessPoint() {
     Serial.println("Failed to start SoftAP.");
   }
 
-  delay(500);  // Without delay I've seen the IP address blank
+  yield();  // Feed watchdog instead of delay
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
   lastConnectTry = onesec = 0;
@@ -192,6 +192,7 @@ void captive_loop() {
       Serial.println(WiFi.localIP());
       server.send(200, "text/plain", toStringIp(WiFi.localIP()));
       save_wifiList(ssid, password);
+      yield();  // Feed watchdog
       httpUpdater.setup(&server);  // setupOTA
 
       // Setup MDNS responder
@@ -201,15 +202,31 @@ void captive_loop() {
         Serial.println("mDNS responder started");
         MDNS.addService("http", "tcp", 80);
       }
+      yield();
       uploadConfig_ecologicclient();
-      if (geo_enable)
+      Serial.println("[DEBUG] uploadConfig done");
+      yield();
+      
+      if (geo_enable) {
+        Serial.println("[DEBUG] Starting geo...");
         sendLocationData();
+        Serial.println("[DEBUG] Geo done");
+      }
+      yield();
+      
 #if defined(timerAlarm)
+      Serial.println("[DEBUG] Starting alarm...");
       setup_alarm();
+      Serial.println("[DEBUG] Alarm done");
+      yield();
 #endif
 #ifdef use_telegram
+      Serial.println("[DEBUG] Starting telegram...");
       setup_telegram();
+      Serial.println("[DEBUG] Telegram done");
+      yield();
 #endif
+      Serial.println("[DEBUG] All init complete!");
     } else if (s == WL_NO_SSID_AVAIL) {
       internet = false;
       try_MQTT_access = false;
@@ -249,8 +266,17 @@ void sendLocationData() {
   if (!enable_geo_location) return;
   
   static unsigned long lastGeoCheck = 0;
-  if (millis() - lastGeoCheck > 300000) { // Проверка каждые 5 мин
+  static bool firstRun = true;
+  // Skip on first connection to avoid watchdog reset
+  if (firstRun) {
+    lastGeoCheck = millis();
+    firstRun = false;
+    return;
+  }
+  if (millis() - lastGeoCheck > 300000) { // Check every 5 min
+    yield();  // Feed watchdog before blocking call
     String pos = getHttp("api.2ip.ua/geo.json?ip=");
+    yield();  // Feed watchdog after blocking call
     if (pos != "fail") {
       internet = true;
       saveCommonFiletoJson("ip_gps", pos, 1);

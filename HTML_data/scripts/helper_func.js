@@ -1,8 +1,3 @@
-//var HelperLoaded=true;
-
-
-
-
 function createXmlHttpObject() {
     var xmlHttp;
     if (window.XMLHttpRequest) {
@@ -282,7 +277,7 @@ function makeinOption_child(inputOption, id, onChange) {
 
 function send_code_back() {
     var code = getVal('activation_input');
-    readTextFile("/function?json={\"Activation\":\"2\",\"code\":\"" + code + "\"}", function (callback) {
+    readTextFile("/function?data={\"Activation\":\"2\",\"code\":\"" + code + "\"}", function (callback) {
         if (parseInt(callback) === 1) {
             alert("activated:");
         } else {
@@ -294,7 +289,7 @@ function send_code_back() {
 
 function ActivateDialog() {
     if (document.getElementById('activation_input')) return;
-    readTextFile('/function?json={\"Activation\":\"1\"}', function (callback) {
+    readTextFile('/function?data={\"Activation\":\"1\"}', function (callback) {
         //var x = prompt("ActivationCode:\n" + callback, "");
 
 
@@ -313,24 +308,23 @@ function ActivateDialog() {
 function check_if_activated() {
     return 1;
 }
-function bottomButtons() {
-    var btmBtns =
-        "<div class='btn-group btn-group-justified'>" +
-        "<a class='btn btn-block btn-default' type='button' href='/'>cont</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/wifi'>Wifi</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/other_setup'>conn</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/pin_setup'>buttons</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/condition'>condition</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/ws2811.html'>ws2811</a>" +
-        "<a class='btn btn-block btn-default' type='button' href='/help'>?</a>" +
-        " </div>";
-    return btmBtns;
+function getDeviceIdParam() {
+    const params = new URLSearchParams(window.location.search);
+    const deviceId = params.get('device_id') || window.DEVICE_ID;
+    return deviceId ? '?device_id=' + deviceId : '';
 }
 
-function bottomButtons2() {
-    const btmBtns = document.createElement('div');
-    btmBtns.className = 'btn-group btn-group-justified';
-    const buttons = [
+function bottomButtons() {
+    const container = document.createElement('div');
+    container.className = 'btn-group btn-group-justified';
+    const deviceParam = getDeviceIdParam();
+    const IS_SERVER = typeof window.IS_SERVER !== 'undefined' ? window.IS_SERVER : window.location.pathname.startsWith('/api/');
+
+    const buttons = IS_SERVER ? [
+        { href: '/api/device_selector' + deviceParam, text: 'devices' },
+        { href: '/api/home' + deviceParam, text: 'home' },
+        { href: '/api/condition' + deviceParam, text: 'condition' }
+    ] : [
         { href: '/', text: 'cont' },
         { href: '/wifi', text: 'Wifi' },
         { href: '/other_setup', text: 'conn' },
@@ -339,15 +333,15 @@ function bottomButtons2() {
         { href: '/ws2811.html', text: 'ws2811' },
         { href: '/help', text: '?' }
     ];
-    buttons.forEach(button => {
+
+    buttons.forEach(btn => {
         const a = document.createElement('a');
         a.className = 'btn btn-block btn-default';
-        a.type = 'button';
-        a.href = button.href;
-        a.textContent = button.text;
-        btmBtns.appendChild(a);
+        a.href = btn.href;
+        a.textContent = btn.text;
+        container.appendChild(a);
     });
-    return btmBtns;
+    return container;
 }
 
 function b64EncodeUnicode(str) {

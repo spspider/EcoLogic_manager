@@ -38,3 +38,4 @@ builded/**
 docker-build/project_libraries/
 # Exceptions
 !bootstrap.min.css.gz
+**/*.env

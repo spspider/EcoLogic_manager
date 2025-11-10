@@ -107,7 +107,7 @@ var PinSetup = {};
 
 
 function loadPinSetup() {
-    setHTML("btmBtns", bottomButtons());
+    document.getElementById("btmBtns").appendChild(bottomButtons());
     readTextFile("pin_setup.txt", PinSetupLoaded);
 }
 function PinSetupLoaded(data) {
@@ -138,7 +138,7 @@ async function loadFileAsync(filePath) {
 }
 
 async function firstload() {
-  setHTML("btmBtns", bottomButtons());
+  document.getElementById("btmBtns").appendChild(bottomButtons());
   // readTextFile("pin_setup.txt", PinSetupLoaded);
   PinSetup = await loadFileAsync("pin_setup.txt");
   if (PinSetup) {

@@ -34,7 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/api/static", StaticFiles(directory="src/scripts"), name="static")
+app.mount("/api/static", StaticFiles(directory="../HTML_data/scripts"), name="static")
 
 
 
@@ -154,6 +154,8 @@ async def upload_other_setup(request: Request):
     except:
         return {"err": 1}
     
+    owner = other_setup.get("user_name", "admin")
+    
     conn = get_conn()
     if conn:
         try:
@@ -164,6 +166,8 @@ async def upload_other_setup(request: Request):
                 ON DUPLICATE KEY UPDATE other_setup = VALUES(other_setup)
                 """
                 cur.execute(sql, (device_id, json.dumps(other_setup)))
+                
+                cur.execute("UPDATE devices SET owner=%s WHERE device_id=%s", (owner, device_id))
                 conn.commit()
         finally:
             conn.close()
@@ -437,23 +441,26 @@ async def get_devices(user: str = Depends(verify_basic)):
         try:
             with conn.cursor() as cur:
                 if user == "admin":
-                    # Админ видит все устройства
                     cur.execute("""
                         SELECT device_id, last_seen, ip_address, owner,
                                JSON_LENGTH(pin_setup, '$.descr') as pin_count
-                        FROM devices 
-                        ORDER BY last_seen DESC
+                        FROM devices ORDER BY last_seen DESC
                     """)
                 else:
-                    # Обычный пользователь видит только свои устройства
                     cur.execute("""
                         SELECT device_id, last_seen, ip_address, owner,
                                JSON_LENGTH(pin_setup, '$.descr') as pin_count
-                        FROM devices 
-                        WHERE owner = %s
-                        ORDER BY last_seen DESC
+                        FROM devices WHERE owner = %s ORDER BY last_seen DESC
                     """, (user,))
                 devices = cur.fetchall()
+                
+                cur.execute("SELECT device_id, other_setup FROM device_settings")
+                settings = {row["device_id"]: json.loads(row["other_setup"]).get("device_name", "") 
+                           for row in cur.fetchall() if row.get("other_setup")}
+                
+                for device in devices:
+                    device["device_name"] = settings.get(device["device_id"], "")
+                
                 return devices
         finally:
             conn.close()
