@@ -394,6 +394,19 @@ async def send_ajax(request: Request, user: str = Depends(verify_basic)):
             finally:
                 conn.close()
         return JSONResponse({"stat": [], "has_updates": 0})
+    elif data['v'] == 0 and data['t'] < 127:  # Single pin read request
+        if conn:
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT real_status FROM devices WHERE device_id=%s", (device_id,))
+                    row = cur.fetchone()
+                    if row and row.get("real_status"):
+                        status_data = json.loads(row["real_status"])
+                        if data['t'] < len(status_data.get("stat", [])):
+                            return PlainTextResponse(status_data["stat"][data['t']])
+            finally:
+                conn.close()
+        return PlainTextResponse("0")
     else:  # Pin control - обновляем желаемый статус
         if conn:
             try:
@@ -568,7 +581,7 @@ async def page_handler(page: str, request: Request, user: str = Depends(verify_b
     if not device_id:
         return HTMLResponse('<script>window.location.href="/api/device_selector"</script>')
     
-    with open(f"src/{page}.htm", "r", encoding="utf-8") as f:
+    with open(f"../HTML_data/{page}.htm", "r", encoding="utf-8") as f:
         html = f.read()
     
     html = html.replace('src="scripts/', 'src="/api/static/')

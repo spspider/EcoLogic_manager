@@ -1,136 +1,172 @@
 document.addEventListener("DOMContentLoaded", load);
-var IRjson = {code: [], name: [], rawID: [], rawCode: [], rawCodeLen: []};
-var progress;
-var CODE = {};
+
+let IRjson = {code: [], name: [], rawID: [], rawCode: [], rawCodeLen: []};
+let progress;
+let CODE = {};
+
+function saveToLocalStorage() {
+    localStorage.setItem('IR_json', JSON.stringify(IRjson));
+}
+
+function loadFromLocalStorage() {
+    const stored = localStorage.getItem('IR_json');
+    if (stored) {
+        try {
+            IRjson = JSON.parse(stored);
+            IRjson.rawID = IRjson.rawID || [];
+            IRjson.code = IRjson.code || [];
+            IRjson.name = IRjson.name || [];
+            IRjson.rawCode = IRjson.rawCode || [];
+            IRjson.rawCodeLen = IRjson.rawCodeLen || [];
+        } catch (e) {
+            IRjson = {code: [], name: [], rawID: [], rawCode: [], rawCodeLen: []};
+        }
+    }
+}
 
 function load() {
-    //alert(typeof HelperLoaded);
-    //IRjson = {code: [], name: [], rawID: [], rawCode: [], rawCodeLen: []};
+    document.getElementById("btmBtns").appendChild(bottomButtons());
     load2();
-    setHTML("btmBtns",bottomButtons());
 }
 
 function load2() {
-    try {
-        readTextFile("IRButtons.txt", function (text) {
-            if (!text) { // If file is missing or empty
-                IRjson = { code: [], name: [], rawID: [], rawCode: [], rawCodeLen: [] };
-                makeIRList(IRjson);
-                return;
-            }
-            try {
-                //IRjson={};
-
-                IRjson = JSON.parse(text);
-                IRjson.rawID === undefined ? IRjson.rawID = [] : {};
-                IRjson.code === undefined ? IRjson.code = [] : {};
-                IRjson.name === undefined ? IRjson.name = [] : {};
-
-                makeIRList(IRjson);
-                //document.getElementById("codelist").innerHTML += IRjson.code[0];
-            } catch (e) {
-
-                makeIRList(IRjson);
-                // document.getElementById("test").innerHTML += "JSON.parse: " + e;
-
-            }
-        });
-    } catch (e) {
-
-        //document.getElementById("test").innerHTML += e;
-    }
-
-
+    readTextFile("IRButtons.txt", function (text) {
+        if (!text) {
+            loadFromLocalStorage();
+            makeIRList(IRjson);
+            return;
+        }
+        try {
+            IRjson = JSON.parse(text);
+            IRjson.rawID = IRjson.rawID || [];
+            IRjson.code = IRjson.code || [];
+            IRjson.name = IRjson.name || [];
+            IRjson.rawCode = IRjson.rawCode || [];
+            IRjson.rawCodeLen = IRjson.rawCodeLen || [];
+            saveToLocalStorage();
+            makeIRList(IRjson);
+        } catch (e) {
+            loadFromLocalStorage();
+            makeIRList(IRjson);
+        }
+    });
 }
+
 function delCb(xmlHttp, a) {
     return function () {
         if (xmlHttp.readyState == 4) {
             if (xmlHttp.status != 200) {
-                //alert("ERROR[" + xmlHttp.status + "]: " + xmlHttp.responseText)
-            } else {
-                //saveCode();
+                const testDiv = document.getElementById("test");
+                if (testDiv) testDiv.appendChild(alert_message("Delete error", 3));
             }
         }
     }
 }
+
 function httpDelete(a) {
-    var xmlHttp = createXmlHttpObject();
+    const xmlHttp = createXmlHttpObject();
     xmlHttp.onreadystatechange = delCb(xmlHttp, a);
-    var b = new FormData();
+    const b = new FormData();
     b.append("path", a);
     xmlHttp.open("DELETE", "/edit");
     xmlHttp.send(b);
 }
+
 function dec2bin(dec){
     return (dec >>> 0).toString(2);
 }
+
 function sendCode(i) {
-setVal("bin",dec2bin(parseInt(i,16)));
-    readTextFile('/function?data={\"sendIR\":\"' + i + '\"}', function (callback) {
-        document.getElementById("test").appendChild(alert_message(callback));
-    })
+    setVal("bin", dec2bin(parseInt(i, 16)));
+    readTextFile('/function?data={"sendIR":"' + i + '"}', function (callback) {
+        const testDiv = document.getElementById("test");
+        if (testDiv) {
+            testDiv.appendChild(alert_message(callback, 3));
+        }
+    });
 }
+
 function sendCodeBin(){
-    var hex = parseInt(getVal("bin"), 2).toString(16).toUpperCase();
+    const hex = parseInt(getVal("bin"), 2).toString(16).toUpperCase();
     sendCode(hex);
 }
+
 function deleteRow(i) {
     IRjson.code.splice(i, 1);
     IRjson.name.splice(i, 1);
+    IRjson.rawID.splice(i, 1);
+    IRjson.rawCode.splice(i, 1);
+    IRjson.rawCodeLen.splice(i, 1);
+    saveToLocalStorage();
     makeIRList(IRjson);
     httpDelete("/IrRaw_Code" + i + ".txt");
 }
 
-
 function makeIRList(IRjson) {
-    var result = "",
-        table_res = "";
-    table_res = "<tr>" +
-        "<td>Number</td>" +
-        "<td>Code</td>" +
-        "<td>Name</td>" +
-        // "<td>rawID</td>" +
-        "<td>Delete</td>" +
-        "</tr>";
-
-    if (IRjson) {
-        if (IRjson.code) {
-            IRjson.name.splice(IRjson.code.length);
-            for (i = 0; i < IRjson.code.length; i++) {
-                IRjson.rawID[i] === undefined ? IRjson.rawID[i] = -1 : IRjson.rawID[i];
-                table_res +=
-                    "<tr id='number'>" +
-                    "<td id='number'>" + i + "</td>" +
-
-                "<td id='code'><button class='form-control' onclick=sendCode('" + IRjson.code[i] + "')>"+ IRjson.code[i]+"</button></td>" +
-
-                    "<td id='name'>" + IRjson.name[i] + "</td>" +
-                    // "<td id='rawID'>" + IRjson.rawID[i] + "</td>" +
-                    "<td id='del'><button class='form-control' onclick='deleteRow(" + i + ")'>X</button></td>" +
-                    "</tr>";
-
-            }
+    const table = document.getElementById("table");
+    if (!table) return;
+    
+    table.innerHTML = '';
+    
+    const headerRow = document.createElement('tr');
+    ['Number', 'Code', 'Name', 'Delete'].forEach(text => {
+        const td = document.createElement('td');
+        td.textContent = text;
+        headerRow.appendChild(td);
+    });
+    table.appendChild(headerRow);
+    
+    if (IRjson && IRjson.code) {
+        IRjson.name.splice(IRjson.code.length);
+        for (let i = 0; i < IRjson.code.length; i++) {
+            IRjson.rawID[i] = IRjson.rawID[i] !== undefined ? IRjson.rawID[i] : -1;
+            
+            const row = document.createElement('tr');
+            
+            const numTd = document.createElement('td');
+            numTd.textContent = i;
+            row.appendChild(numTd);
+            
+            const codeTd = document.createElement('td');
+            const codeBtn = document.createElement('button');
+            codeBtn.className = 'form-control';
+            codeBtn.textContent = IRjson.code[i];
+            codeBtn.onclick = () => sendCode(IRjson.code[i]);
+            codeTd.appendChild(codeBtn);
+            row.appendChild(codeTd);
+            
+            const nameTd = document.createElement('td');
+            nameTd.textContent = IRjson.name[i];
+            row.appendChild(nameTd);
+            
+            const delTd = document.createElement('td');
+            const delBtn = document.createElement('button');
+            delBtn.className = 'form-control';
+            delBtn.textContent = 'X';
+            delBtn.onclick = () => deleteRow(i);
+            delTd.appendChild(delBtn);
+            row.appendChild(delTd);
+            
+            table.appendChild(row);
         }
     }
-    document.getElementById("table").innerHTML = table_res;
 }
+
 function WaitIR(submit) {
     progress = document.createElement("div");
     progress.id = "progress_IR";
     progress.className = "progress-bar progress-bar-striped active";
-    //progress.innerHTML("class='progress-bar progress-bar-striped active'");
-    my_div = document.getElementById("progress");
+    const my_div = document.getElementById("progress");
     my_div.appendChild(progress);
     progress.style.width = 100 + "%";
     progress.style.role = "progressbar";
 
     setVal("IRcode", "");
-    server = "/WaitIR?IR='true'";
-    old_submit = submit.value;
+    const server = "/WaitIR?IR='true'";
+    const old_submit = submit.value;
     readTextFile(server, function (data) {
         if (data === null) {
             progress.style.width = 0 + "%";
-            //send_request(submit, server);
             take_progress_zero(submit);
         }
         else {
@@ -143,53 +179,47 @@ function WaitIR(submit) {
     setTimeout(function () {
         take_progress_zero(submit);
         submit.value = old_submit;
-
     }, 5000);
     submit.value = 'Press the button...';
 }
 
 function take_progress_zero(submit) {
     submit.value = "Wait...";
-    var progress = document.getElementById("progress_IR");
+    const progress = document.getElementById("progress_IR");
     progress.style.width = 0 + "%";
-
 }
 
 function saveCommonCode(FileName, JsonFile) {
     saveData(FileName, JsonFile);
-
 }
+
 function AddNewButton() {
-    // Ensure IRjson and its arrays are always initialized
     if (!IRjson || typeof IRjson !== 'object') {
         IRjson = { code: [], name: [], rawID: [], rawCode: [], rawCodeLen: [] };
     }
-    if (!Array.isArray(IRjson.code)) IRjson.code = [];
-    if (!Array.isArray(IRjson.name)) IRjson.name = [];
-    if (!Array.isArray(IRjson.rawID)) IRjson.rawID = [];
-    if (!Array.isArray(IRjson.rawCode)) IRjson.rawCode = [];
-    if (!Array.isArray(IRjson.rawCodeLen)) IRjson.rawCodeLen = [];
+    IRjson.code = IRjson.code || [];
+    IRjson.name = IRjson.name || [];
+    IRjson.rawID = IRjson.rawID || [];
+    IRjson.rawCode = IRjson.rawCode || [];
+    IRjson.rawCodeLen = IRjson.rawCodeLen || [];
 
-    var savedCode = getVal("IRcode");
-    var NameIR = getVal("IRcodName");
+    const savedCode = getVal("IRcode");
+    const NameIR = getVal("IRcodName");
 
     if (savedCode.length > 30) {
         try {
-            var Parsedata = JSON.parse(CODE);
-            IRjson["rawCode"] == null ? IRjson["rawCode"] = [] : true;
-            IRjson["rawCodeLen"] == null ? IRjson["rawCodeLen"] = [] : true;
-
-            var idRaw = IRjson.name.length;
+            const Parsedata = JSON.parse(CODE);
+            const idRaw = IRjson.name.length;
             if (idRaw !== -1) {
-                IRjson["code"].push((idRaw));
-                IRjson["rawID"].push((idRaw));
-                IRjson["name"].push(NameIR);
-                IRjson["rawCode"].push(Parsedata.c);
-                IRjson["rawCodeLen"].push(Parsedata.len);
+                IRjson.code.push(idRaw);
+                IRjson.rawID.push(idRaw);
+                IRjson.name.push(NameIR);
+                IRjson.rawCode.push(Parsedata.c);
+                IRjson.rawCodeLen.push(Parsedata.len);
                 saveCommonCode("IrRaw_Code" + idRaw + ".txt", CODE);
             }
         } catch (e) {
-            // handle error silently
+            console.error('Parse error:', e);
         }
     }
 
@@ -198,79 +228,69 @@ function AddNewButton() {
         IRjson.name.push(NameIR);
     }
 
+    saveToLocalStorage();
     makeIRList(IRjson);
-    // Clear the IRcodName field after adding a new button
-    var nameField = document.getElementById('IRcodName');
+    
+    const nameField = document.getElementById('IRcodName');
     if (nameField) nameField.value = '';
-    //document.getElementById("demo").innerHTML += JSON.stringify(IRjson);
 }
 
-
 function saveCode() {
-    var SendCodeJson = {};
-
+    const SendCodeJson = {};
     SendCodeJson.name = IRjson.name;
     SendCodeJson.code = IRjson.code;
     SendCodeJson.num = IRjson.name.length;
-    var json_upload = JSON.stringify(SendCodeJson);
-    //json_upload.append("Number", btnId);
+    const json_upload = JSON.stringify(SendCodeJson);
     setVal("test", json_upload);
     saveData("IRButtons.txt", SendCodeJson);
-
 }
+
 function saveData(filename, data) {
-
-    var xmlHttp = createXmlHttpObject();
-
-    var file = new Blob([JSON.stringify(data, null, 2)], {type: "text/plain;charset=utf-8"});
-    var a = new FormData();
-    a.append("data", file, filename);
-    xmlHttp.open("POST", "/edit");
-    xmlHttp.send(a);
-
+    const xmlHttp = createXmlHttpObject();
+    const file = new Blob([JSON.stringify(data, null, 2)], {type: "text/plain;charset=utf-8"});
+    const formData = new FormData();
+    formData.append("data", file, filename);
+    
     xmlHttp.onreadystatechange = function () {
-
         if (xmlHttp.readyState == 4) {
-            if (xmlHttp.status != 200) alert("ERROR[" + xmlHttp.status + "]: " + xmlHttp.responseText);
-            else {
-                alert(xmlHttp.responseText);
+            const testDiv = document.getElementById("test");
+            if (xmlHttp.status != 200) {
+                if (testDiv) testDiv.appendChild(alert_message("ERROR[" + xmlHttp.status + "]: " + xmlHttp.responseText, 5));
+            } else {
+                if (testDiv) testDiv.appendChild(alert_message(xmlHttp.responseText, 3));
             }
         }
-    }
-    xmlHttp.onloadend = function () {
-
-    }
+    };
+    
+    xmlHttp.open("POST", "/edit");
+    xmlHttp.send(formData);
 }
+
 function test() {
     sendReguestCode(JSON.stringify({
         "raw": "true",
         "len": 200,
         "c": [1, 2218, 2174, 266, 824, 280, 267, 280, 811, 279, 813, 277, 268, 266, 283, 278, 813, 264, 283, 280, 268, 277, 813, 266, 281, 264, 283, 266, 824, 280, 811, 279, 268, 280, 814, 278, 267, 266, 824, 266, 826, 264, 826, 280, 811, 266, 281, 280, 813, 277, 813, 279, 811, 280, 268, 279, 268, 280, 267, 280, 268, 279, 811, 266, 281, 280, 270, 280, 810, 278, 813, 277, 813, 266, 281, 266, 281, 280, 267, 266, 281, 266, 283, 277, 268, 280, 267, 280, 267, 266, 826, 264, 826, 266, 824, 280, 813, 278, 810, 280, 2601, 2190, 2192, 264, 826, 264, 283, 264, 825, 278, 815, 250, 295, 266, 283, 264, 826, 264, 286, 264, 281, 266, 838, 252, 281, 266, 283, 264, 826, 264, 826, 264, 283, 264, 829, 264, 281, 264, 826, 280, 813, 264, 826, 264, 827, 264, 283, 264, 826, 266, 840, 250, 826, 264, 283, 264, 283, 264, 283, 264, 283, 264, 826, 266, 294, 253, 283, 264, 826, 264, 840, 251, 826, 266, 281, 266, 294, 253, 283, 264, 281, 266, 283, 264, 283, 264, 283, 264, 283, 264, 826, 264, 826, 264, 826, 264, 828, 264, 826, 280, 0]
     }));
-    // sendReguestCode("code");
-
 }
+
 function sendReguestCode(code) {
     CODE = code;
     setVal("Raw_code_checked", false);
     setVal("IRcode", code);
     try {
-        var Parsedata = JSON.parse(code);
+        const Parsedata = JSON.parse(code);
         if (Parsedata.c === undefined) {
-            return
+            return;
         }
-        ;
         setVal("Raw_code_checked", Parsedata.raw);
         setVal("IRcode", Parsedata.c);
         setVal("test", Parsedata["c"]);
     } catch (e) {
-        //document.getElementById("IRcode").value = code;
         setVal("test", e.toString());
     }
-
 }
 
 function handleMessage(data) {
     document.getElementById("IRcode").value = data;
 }
-/////////////////////////////helper

@@ -323,7 +323,8 @@ function bottomButtons() {
     const buttons = IS_SERVER ? [
         { href: '/api/device_selector' + deviceParam, text: 'devices' },
         { href: '/api/home' + deviceParam, text: 'home' },
-        { href: '/api/condition' + deviceParam, text: 'condition' }
+        { href: '/api/condition' + deviceParam, text: 'condition' },
+        { href: '/api/help' + deviceParam, text: 'API' }
     ] : [
         { href: '/', text: 'cont' },
         { href: '/wifi', text: 'Wifi' },
@@ -331,7 +332,7 @@ function bottomButtons() {
         { href: '/pin_setup', text: 'buttons' },
         { href: '/condition', text: 'condition' },
         { href: '/ws2811.html', text: 'ws2811' },
-        { href: '/help', text: '?' }
+            { href: '/help', text: 'API' }
     ];
 
     buttons.forEach(btn => {

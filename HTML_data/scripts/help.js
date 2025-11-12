@@ -1,27 +1,48 @@
-/**
- * Created by Башня1 on 17.02.2018.
- */
-document.addEventListener("DOMContentLoaded", loadPinSetup);
-var PinSetup = {};
-var dataOther = {};
-var Conditions = [{}];
-var MAX_COND_NUMBER = 4;
-var STAT = [];
+// Unified Help Page - Works on ESP8266 and Server
+const IS_SERVER = window.location.pathname.startsWith('/api/');
+const API_PREFIX = IS_SERVER ? '/api' : '';
 
-function readSTAT() {
-    //document.getElementById("btmBtns").appendChild(bottomButtons());
-    readTextFile("stat.txt", function (callback) {
-        if (testJson(callback)) {
-            STAT = JSON.parse(callback);
-        }
-    });
+document.addEventListener("DOMContentLoaded", init);
 
+let PinSetup = {};
+let dataOther = {};
+const MAX_COND_NUMBER = 4;
+
+function getDeviceId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('device_id') || window.DEVICE_ID || 'default';
+}
+
+function saveToLocalStorage() {
+    localStorage.setItem('help_pinSetup', JSON.stringify(PinSetup));
+    localStorage.setItem('help_dataOther', JSON.stringify(dataOther));
+}
+
+function init() {
+    document.getElementById("btmBtns").appendChild(bottomButtons());
+    loadPinSetup();
 }
 
 function loadPinSetup() {
-    document.getElementById("btmBtns").appendChild(bottomButtons());
-    readTextFile("pin_setup.txt", PinSetupLoaded);
-
+    if (IS_SERVER) {
+        const deviceId = getDeviceId();
+        fetch(`/api/pin_setup?device_id=${deviceId}`)
+            .then(res => res.json())
+            .then(data => {
+                PinSetup = data;
+                saveToLocalStorage();
+                loadOtherSetup();
+            })
+            .catch(() => {
+                const stored = localStorage.getItem('help_pinSetup');
+                if (stored) {
+                    PinSetup = JSON.parse(stored);
+                    loadOtherSetup();
+                }
+            });
+    } else {
+        readTextFile("pin_setup.txt", PinSetupLoaded);
+    }
 }
 
 function PinSetupLoaded(data) {
@@ -29,44 +50,72 @@ function PinSetupLoaded(data) {
         setHTML("bodyNode", "Failed to load pin settings");
         return;
     }
-    readTextFile("other_setup.txt", otherSetupLoaded);
     PinSetup = JSON.parse(data);
+    saveToLocalStorage();
+    loadOtherSetup();
+}
+
+function loadOtherSetup() {
+    if (IS_SERVER) {
+        const stored = localStorage.getItem('help_dataOther');
+        if (stored) {
+            dataOther = JSON.parse(stored);
+        } else {
+            dataOther = { deviceID: getDeviceId() };
+        }
+        loadBody();
+        loadOtherHelp();
+    } else {
+        readTextFile("other_setup.txt", otherSetupLoaded);
+    }
 }
 
 function loadOtherHelp() {
-    var bodyNode = "";
-    bodyNode = window.location.host + "/WaitIR";
-    setHTML("bodyNodeIR", bodyNode);
-    //var bodyNode="";
-    bodyNode = "<a  href=/sendAJAX?data={t:127,v:0}>" + window.location.host + "/sendAJAX?data={t:127,v:0}</a>";
-    setHTML("bodyNodeStat", bodyNode);
-    //var bodyNode="";
-    bodyNode = window.location.host + "/sendEmail?Email=Message text";
-    setHTML("bodyNodeEmail", bodyNode);
-    //var bodyNode="";
-    bodyNode = window.location.host + "/sendAJAX?data={C:2,stat:-=Button number=-}";
-    setHTML("bodyNodeSendIRw433", bodyNode);
-    //var bodyNode="";
-    bodyNode = window.location.host + "/sendAJAX?data={C:3,st:-=HEX code=-}";
-    setHTML("bodyNodeIRHex", bodyNode);
-    //var bodyNode="";
-    bodyNode = window.location.host + "/sendAJAX?data={C:4,st:-=Raw IR code=-}";
-    setHTML("bodyNodeIRRaw", bodyNode);
+    const host = window.location.host;
 
-    bodyNode = window.location.host + "/setDate?DateTime={}";
-    setHTML("bodyNodeActualTime", bodyNode);
+    if (IS_SERVER) {
+        setHTML("bodyNodeIR", "Not available on server");
+        setHTML("bodyNodeStat", "Use /api/ajax endpoint");
+        setHTML("bodyNodeEmail", "Not available on server");
+        setHTML("bodyNodeSendIRw433", "Not available on server");
+        setHTML("bodyNodeIRHex", "Not available on server");
+        setHTML("bodyNodeIRRaw", "Not available on server");
+        setHTML("bodyNodeActualTime", "Not available on server");
+        setHTML("bodyNodeLed", "Not available on server");
+        setHTML("bodyNodeReboot", "Not available on server");
+        setHTML("wifi_mac_address", "N/A");
+    } else {
+        setHTML("bodyNodeIR", host + "/WaitIR");
 
-    bodyNode = window.location.host + "/ws2811AJAX?data={\"from\":[0],\"to\":[88],\"type\":[2],\"dir\":[0],\"col\":['+col+'],\"wh\":[254],\"br_\":[255],\"num\":1,\"sp\":100,\"dr\":255,\"fd\":45,\"fdt\":3,\"br\":12}";
-    setHTML("bodyNodeLed", bodyNode);
+        const link = document.createElement('a');
+        link.href = "/sendAJAX?data={t:127,v:0}";
+        link.textContent = host + "/sendAJAX?data={t:127,v:0}";
+        const statNode = document.getElementById("bodyNodeStat");
+        if (statNode) {
+            statNode.innerHTML = "";
+            statNode.appendChild(link);
+        }
 
+        setHTML("bodyNodeEmail", host + "/sendEmail?Email=Message text");
+        setHTML("bodyNodeSendIRw433", host + "/sendAJAX?data={C:2,stat:-=Button number=-}");
+        setHTML("bodyNodeIRHex", host + "/sendAJAX?data={C:3,st:-=HEX code=-}");
+        setHTML("bodyNodeIRRaw", host + "/sendAJAX?data={C:4,st:-=Raw IR code=-}");
+        setHTML("bodyNodeActualTime", host + "/setDate?DateTime={}");
+        setHTML("bodyNodeLed", host + "/ws2811AJAX?data={\"from\":[0],\"to\":[88],\"type\":[2],\"dir\":[0],\"col\":[0],\"wh\":[254],\"br_\":[255],\"num\":1,\"sp\":100,\"dr\":255,\"fd\":45,\"fdt\":3,\"br\":12}");
 
-    //var bodyNode="";
-    bodyNode = "<a  href=/function?data={reboot:1}>" + window.location.host + "/function?data={reboot:1}</a>";
-    setHTML("bodyNodeReboot", bodyNode);
+        const rebootLink = document.createElement('a');
+        rebootLink.href = "/function?data={reboot:1}";
+        rebootLink.textContent = host + "/function?data={reboot:1}";
+        const rebootNode = document.getElementById("bodyNodeReboot");
+        if (rebootNode) {
+            rebootNode.innerHTML = "";
+            rebootNode.appendChild(rebootLink);
+        }
 
-    readTextFile("/function?data={'wifi_mac':1}", function (callback) {
-        setHTML("wifi_mac_address", callback);
-    });
+        readTextFile("/function?data={'wifi_mac':1}", function (callback) {
+            setHTML("wifi_mac_address", callback);
+        });
+    }
 }
 
 function otherSetupLoaded(data) {
@@ -75,136 +124,175 @@ function otherSetupLoaded(data) {
         return;
     }
     dataOther = JSON.parse(data);
+    saveToLocalStorage();
     loadBody();
-    loadConditons(0);
     loadOtherHelp();
 }
 
-function loadConditons(id) {
-    if (id < MAX_COND_NUMBER) {
-        readTextFile("Condition" + id + ".txt", function (data) {
-            if (data == null) {
-                loadConditons(id + 1);
-                return;
-            }
-            Conditions[id] = JSON.parse(data);
-            loadConditons(id + 1);
-        });
-    } else {
-        setHTMLControlConditions();
-    }
+
+function createAdditionalLinks() {
+    const container = document.createElement('div');
+    const deviceId = "?device_id=" + getDeviceId();
+
+    const links = IS_SERVER ? [
+        { href: '#' + deviceId, text: 'OTA update', disabled: true },
+        { href: '#' + deviceId, text: 'edit', disabled: true },
+        { href: '/api/IR_setup' + deviceId, text: 'IR setup', disabled: false },
+        { href: '#' + deviceId, text: 'Graphs', disabled: true },
+        { href: '/api/homeassistant' + deviceId, text: 'homeassistant api', disabled: true }
+    ] : [
+        { href: '/update', text: 'OTA update' },
+        { href: '/edit', text: 'edit' },
+        { href: '/IR_setup', text: 'IR setup' },
+        { href: '/graphs.htm', text: 'Graphs' },
+        { href: '/homeassistant.htm', text: 'homeassistant api' }
+    ];
+
+    links.forEach(link => {
+        const a = document.createElement('a');
+        a.className = 'btn btn-block btn-default';
+        a.href = link.href;
+        a.textContent = link.text;
+        if (link.disabled) {
+            a.style.opacity = '0.5';
+            a.style.cursor = 'not-allowed';
+            a.onclick = (e) => { e.preventDefault(); alert('Not available on server'); };
+        }
+        container.appendChild(a);
+    });
+
+    return container;
 }
-
-// function setHTMLControlConditions() {
-//     var count = 0;
-//     var adress = [];
-//     for (condID = 0; condID < MAX_COND_NUMBER; condID++) {
-//         if (Conditions[condID] !== undefined) {
-//             for (i = 0; i < 10; i++) {
-//                 if (Conditions[condID].bySignal !== undefined) {
-//                     if ((parseInt(Conditions[condID].bySignal[i]) == 2) || (parseInt(Conditions[condID].bySignal[i]) == 3)) {
-//                         adress[adress.length] = i;
-//                         //count++;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-
-//     var bodyNode = "";
-//     bodyNode +=
-//         "<table class='table'>" +
-//         "<tr><td>" +
-//     "Subscribe to this: " +
-//         "</td><td>" +
-//     "Control this: " +
-//         "</td><td>" +
-//         "удаленное управление HTTP: " +
-//         "</td></tr>";
-//     for (condID = 0; condID < MAX_COND_NUMBER; condID++) {
-//         if (Conditions[condID] !== undefined) {
-//             for (i = 0; i < 10; i++) {
-//                 if (Conditions[condID].bySignal !== undefined) {
-//                     if ((parseInt(Conditions[condID].bySignal[i]) == 2) || (parseInt(Conditions[condID].bySignal[i]) == 3)) {
-//                         MQTT_subscribe = dataOther.deviceID + "/PLUS/" + condID + "/" + i + "\n";
-//                         MQTT_control = dataOther.deviceID + "/PLUS/" + condID + "/" + i + "/" + "status" + "\n";
-//                         HTTP_control = window.location.host + "/aRest?data={C:1,pin:" + condID + ",stat:" + i + ",val:" + Conditions[condID].bySignalPWM[i] + "}\n";
-//                         bodyNode +=
-//                             "<tr><td><code>" +
-//                         MQTT_subscribe +
-//                             "</code></td><td>" +
-//                             MQTT_control +
-//                             "</td><td><code>" +
-//                             HTTP_control +
-//                             "</code></td></tr>";
-//                     }
-//                 }
-//             }
-//         }
-//     }
-
-//     bodyNode += "</table>";
-//     setHTML("bodyNodeCond", bodyNode);
-// }
 
 function loadBody() {
-    var bodyNode = "";
-    bodyNode +=
-        "<table class='table' style='width:100%'>" +
-        "<tr><td>" +
-    "Description: " +
-    "</td><td>" +
-    // "MQTT subscribe topic: " +
-    //     "</td><td>" +
-    // "MQTT command topic: " +
-    //     "</td><td>" +
-    "control by HTTP: " +
-        "</td><td>" +
-    "read HTTP: " +
-        "</td></tr>";
-    for (i = 0; i < PinSetup.numberChosed; i++) {
-        MQTT_subscribe = dataOther.deviceID + "/" + [i] + "/status\n";
-        MQTT_control = dataOther.deviceID + "/" + i + "\n";
-        status_val = PinSetup.defaultVal[i] ^ 1;
-        var http_request = "/sendAJAX?data={\"t\":" + i + ",\"v\":" + status_val + "}";
-        HTTP_control = "<a href=" + http_request + ">" + window.location.host + http_request + "</a>";
+    const table = document.createElement('table');
+    table.className = 'table';
+    table.style.width = '100%';
 
-        HTTP_control_read = "<a href=/aRest?data={stat:" + i + "}>" + window.location.host + "/aRest?data={stat:" + i + "}</a>";
-        bodyNode +=
-            "<td>" + PinSetup.descr[i] + "</td>" +
-        //     "<td>" +
-        //     "<code>" +
-        // MQTT_subscribe +
-        //     "</code>" +
-        // "</td><td><code>" +
-        //     MQTT_control +
-        // "</code></td>" +
-        "<td>" +
-        "<code>" +
-        HTTP_control +
-            "</code>" +
-            "</td><td>" +
-            "<code>" +
-        HTTP_control_read +
-            "</code>" +
-            "</td></tr>";
+    const headerRow = document.createElement('tr');
+    ['Description', 'Control by HTTP', 'Read HTTP'].forEach(text => {
+        const td = document.createElement('td');
+        td.textContent = text + ': ';
+        headerRow.appendChild(td);
+    });
+    table.appendChild(headerRow);
+
+    const host = window.location.host;
+    const deviceId = dataOther.deviceID || getDeviceId();
+
+    for (let i = 0; i < (PinSetup.numberChosed || 0); i++) {
+        const row = document.createElement('tr');
+
+        const descTd = document.createElement('td');
+        descTd.textContent = PinSetup.descr[i] || '';
+        row.appendChild(descTd);
+
+        const controlTd = document.createElement('td');
+        const code1 = document.createElement('code');
+        const status_val = PinSetup.defaultVal[i] ^ 1;
+
+        if (IS_SERVER) {
+            const dataJson = JSON.stringify({ t: i, v: status_val });
+            const http_request = `/api/ajax?data=${encodeURIComponent(dataJson)}&device_id=${deviceId}`;
+            const link = document.createElement('a');
+            link.href = http_request;
+
+            const displayJson = JSON.stringify({ t: i, v: status_val });
+            const displayUrl = `/api/ajax?data=${encodeURIComponent(displayJson)}&device_id=${deviceId}`;
+            const parts = displayUrl.split(encodeURIComponent(String(status_val)));
+
+            link.appendChild(document.createTextNode(host + parts[0]));
+            const redSpan = document.createElement('span');
+            redSpan.style.color = 'red';
+            redSpan.textContent = '<value>';
+            link.appendChild(redSpan);
+            if (parts[1]) link.appendChild(document.createTextNode(parts[1]));
+
+            code1.appendChild(link);
+        } else {
+            const http_request = `/sendAJAX?data={"t":${i},"v":${status_val}}`;
+            const link = document.createElement('a');
+            link.href = http_request;
+
+            const parts = http_request.split(String(status_val));
+            link.appendChild(document.createTextNode(host + parts[0]));
+            const redSpan = document.createElement('span');
+            redSpan.style.color = 'red';
+            redSpan.textContent = '<value>';
+            link.appendChild(redSpan);
+            if (parts[1]) link.appendChild(document.createTextNode(parts[1]));
+
+            code1.appendChild(link);
+        }
+        controlTd.appendChild(code1);
+        row.appendChild(controlTd);
+
+        const readTd = document.createElement('td');
+        const code2 = document.createElement('code');
+        if (IS_SERVER) {
+            const dataJson = JSON.stringify({ t: i, v: 0 });
+            const read_request = `/api/ajax?data=${encodeURIComponent(dataJson)}&device_id=${deviceId}`;
+            const link = document.createElement('a');
+            link.href = read_request;
+            link.textContent = host + read_request;
+            code2.appendChild(link);
+        } else {
+            const read_request = `/aRest?data={stat:${i}}`;
+            const link = document.createElement('a');
+            link.href = read_request;
+            link.textContent = host + read_request;
+            code2.appendChild(link);
+        }
+        readTd.appendChild(code2);
+        row.appendChild(readTd);
+
+        table.appendChild(row);
     }
-    bodyNode += "</table>";
-    setHTML("bodyNode", bodyNode);
-}
 
-function createXmlHttpObject() {
-    if (window.XMLHttpRequest) {
-        xmlHttp = new XMLHttpRequest();
+    // Add "Read All" row
+    const readAllRow = document.createElement('tr');
+    const readAllDesc = document.createElement('td');
+    readAllDesc.textContent = 'Read All Pins';
+    readAllRow.appendChild(readAllDesc);
+
+    const emptyTd = document.createElement('td');
+    readAllRow.appendChild(emptyTd);
+
+    const readAllTd = document.createElement('td');
+    const code3 = document.createElement('code');
+    if (IS_SERVER) {
+        const dataJson = JSON.stringify({ t: 127, v: 0 });
+        const read_all_request = `/api/ajax?data=${encodeURIComponent(dataJson)}&device_id=${deviceId}`;
+        const link = document.createElement('a');
+        link.href = read_all_request;
+        link.textContent = host + read_all_request;
+        code3.appendChild(link);
     } else {
-        xmlHttp = new ActiveXObject('Microsoft.XMLHTTP');
+        const read_all_request = `/sendAJAX?data={"t":127,"v":0}`;
+        const link = document.createElement('a');
+        link.href = read_all_request;
+        link.textContent = host + read_all_request;
+        code3.appendChild(link);
     }
-    return xmlHttp;
+    readAllTd.appendChild(code3);
+    readAllRow.appendChild(readAllTd);
+    table.appendChild(readAllRow);
+
+    const bodyNode = document.getElementById('bodyNode');
+    if (bodyNode) {
+        bodyNode.innerHTML = '';
+        bodyNode.appendChild(table);
+    }
+
+    const linksContainer = document.getElementById('additionalLinks');
+    if (linksContainer) {
+        linksContainer.innerHTML = '';
+        linksContainer.appendChild(createAdditionalLinks());
+    }
 }
 
 function readTextFile(file, callback) {
-    //var rawFile = new XMLHttpRequest();
-    var xmlHttp = createXmlHttpObject();
+    const xmlHttp = new XMLHttpRequest();
     xmlHttp.overrideMimeType("application/json");
     xmlHttp.open("GET", file, true);
     xmlHttp.onreadystatechange = function () {
@@ -220,7 +308,8 @@ function readTextFile(file, callback) {
 }
 
 function setHTML(ID, value) {
-    if (document.getElementById(ID)) {
-        document.getElementById(ID).innerHTML = value; //range
+    const elem = document.getElementById(ID);
+    if (elem) {
+        elem.innerHTML = value;
     }
 }

@@ -16,6 +16,7 @@ static bool updates_applied = false;  // Флаг применения обно�
 
 
 void uploadConfig_ecologicclient() {
+  if (WiFi.status() != WL_CONNECTED) {return;}
   if (!LittleFS.begin()) {
     Serial.println("LittleFS fail");
     return;
