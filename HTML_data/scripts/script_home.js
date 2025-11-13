@@ -393,20 +393,22 @@ function respondCode(responseText, server, sendJSON) {
             return;
         }
 
-        for (let i = 0; i < parsedResponse.stat.length; i++) {
-            setNewStatus({
-                sTopic: widgetState.topics[i],
-                status: parseFloat(parsedResponse.stat[i]),
-                id: i,
-                widget: pinSetup.widget[i]
-            });
+        if (parsedResponse.stat && Array.isArray(parsedResponse.stat)) {
+            for (let i = 0; i < parsedResponse.stat.length; i++) {
+                setNewStatus({
+                    sTopic: widgetState.topics[i],
+                    status: parseFloat(parsedResponse.stat[i]),
+                    id: i,
+                    widget: pinSetup.widget[i]
+                });
+            }
         }
     } catch (e) {
         try {
             const request = JSON.parse(sendJSON);
             setNewStatus({
                 id: request.t,
-                status: responseText,
+                status: parseFloat(responseText),
                 sTopic: widgetState.topics[request.t],
                 widget: pinSetup.widget[request.t]
             });
@@ -461,5 +463,11 @@ function makeStartStopButton() {
 }
 
 function saveToLocalStorage() {
-    localStorage.setItem('widgetState', JSON.stringify(widgetState));
+    const stateToSave = {
+        topics: widgetState.topics,
+        widgets: widgetState.widgets,
+        descriptions: widgetState.descriptions,
+        statuses: widgetState.statuses
+    };
+    localStorage.setItem('widgetState', JSON.stringify(stateToSave));
 }
