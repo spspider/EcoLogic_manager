@@ -28,6 +28,78 @@ form {
     border-radius: 5px;
 }
 
+/* Button click feedback */
+.btn:active,
+button:active,
+input[type="button"]:active,
+input[type="submit"]:active {
+    outline: 3px solid #ff9800 !important;
+    box-shadow: 0 0 10px #ff9800 !important;
+    transform: scale(0.98);
+    transition: all 0.1s ease;
+}
+
+.btn,
+button,
+input[type="button"],
+input[type="submit"] {
+    transition: all 0.1s ease;
+}
+
+/* Range slider feedback */
+input[type="range"]:active {
+    outline: 2px solid #2196F3;
+    outline-offset: 2px;
+}
+
+input[type="range"]:focus {
+    outline: 2px solid #2196F3;
+    outline-offset: 2px;
+}
+
+input[type="range"] {
+    transition: all 0.2s ease;
+}
+
+/* Checkbox feedback */
+input[type="checkbox"]:active {
+    outline: 2px solid #4CAF50;
+    outline-offset: 3px;
+    transform: scale(1.1);
+}
+
+input[type="checkbox"]:focus {
+    outline: 2px solid #4CAF50;
+    outline-offset: 3px;
+}
+
+input[type="checkbox"] {
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+/* Text input feedback */
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="time"]:focus,
+textarea:focus,
+select:focus {
+    border-color: #66afe9;
+    outline: 0;
+    box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="time"],
+textarea,
+select {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
 
 .list-group {
     display: flex;

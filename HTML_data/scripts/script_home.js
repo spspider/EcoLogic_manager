@@ -327,6 +327,14 @@ function sendNewValue(button, id) {
     widgetState.statuses[id] = setValue;
     saveToLocalStorage();
 
+    // Immediate visual feedback
+    setNewStatus({
+        sTopic: topic,
+        status: setValue,
+        id: id,
+        widget: widgetState.widgets[id]
+    });
+
     if (IS_SERVER) {
         const alertDiv = alert_message("Command sent, waiting for device sync...", 3);
         document.body.appendChild(alertDiv);
@@ -404,16 +412,15 @@ function respondCode(responseText, server, sendJSON) {
             }
         }
     } catch (e) {
-        try {
-            const request = JSON.parse(sendJSON);
+        const request = JSON.parse(sendJSON);
+        const statusValue = parseFloat(responseText);
+        if (!isNaN(statusValue)) {
             setNewStatus({
                 id: request.t,
-                status: parseFloat(responseText),
+                status: statusValue,
                 sTopic: widgetState.topics[request.t],
                 widget: pinSetup.widget[request.t]
             });
-        } catch (e2) {
-            setHTML("output", getHTML("output") + `<div>Server: ${server}<br>Request: ${sendJSON}</div>`);
         }
     }
 }
@@ -442,6 +449,15 @@ function clearMyTimeout() {
     clearTimeout(timeOut);
     clearTimeout(timeOut_answer);
     running = false;
+}
+
+function setReloadPeriod(element) {
+    const value = parseInt(element.value);
+    reloadPeriod = value > 0 ? value : 500;
+    document.getElementById("refresh-rate").value = reloadPeriod;
+    set_cookie("reloadPeriod", reloadPeriod);
+    running = false;
+    run();
 }
 
 function makeStartStopButton() {
