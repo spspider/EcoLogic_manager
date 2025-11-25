@@ -113,10 +113,12 @@ float get_new_widjet_value(uint8_t i) {
 
   if (pinmode[i] == 8)
   { // PowerMeter должен быть последним, иначе ошибка jump to case label
-    // double Irms ;
 #if defined(USE_EMON)
+    noInterrupts();  // Отключаем ВСЕ прерывания
     that_stat = (float)emon1.calcIrms(1480); // Calculate Irms only
-    return that_stat;                        // that_stat = (that_stat * 1.0F / analogDivider) + analogSubtracter;
+    interrupts();    // Включаем прерывания
+    stat[i] = that_stat;
+    return that_stat;
 #endif
     return that_stat;
   }

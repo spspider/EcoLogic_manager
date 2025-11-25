@@ -114,14 +114,15 @@ void handleFileUpload() {
       uploadFile.close();
     }
     DBG_OUTPUT_PORT.println(String("Upload: END, Size: ") + upload.totalSize);
-
-    if (upload.filename.equals("pin_setup.txt")) {
-      // Вызываем пользовательскую функцию
-      if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {
-        Serial.println("Widgets Loaded");
-      }
-      uploadConfig_ecologicclient();
-    }
+    
+    // пока эта штука вызывает проблемы после загрузки происходит переключение кнопок на реле, tx rx, d0, d3
+    // if (upload.filename.equals("pin_setup.txt")) {
+    //   // Вызываем пользовательскую функцию
+    //   if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {
+    //     Serial.println("Widgets Loaded");
+    //   }
+    //   uploadConfig_ecologicclient();
+    // }
 
     replyOKWithMsg("OK");
   }
@@ -138,11 +139,22 @@ void deleteRecursive(String path) {
   }
 
   // Otherwise delete its contents first
+#ifdef USE_LITTLEFS
   Dir dir = fileSystem->openDir(path);
-
+  while (dir.next()) {
+    String fileName = dir.fileName();
+    if (fileName.startsWith(path)) {
+      deleteRecursive(fileName);
+    } else {
+      deleteRecursive(path + "/" + fileName);
+    }
+  }
+#else
+  Dir dir = fileSystem->openDir(path);
   while (dir.next()) {
     deleteRecursive(path + '/' + dir.fileName());
   }
+#endif
 
   // Then delete the folder itself
   fileSystem->rmdir(path);
@@ -338,9 +350,7 @@ void handleFileList() {
   }
 
   DBG_OUTPUT_PORT.println(String("handleFileList: ") + path);
-  Dir dir = fileSystem->openDir(path);
-  path.clear();
-
+  
   // use HTTP/1.1 Chunked response to avoid building a huge temporary string
   if (!server.chunkedResponseModeStart(200, "text/json")) {
     server.send(505, F("text/html"), F("HTTP1.1 required"));
@@ -350,17 +360,32 @@ void handleFileList() {
   // use the same string for every line
   String output;
   output.reserve(64);
+  
+#ifdef USE_LITTLEFS
+  Dir dir = fileSystem->openDir(path);
+  String searchPath = path;
+  if (searchPath != "/" && !searchPath.endsWith("/")) {
+    searchPath += "/";
+  }
+  
   while (dir.next()) {
-#ifdef USE_SPIFFS
-    String error = checkForUnsupportedPath(dir.fileName());
-    if (error.length() > 0) {
-      DBG_OUTPUT_PORT.println(String("Ignoring ") + error + dir.fileName());
-      continue;
+    String fileName = dir.fileName();
+    
+    // For LittleFS, filter to show only direct children
+    if (path == "/") {
+      // Root level - show files/folders that don't have additional slashes
+      if (fileName.startsWith("/")) fileName = fileName.substring(1);
+      if (fileName.indexOf('/') != -1) continue; // Skip nested items
+    } else {
+      // Subfolder - show only items directly in this folder
+      if (!fileName.startsWith(searchPath)) continue;
+      fileName = fileName.substring(searchPath.length());
+      if (fileName.indexOf('/') != -1) continue; // Skip nested items
     }
-#endif
+    
+    if (fileName.length() == 0) continue;
+    
     if (output.length()) {
-      // send string from previous iteration
-      // as an HTTP chunk
       server.sendContent(output);
       output = ',';
     } else {
@@ -376,15 +401,43 @@ void handleFileList() {
     }
 
     output += F("\",\"name\":\"");
-    // Always return names without leading "/"
+    output += fileName;
+    output += "\"}";
+  }
+#else
+  Dir dir = fileSystem->openDir(path);
+  while (dir.next()) {
+#ifdef USE_SPIFFS
+    String error = checkForUnsupportedPath(dir.fileName());
+    if (error.length() > 0) {
+      DBG_OUTPUT_PORT.println(String("Ignoring ") + error + dir.fileName());
+      continue;
+    }
+#endif
+    if (output.length()) {
+      server.sendContent(output);
+      output = ',';
+    } else {
+      output = '[';
+    }
+
+    output += "{\"type\":\"";
+    if (dir.isDirectory()) {
+      output += "dir";
+    } else {
+      output += F("file\",\"size\":\"");
+      output += dir.fileSize();
+    }
+
+    output += F("\",\"name\":\"");
     if (dir.fileName()[0] == '/') {
       output += &(dir.fileName()[1]);
     } else {
       output += dir.fileName();
     }
-
     output += "\"}";
   }
+#endif
 
   // send last string
   output += "]";

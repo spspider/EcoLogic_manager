@@ -98,9 +98,10 @@ bool loadConfig(File jsonConfig) {
 
 void Setup_pinmode(bool stat_loaded) {
   for (uint8_t i = 0; i < nWidgets; i++) {
+    #if defined(USE_IRUTILS)
     if (pin[i] ==  RECV_PIN) return;      // IR recieve d1
     if (pin[i] == SEND_PIN) return;     // IR send d2
-    
+    #endif
     stat[i] = stat_loaded ? stat[i] : defaultVal[i];
     if (pin[i] != 255) {
       if (pinmode[i] == 1) {  // in

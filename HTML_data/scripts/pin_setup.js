@@ -27,7 +27,7 @@ const availablePins = {
     "DHT 1.1 Temp": [2],
     "DHT 1.1 Mist": [2],
     "remote http": [255],
-    "power meter": [255],
+    "power meter": [17],
     //"as5600": [255, 5, 4, 14, 12, 13, 3, 17],
     "MAC address": [255],
     //"EncA": [255, 16, 5, 4, 0, 14, 12, 13, 15, 1],
@@ -358,4 +358,4 @@ function makeSave() {
 loadlimits();
 
 btnbtns = document.getElementById('btmBtns');
-btnbtns.appendChild(bottomButtons2());
+btnbtns.appendChild(bottomButtons());

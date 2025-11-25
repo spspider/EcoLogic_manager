@@ -1,0 +1,1 @@
+{"pinmode":[2,2,16,1],"pin":[1,16,2,4],"descr":["heater","pump","temp heater","remoteController"],"widget":[1,1,5,6],"IrBtnId":[255,255,255,0],"defaultVal":[1,1,0,0],"numberChosed":4}
