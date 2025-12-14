@@ -60,10 +60,9 @@ void handleRoot() {
 boolean captivePortal() {
   if (!isIp(server.hostHeader()) && server.hostHeader() != (String(myHostname) + ".local")) {
     Serial.println("Request redirected to captive portal");
-    // server.sendHeader("Location", String("http://") + toStringIp(server.client().localIP()), true);
-    server.sendHeader("Location", String("/"), true);
-    server.send(302, "text/plain", "");  // Empty content inhibits Content-length header so we have to close the socket ourselves.
-    server.client().stop();              // Stop is needed because we sent no content length
+    server.sendHeader("Location", String("/home.htm"), true);
+    server.send(302, "text/plain", "");
+    server.client().stop();
     return true;
   }
   return false;
