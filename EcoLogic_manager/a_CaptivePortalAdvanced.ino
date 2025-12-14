@@ -3,6 +3,8 @@ const byte DNS_PORT = 53;
 DNSServer dnsServer;
 #endif
 
+extern char device_name[32];
+
 #define NAPT 1000
 #define NAPT_PORT 10
 
@@ -34,20 +36,22 @@ static bool connecting = false;
 static char wifiAttempt = 0;
 
 void connect_as_AccessPoint() {
-  yield();  // Replace blocking delay
+  yield();
   Serial.print("Configuring access point...");
-  /* You can remove the password parameter if you want the AP to be open. */
   WiFi.disconnect();
-  WiFi.persistent(false);  // w/o this a flash write occurs at every boot
-  WiFi.mode(WIFI_OFF);     // Prevent use of SDK stored credentials
+  WiFi.persistent(false);
+  WiFi.mode(WIFI_OFF);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  if (WiFi.softAP(softAP_ssid + WiFi.macAddress(), softAP_password)) {
+  char apName[40];
+  int len = strlen(device_id);
+  const char* shortId = (len > 6) ? &device_id[len - 6] : device_id;
+  snprintf(apName, sizeof(apName), "%s%s", device_name, shortId);
+  if (strlen(softAP_password) > 0 ? WiFi.softAP(apName, softAP_password) : WiFi.softAP(apName)) {
     Serial.println("SoftAP started successfully.");
   } else {
     Serial.println("Failed to start SoftAP.");
   }
-
-  yield();  // Feed watchdog instead of delay
+  yield();
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
   lastConnectTry = onesec = 0;
@@ -70,7 +74,13 @@ void connectWifi(char ssid_that[32], char password_that[32]) {
   if (!connecting) {
     WiFi.disconnect();
     status = WL_IDLE_STATUS;
-    WiFi.mode(WIFI_STA);
+    WiFi.mode(WIFI_AP_STA);
+    WiFi.softAPConfig(apIP, apIP, netMsk);
+    char apName[40];
+    int len = strlen(device_id);
+    const char* shortId = (len > 6) ? &device_id[len - 6] : device_id;
+    snprintf(apName, sizeof(apName), "%s%s", device_name, shortId);
+    strlen(softAP_password) > 0 ? WiFi.softAP(apName, softAP_password) : WiFi.softAP(apName);
     if (use_static_ip && strlen(static_ip) > 0) {
       IPAddress ip, gw, sn, d1, d2;
       ip.fromString(static_ip);

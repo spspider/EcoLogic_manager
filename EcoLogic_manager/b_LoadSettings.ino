@@ -86,6 +86,14 @@ bool loadConfig(File jsonConfig) {
     strncpy(dns2, jsonDocument["dns2"], sizeof(dns2) - 1);
     dns2[sizeof(dns2) - 1] = '\0';
   }
+  if (jsonDocument.containsKey("device_name")) {
+    strncpy(device_name, jsonDocument["device_name"], sizeof(device_name) - 1);
+    device_name[sizeof(device_name) - 1] = '\0';
+  }
+  if (jsonDocument.containsKey("softAP_password")) {
+    strncpy(softAP_password, jsonDocument["softAP_password"], sizeof(softAP_password) - 1);
+    softAP_password[sizeof(softAP_password) - 1] = '\0';
+  }
   //  String jsonConfig_string = readCommonFiletoJson("pin_setup");
   if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {
     Serial.println("Widgets Loaded");

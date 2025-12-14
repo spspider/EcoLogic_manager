@@ -57,6 +57,9 @@
                             Device name:
                             <input type='text' value='{{device_name}}' class="form-control" placeholder='Device Name' name='device_name'
                                 id="device_name" maxlength="16" pattern="[a-zA-Z0-9_]+" title="Only letters, numbers and underscore allowed" />
+                            AP Password:
+                            <input type='text' value='{{softAP_password}}' class="form-control" placeholder='Leave empty for open AP' name='softAP_password'
+                                id="softAP_password" maxlength="32" />
                             <!-- New Test Connection Button
                             <button type="button" class="btn btn-info" style="margin-top:10px;" onclick="testMQTTConnection()">Test
                                 Connection</button>

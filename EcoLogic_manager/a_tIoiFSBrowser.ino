@@ -656,10 +656,10 @@ void server_init() {
   });
   server.on("/list", HTTP_GET, handleFileList);
   server.on("/", HTTP_GET, []() {  //
-    if (WiFi.getMode() == WIFI_STA) {
-      handleFileRead("/home.htm");
+    if (WiFi.getMode() == WIFI_AP) {
+       handleRoot(); // disabled root for version with AP+STA
     } else {
-      handleRoot();
+       handleFileRead("/home.htm");
     }
 
   });
@@ -760,11 +760,10 @@ void Captive_server_init() {
   //   String jsonResponse = "{\"mode\":\"" + mode + "\"}";
   //   server.send(200, "application/json", jsonResponse); });
   server.on("/wifi", []() {
-    if (WiFi.getMode() == WIFI_STA) {  //как клиент
-      handleFileRead("/wifi_setup.htm");
+    if (WiFi.getMode() == WIFI_AP) {  //as access point only
+       handleWifiLight();
     } else {
-      // handleWifi();
-      handleWifiLight();
+       handleFileRead("/wifi_setup.htm");
     }
   });
   server.on("/wifi", []() {
