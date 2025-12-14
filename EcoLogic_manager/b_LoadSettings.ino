@@ -86,6 +86,7 @@ bool loadConfig(File jsonConfig) {
     strncpy(dns2, jsonDocument["dns2"], sizeof(dns2) - 1);
     dns2[sizeof(dns2) - 1] = '\0';
   }
+  sync_interval = jsonDocument.containsKey("sync_interval") ? jsonDocument["sync_interval"] : 5;
   //  String jsonConfig_string = readCommonFiletoJson("pin_setup");
   if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {
     Serial.println("Widgets Loaded");

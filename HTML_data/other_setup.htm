@@ -44,13 +44,14 @@
                             <input type='text' value="{{mqttpass}}" class="form-control" placeholder='password (pass)'
                                 name='mqttpass' /> -->
                             Server Device ID:
-                            <input type='text' value="{{deviceID}}" class="form-control" placeholder='auto-generated' name='deviceID' readonly style='background-color: #f5f5f5;' />
-                            
-                            <!-- New Server URL Field -->
+                            <input type='text' value="{{deviceID}}" class="form-control" placeholder='auto-generated' name='deviceID' readonly
+                                style='background-color: #f5f5f5;' />
                             Server URL:
                             <input type='text' value='{{server_url}}' class="form-control" placeholder='ecologic.pp.ua' name='server_url'
                                 id="server_url" maxlength="32" />
-                            
+                            Sync seconds interval:
+                            <input type='number' value='{{sync_interval}}' class="form-control" placeholder='5' name='sync_interval'
+                                id="sync_interval" min="5" max="255" />
                             Owner:
                             <input type='text' value='{{user_name}}' class="form-control" placeholder='admin' name='user_name'
                                 id="user_name" maxlength="16" pattern="[a-zA-Z0-9_]+" title="Only letters, numbers and underscore allowed" />

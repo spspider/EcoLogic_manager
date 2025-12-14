@@ -210,6 +210,7 @@ char gateway[16] = { 0 };
 char subnet[16] = { 0 };
 char dns1[16] = { 0 };
 char dns2[16] = { 0 };
+unsigned char sync_interval = 5;
 
 void setup() {
 pinMode(0, OUTPUT); //hardcode pin D3 (GPIO 0) as output

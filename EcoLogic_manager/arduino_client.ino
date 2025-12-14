@@ -1,9 +1,8 @@
 unsigned char lastCheck = 0;
-const unsigned char checkInterval = 5; // 5 seconds
-
+extern unsigned char sync_interval;
 
 void loop_ecologicclient() {
-  if ((unsigned char)(onesec_255 - lastCheck) >= checkInterval) {
+  if ((unsigned char)(onesec_255 - lastCheck) >= sync_interval) {
       syncWithServer();
       lastCheck = onesec_255;
   }
