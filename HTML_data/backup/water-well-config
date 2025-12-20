@@ -1,0 +1,33 @@
+//----------------------------------------defines-------------------------------//
+//  #define ws2811_include// активировать для ws2811
+#define will_use_serial
+// #define timerAlarm
+//  #define use_telegram
+// #define USE_SPIFFS
+#define USE_LITTLEFS
+#define USE_DS18B20
+// #define USE_DNS_SERVER
+// #define USE_UDP
+// #define USE_PUBSUBCLIENT  //mqtt possibility
+// #define USE_IRUTILS // conflict with USE_EMON
+//  #define USE_PLAY_AUDIO_WAV  // for player.ino
+//  #define USE_PLAY_AUDIO_MP3  // for player.ino
+//  #define USE_TINYMQTT
+//  #define USE_PICOMQTT
+//  #define USE_AS5600
+//  #define wakeOnLan
+#define USE_DHT // library version: 1.19 (dht sensor library for ESPx)
+//  #define ads1115 # CHANGE TO USE_ADS1115
+#define USE_EMON // electric monitor !! CONFLICT with USE_IRUTILS !!
+//  #define ws433 # CHANGE TO USE_WS433
+
+#if defined(USE_DS18B20)
+#define ONE_WIRE_BUS 2  // D4 pin ds18b20
+#endif
+#if defined(USE_IRUTILS)
+#define RECV_PIN 5      // IR recieve d1
+#define SEND_PIN 4     // IR send d2
+#endif
+#define N_WIDGETS 12
+#define RESET_PIN 5  // D1 pin reset button
+#define DHT_PIN 3    // D4 pin dht

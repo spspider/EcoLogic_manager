@@ -38,6 +38,14 @@ function callbackWifiList(response) {
 function createBodyHead(data) {
     var body = document.getElementById('connectis');
     
+    // Display WiFi mode
+    var newLi = document.createElement('li');
+    newLi.className = "list-group-item";
+    var mode = data.wifi_mode || 3;
+    var modeText = mode == 1 ? "Client" : mode == 2 ? "Access Point" : "Client + SoftAP";
+    newLi.innerHTML = "WiFi Mode: " + modeText;
+    body.appendChild(newLi);
+    
     // Display the currently connected access point
     var newLi = document.createElement('li');
     newLi.className = "list-group-item";
@@ -61,6 +69,22 @@ function createBodyHead(data) {
     newLi.className = "list-group-item";
     newLi.innerHTML = "Software access point IP: " + data.WiFisoftAPIP;
     body.appendChild(newLi);
+    
+    // Set mode in dropdown
+    setVal('wifi_mode', mode);
+    // Set current SSID
+    setVal('ssid', data.ssid);
+    // Set SoftAP password if available
+    if (data.softAP_password) {
+        setVal('softap_pass', data.softAP_password);
+    }
+}
+
+function handleWifiSave(event) {
+    var body = document.body;
+    var msg = alert_message("Settings saved. Device will reboot in 2 seconds...", 3);
+    body.appendChild(msg);
+    return true;
 }
 
 function tableCreate(data) {

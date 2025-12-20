@@ -4,8 +4,9 @@ void saveCredentials() {
   EEPROM.begin(512);
   EEPROM.put(0, ssid);
   EEPROM.put(0 + sizeof(ssid), password);
+  EEPROM.put(0 + sizeof(ssid) + sizeof(password), wifi_mode);
   char ok[2 + 1] = "OK";
-  EEPROM.put(0 + sizeof(ssid) + sizeof(password), ok);
+  EEPROM.put(0 + sizeof(ssid) + sizeof(password) + sizeof(wifi_mode), ok);
   EEPROM.commit();
   EEPROM.end();
 }

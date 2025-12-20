@@ -20,26 +20,49 @@
 
                 <h1 style='margin:50px;'>Wifi setup</h1>
                 <div id="connectis"></div>
+
+
                 <br>
+
                 <div id="table_div"></div>
 
-                <div id='table_wlan'></div>
-                <br />
-                <form method='POST' class='form-signin' action='wifisave'>
-                    <h4>Wifi networks:</h4>
-                    <input type='text' id="ssid" class='form-control' placeholder='Wifi network' name='n' />
-                    <br /><input type='password' class='form-control' placeholder='Password' name='p' />
-                    <br /><br /><input type='submit' class='btn btn-lg btn-primary btn-block' value='Connect/Disconnect' />
-                </form>
+                <div id='table_wlan'>
+                    <br />
+                    <form method='POST' class='form-signin' action='wifisave' onsubmit="return handleWifiSave(event);">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <h4>WiFi Mode:</h4>
+                                <select id='wifi_mode' class='form-control' name='mode'>
+                                    <option value='1'>Client (Connect to WiFi)</option>
+                                    <option value='2'>Access Point</option>
+                                    <option value='3'>Client + SoftAP</option>
+                                </select>
+                                <h4>SoftAP Password:</h4>
+                                <input type='password' id="softap_pass" class='form-control' placeholder='Default: 12345678'
+                                    name='ap_p' />
+                                <small style='color:#666;'>Default: 12345678. Leave empty to keep current.</small>
+                
+                            </div>
+                            <br />
+                            <div class="col-sm-6">
+                                <h4>WiFi Mode:</h4>
+                                <h4>Wifi networks:</h4>
+                                <input type='text' id="ssid" class='form-control' placeholder='Wifi network' name='n' />
+                                <br /><input type='password' class='form-control' placeholder='Password' name='p' />
+                                <br />
+                                </div>
+                                </div>
+                                <br /><input type='submit' class='btn btn-lg btn-primary btn-block' value='Connect/Disconnect' />
+                                </form>
 
-                <p id="btmBtns"></p>
-                <pre id="input"></pre>
-                <pre id="output"></pre>
+                    <p id="btmBtns"></p>
+                    <pre id="input"></pre>
+                    <pre id="output"></pre>
                 </div>
 
-        </div>
+            </div>
 
-    </div>
+        </div>
 
 
 </body>

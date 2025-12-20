@@ -1,1 +1,1 @@
-{num:10, last:0, name : ["Home_2","Home"], pass : ["sp5506487sp","sp5506487sp"]}
+{"num":10,"last":0,"name":["Home_2","Home"],"pass":["sp5506487sp","sp5506487sp"],"wifi_mode":3,"softAP_password":""}

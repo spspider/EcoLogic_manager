@@ -40,21 +40,81 @@ void connect_as_AccessPoint() {
   Serial.print("Configuring access point...");
   WiFi.disconnect();
   WiFi.persistent(false);
-  WiFi.mode(WIFI_OFF);
+  WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, netMsk);
   char apName[40];
   int len = strlen(device_id);
   const char* shortId = (len > 6) ? &device_id[len - 6] : device_id;
   snprintf(apName, sizeof(apName), "%s%s", device_name, shortId);
   if (strlen(softAP_password) > 0 ? WiFi.softAP(apName, softAP_password) : WiFi.softAP(apName)) {
-    Serial.println("SoftAP started successfully.");
+    Serial.println("AP started successfully.");
   } else {
-    Serial.println("Failed to start SoftAP.");
+    Serial.println("Failed to start AP.");
   }
   yield();
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
   lastConnectTry = onesec = 0;
+}
+
+void connect_as_Client() {
+  WiFi.disconnect();
+  WiFi.mode(WIFI_STA);
+  if (use_static_ip && strlen(static_ip) > 0) {
+    IPAddress ip, gw, sn, d1, d2;
+    ip.fromString(static_ip);
+    gw.fromString(gateway);
+    sn.fromString(subnet);
+    if (strlen(dns1) > 0) {
+      d1.fromString(dns1);
+      if (strlen(dns2) > 0) {
+        d2.fromString(dns2);
+        WiFi.config(ip, gw, sn, d1, d2);
+      } else {
+        WiFi.config(ip, gw, sn, d1);
+      }
+    } else {
+      d1 = gw;
+      WiFi.config(ip, gw, sn, d1);
+    }
+  }
+  WiFi.begin(ssid, strlen(password) > 0 ? password : nullptr);
+  connecting = true;
+  connectStart = millis();
+  wifiAttempt = 0;
+}
+
+void connect_as_SoftAP() {
+  WiFi.disconnect();
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.softAPConfig(apIP, apIP, netMsk);
+  char apName[40];
+  int len = strlen(device_id);
+  const char* shortId = (len > 6) ? &device_id[len - 6] : device_id;
+  snprintf(apName, sizeof(apName), "%s%s", device_name, shortId);
+  strlen(softAP_password) > 0 ? WiFi.softAP(apName, softAP_password) : WiFi.softAP(apName);
+  if (use_static_ip && strlen(static_ip) > 0) {
+    IPAddress ip, gw, sn, d1, d2;
+    ip.fromString(static_ip);
+    gw.fromString(gateway);
+    sn.fromString(subnet);
+    if (strlen(dns1) > 0) {
+      d1.fromString(dns1);
+      if (strlen(dns2) > 0) {
+        d2.fromString(dns2);
+        WiFi.config(ip, gw, sn, d1, d2);
+      } else {
+        WiFi.config(ip, gw, sn, d1);
+      }
+    } else {
+      d1 = gw;
+      WiFi.config(ip, gw, sn, d1);
+    }
+  }
+  WiFi.begin(ssid, strlen(password) > 0 ? password : nullptr);
+  connecting = true;
+  connectStart = millis();
+  wifiAttempt = 0;
 }
 
 void captive_setup() {  // starting void
@@ -72,40 +132,14 @@ void captive_setup() {  // starting void
 // Non-blocking WiFi connection
 void connectWifi(char ssid_that[32], char password_that[32]) {
   if (!connecting) {
-    WiFi.disconnect();
-    status = WL_IDLE_STATUS;
-    WiFi.mode(WIFI_AP_STA);
-    WiFi.softAPConfig(apIP, apIP, netMsk);
-    char apName[40];
-    int len = strlen(device_id);
-    const char* shortId = (len > 6) ? &device_id[len - 6] : device_id;
-    snprintf(apName, sizeof(apName), "%s%s", device_name, shortId);
-    strlen(softAP_password) > 0 ? WiFi.softAP(apName, softAP_password) : WiFi.softAP(apName);
-    if (use_static_ip && strlen(static_ip) > 0) {
-      IPAddress ip, gw, sn, d1, d2;
-      ip.fromString(static_ip);
-      gw.fromString(gateway);
-      sn.fromString(subnet);
-      if (strlen(dns1) > 0) {
-        d1.fromString(dns1);
-        if (strlen(dns2) > 0) {
-          d2.fromString(dns2);
-          WiFi.config(ip, gw, sn, d1, d2);
-        } else {
-          WiFi.config(ip, gw, sn, d1);
-        }
-      } else {
-        d1 = gw;
-        WiFi.config(ip, gw, sn, d1);
-      }
-      Serial.println("Using static IP: " + String(static_ip));
+    if (wifi_mode == 1) {
+      connect_as_Client();
+    } else if (wifi_mode == 2) {
+      connect_as_AccessPoint();
+      return;
+    } else {
+      connect_as_SoftAP();
     }
-    Serial.println("Connecting as wifi client...");
-    Serial.println(ssid_that);
-    WiFi.begin(ssid_that, strlen(password_that) > 0 ? password_that : nullptr);
-    connecting = true;
-    connectStart = millis();
-    wifiAttempt = 0;
     return;
   }
   

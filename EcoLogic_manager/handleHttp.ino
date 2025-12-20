@@ -73,8 +73,10 @@ void handleWifilist() {
 
   json["ssid"] = ssid;
   json["WiFilocalIP"] = toStringIp(WiFi.localIP());
-  json["softAP"] = softAP_ssid;
+  json["softAP_ssid"] = softAP_ssid;
+  json["softAP_password"] = softAP_password;
   json["WiFisoftAPIP"] = toStringIp(WiFi.softAPIP());
+  json["wifi_mode"] = wifi_mode;
 
   JsonArray scan_array = json.createNestedArray("scan");
   JsonArray enc_array = json.createNestedArray("enc");
@@ -177,12 +179,34 @@ void handleWifiFull() {
 
 void handleWifiSave() {
   Serial.println("wifi save");
-  server.arg("n").toCharArray(ssid, sizeof(ssid) - 1);
-  server.arg("p").toCharArray(password, sizeof(password) - 1);
+  
+  char new_ssid[32];
+  char new_password[32];
+  server.arg("n").toCharArray(new_ssid, sizeof(new_ssid) - 1);
+  server.arg("p").toCharArray(new_password, sizeof(new_password) - 1);
+  
+  // Only update if SSID is not empty
+  if (strlen(new_ssid) > 0) {
+    strcpy(ssid, new_ssid);
+    // Only update password if provided
+    if (strlen(new_password) > 0) {
+      strcpy(password, new_password);
+    }
+  }
+  
+  if (server.hasArg("mode")) {
+    wifi_mode = server.arg("mode").toInt();
+  }
+  if (server.hasArg("ap_p") && server.arg("ap_p").length() > 0) {
+    server.arg("ap_p").toCharArray(softAP_password, sizeof(softAP_password) - 1);
+  } else if (strlen(softAP_password) == 0) {
+    strcpy(softAP_password, "12345678");
+  }
 
-  saveCredentials();
+  save_wifiList(ssid, password);
 
-  connectWifi(ssid, password);
+  String Page = "<html><head><script>setTimeout(function(){window.location.href='/function?data={reboot:1}';},2000);</script></head><body><h2>Settings saved. Rebooting...</h2></body></html>";
+  server.send(200, "text/html", Page);
 }
 
 void save_wifiList(const char *ssid, const char *password) {
@@ -190,61 +214,48 @@ void save_wifiList(const char *ssid, const char *password) {
 
   DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, WifiList);
+  WifiList.close();
 
   if (error) {
     Serial.print(F("deserializeJson() save_wifiList failed with code "));
     Serial.println(error.c_str());
-    //    return;
   }
 
   JsonArray name_array = jsonDocument.createNestedArray("name");
   JsonArray pass_array = jsonDocument.createNestedArray("pass");
 
-  char num = name_array.size();
-  bool ssid_not_found = true;
-  bool write_array = false;
+  unsigned char num = jsonDocument.containsKey("name") ? jsonDocument["name"].size() : 0;
+  bool ssid_found = false;
 
   if (num == 0) {
     jsonDocument["num"] = 1;
   }
-  for (uint8_t i = 0; i < num; i++) {
-    char nameWifi[20];
-    char passWifi[20];
+  
+  for (unsigned char i = 0; i < num; i++) {
+    const char* nameWifi = jsonDocument["name"][i];
+    const char* passWifi = jsonDocument["pass"][i];
 
-    strlcpy(nameWifi, name_array[i], sizeof(nameWifi));
-    strlcpy(passWifi, pass_array[i], sizeof(passWifi));
-
-    if ((strcmp(nameWifi, ssid) == 0) && (strcmp(passWifi, password) != 0)) {
-      Serial.println("update ssid password");
-      // Need update
-      name_array.add(name_array[i]);
+    if (strcmp(nameWifi, ssid) == 0) {
+      name_array.add(ssid);
       pass_array.add(password);
-      write_array = true;
+      ssid_found = true;
     } else {
-      Serial.println("write ssid as previous");
-      name_array.add(name_array[i]);
-      pass_array.add(pass_array[i]);
-    }
-
-    if (strcmp(nameWifi, ssid) != 0) {
-      ssid_not_found = false;
+      name_array.add(nameWifi);
+      pass_array.add(passWifi);
     }
   }
 
-  if (ssid_not_found) {
-    Serial.println("add new ssid");
+  if (!ssid_found) {
     name_array.add(ssid);
     pass_array.add(password);
-    write_array = true;
   }
 
-  if (write_array) {
-    char buffer[100];
-    serializeJson(jsonDocument, buffer);
-    writeFile(LittleFS, "wifilist.txt", buffer);
-  }
+  jsonDocument["wifi_mode"] = wifi_mode;
+  jsonDocument["softAP_password"] = softAP_password;
 
-  saveCredentials();
+  char buffer[512];
+  serializeJson(jsonDocument, buffer);
+  writeFile(LittleFS, "/wifilist.txt", buffer);
 }
 
 /*
@@ -264,17 +275,12 @@ void save_wifiList(const char *ssid, const char *password) {
   }
 */
 bool load_ssid_pass() {
-  // Serial.println("scan start");
-  // int n = WiFi.scanNetworks();
-  // Serial.println("scan done");
-
-  // if (n > 0) {
-  //        String WifiList = readCommonFiletoJson("wifilist");
-
   File WifiList = fileSystem->open("/wifilist.txt", "r");
 
   DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
   DeserializationError error = deserializeJson(jsonDocument, WifiList);
+  WifiList.close();
+  
   if (error) {
     Serial.print(F("load_ssid_pass deserializeJson() failed load_ssid_pass with code "));
     Serial.println(error.c_str());
@@ -286,25 +292,19 @@ bool load_ssid_pass() {
 
   strcpy(ssid, jsonDocument["name"][0]);
   strcpy(password, jsonDocument["pass"][0]);
+  
+  wifi_mode = jsonDocument.containsKey("wifi_mode") ? jsonDocument["wifi_mode"] : 3;
+  
+  if (jsonDocument.containsKey("softAP_password")) {
+    strcpy(softAP_password, jsonDocument["softAP_password"]);
+  }
+  
   Serial.println(ssid);
   Serial.println(password);
-  // for (int i = 0; i < 10; i++) {
-  //   String nameWifi = jsonDocument["name"][i];
-  //   String passWifi = jsonDocument["pass"][i];
+  Serial.print("WiFi mode: ");
+  Serial.println(wifi_mode);
 
-  //   for (int in = 0; in < n; in++) {
-  //     if (WiFi.SSID(in) == nameWifi) {
-  //       strlcpy(ssid, nameWifi.c_str(), sizeof(ssid));
-  //       strlcpy(password, passWifi.c_str(), sizeof(password));
-  //       Serial.println(ssid);
-  //       Serial.println(password);
-  //       return true; // Found and set, exit the function
-  //     }
-  //   }
-  // }
-  // }
-
-  return true;  // No match found
+  return true;
 }
 
 void handleNotFound() {
