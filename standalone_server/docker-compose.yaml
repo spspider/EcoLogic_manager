@@ -42,13 +42,3 @@ networks:
 
 
 # docker exec -it wordpress_db mysql -u root -proot_pass
-
-# GRANT ALL PRIVILEGES ON *.* TO 'wp_user'@'%' IDENTIFIED BY 'wp_pass'; FLUSH PRIVILEGES;
-# GRANT ALL PRIVILEGES ON *.* TO 'wp_user'@'%' IDENTIFIED BY 'wp_pass' WITH GRANT OPTION;
-# FLUSH PRIVILEGES;
-
-# database: ecologic
-# user: ecouser
-# BACKUP:
-# RESTORE:
-# docker exec -i wordpress_db mysql -u wp_user -pwp_pass wp_db < /mnt/data/wp_db_backup.sql

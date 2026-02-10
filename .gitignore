@@ -3,6 +3,8 @@
 **/*.zip
 **/*.rar
 **/*.gz
+**/.env
+./standalone_server/.env
 # IDE and editor folders
 .vscode/
 .idea/
