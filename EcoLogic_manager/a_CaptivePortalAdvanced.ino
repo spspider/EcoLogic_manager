@@ -197,8 +197,8 @@ void captive_loop() {
     if ((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() == 0)) {
       WiFi.disconnect();
       Serial.println("Connecting as Wifi client due AP not connected");
+      connect = true; //calling connection as WIFI client
       lastConnectTry = onesec = 0;
-      captive_setup();
 #if defined(USE_DNS_SERVER)
       dnsServer.enableForwarder(myHostname, WiFi.dnsIP(0));
       if (dnsServer.isDNSSet()) {
