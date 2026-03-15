@@ -147,6 +147,11 @@ void connectWifi(char ssid_that[32], char password_that[32]) {
     if (WiFi.status() == WL_CONNECTED) {
       connecting = false;
       Serial.println("\nWiFi connected!");
+      // Отключаем AP если подключились к роутеру
+      if (WiFi.getMode() == WIFI_AP_STA) {
+        WiFi.mode(WIFI_STA);
+        Serial.println("AP disabled, switched to STA mode");
+      }
     } else if (millis() - connectStart > 500) {
       wifiAttempt++;
       connectStart = millis();
