@@ -133,11 +133,14 @@ void captive_setup() {  // starting void
 void connectWifi(char ssid_that[32], char password_that[32]) {
   if (!connecting) {
     if (wifi_mode == 1) {
+      Serial.println("WiFi mode: Client");
       connect_as_Client();
     } else if (wifi_mode == 2) {
+      Serial.println("WiFi mode: AP");
       connect_as_AccessPoint();
       return;
     } else {
+      Serial.println("WiFi mode: AP+Client");
       connect_as_SoftAP();
     }
     return;

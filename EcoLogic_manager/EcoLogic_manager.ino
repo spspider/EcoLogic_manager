@@ -1,24 +1,23 @@
-//----------------------------------------defines-------------------------------//
 //  #define ws2811_include// активировать для ws2811
 #define will_use_serial
 // #define timerAlarm
 //  #define use_telegram
 // #define USE_SPIFFS
 #define USE_LITTLEFS
-// #define USE_DS18B20 //!!!NOT COMPATIBLE WITH USE_DHT!!!
+#define USE_DS18B20 //!!!NOT COMPATIBLE WITH USE_DHT!!!
 // #define USE_DNS_SERVER
 // #define USE_UDP
 // #define USE_PUBSUBCLIENT  //mqtt possibility
-// #define USE_IRUTILS // conflict with USE_EMON
+#define USE_IRUTILS // conflict with USE_EMON
 //  #define USE_PLAY_AUDIO_WAV  // for player.ino
 //  #define USE_PLAY_AUDIO_MP3  // for player.ino
 //  #define USE_TINYMQTT
 //  #define USE_PICOMQTT
 //  #define USE_AS5600
 //  #define wakeOnLan
-#define USE_DHT // library version: 1.19 (dht sensor library for ESPx) !!!NOT COMPATIBLE WITH USE_DS18B20!!!
+// #define USE_DHT // library version: 1.19 (dht sensor library for ESPx) !!!NOT COMPATIBLE WITH USE_DS18B20!!!
 //  #define ads1115 # CHANGE TO USE_ADS1115
-#define USE_EMON // electric monitor !! CONFLICT with USE_IRUTILS !!
+// #define USE_EMON // electric monitor !! CONFLICT with USE_IRUTILS !!
 //  #define ws433 # CHANGE TO USE_WS433
 
 #if defined(USE_DS18B20)
@@ -137,7 +136,7 @@ char softAP_ssid[32] = "dev_001";
 char softAP_password[32] = "12345678";
 char ssid[32] = "";
 char password[32] = "";
-unsigned char wifi_mode = 3; // 1=Client, 2=AP, 3=Client+SoftAP
+unsigned char wifi_mode = 1; // 1=Client, 2=AP, 3=Client+SoftAP
 uint8_t ipport = 80;
 /* hostname for mDNS. Should work at least on windows. Try http://esp8266.local */
 const char *myHostname = "esp8266";
@@ -234,7 +233,7 @@ generate_device_id();
     }
   }
   fileSystem = &LittleFS;
-  checkAndRestoreDefaults();
+  //checkAndRestoreDefaults();
 #endif
 #if defined(USE_SPIFFS)
   Serial.println("SPIFFS init");
