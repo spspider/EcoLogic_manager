@@ -4,7 +4,7 @@
 //  #define use_telegram
 // #define USE_SPIFFS
 #define USE_LITTLEFS
-#define USE_DS18B20 //!!!NOT COMPATIBLE WITH USE_DHT!!!
+// #define USE_DS18B20 //!!!NOT COMPATIBLE WITH USE_DHT!!!
 // #define USE_DNS_SERVER
 // #define USE_UDP
 // #define USE_PUBSUBCLIENT  //mqtt possibility
@@ -15,7 +15,7 @@
 //  #define USE_PICOMQTT
 //  #define USE_AS5600
 //  #define wakeOnLan
-// #define USE_DHT // library version: 1.19 (dht sensor library for ESPx) !!!NOT COMPATIBLE WITH USE_DS18B20!!!
+#define USE_DHT // library version: 1.19 (dht sensor library for ESPx) !!!NOT COMPATIBLE WITH USE_DS18B20!!!
 //  #define ads1115 # CHANGE TO USE_ADS1115
 // #define USE_EMON // electric monitor !! CONFLICT with USE_IRUTILS !!
 //  #define ws433 # CHANGE TO USE_WS433
@@ -233,7 +233,7 @@ generate_device_id();
     }
   }
   fileSystem = &LittleFS;
-  //checkAndRestoreDefaults();
+checkAndRestoreDefaults();
 #endif
 #if defined(USE_SPIFFS)
   Serial.println("SPIFFS init");
@@ -378,16 +378,8 @@ void loop() {
     // Serial.print(interim, DEC);
     yield();
   }
-  
-  // Watchdog для перезагрузки при зависании
-  static unsigned long lastLoopTime = 0;
-  unsigned long currentTime = millis();
-  if (currentTime - lastLoopTime > 30000) { // Если loop не выполнялся 30 сек
-    Serial.println("Loop timeout - restarting");
-    ESP.restart();
-  }
-  lastLoopTime = currentTime;
-  
+ 
+ 
   yield(); // Позволяем ESP8266 обрабатывать WiFi и другие задачи
 
 #if defined(USE_UDP)

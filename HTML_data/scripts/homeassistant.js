@@ -158,7 +158,7 @@ function PinSetupLoaded(data) {
 function generateHomeAssistantConfig() {
   const ip = window.location.host;
   const ip_name = ip.split('.')[3].replace(/[^a-zA-Z0-9]/g, '');
-  let config = `######################################  ${Other_setup.deviceID} ${ip}  ####################################\n`;
+  let config = `######################################  ${Other_setup.device_name} ${ip}  ####################################\n`;
 
   let restCommands = '';
   let switches = '';
@@ -169,7 +169,7 @@ function generateHomeAssistantConfig() {
 
   PinSetup.pinmode.forEach((mode, index) => {
     const pin = PinSetup.pin[index];
-    const description = Other_setup.deviceID + " " + PinSetup.descr[index];
+    const description = Other_setup.device_name + " " + PinSetup.descr[index];
     const widget = PinSetup.widget[index];
     const defaultVal = PinSetup.defaultVal[index];
     const clearDescription = description.toLowerCase().replace(/[^a-z0-9]/g, "");

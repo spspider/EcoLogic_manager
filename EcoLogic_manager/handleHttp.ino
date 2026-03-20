@@ -282,23 +282,50 @@ bool load_ssid_pass() {
   WifiList.close();
   
   if (error) {
-    Serial.print(F("load_ssid_pass deserializeJson() failed load_ssid_pass with code "));
+    Serial.print(F("load_ssid_pass deserializeJson() failed with code "));
     Serial.println(error.c_str());
-    return false;
+    // Don't abort startup on malformed wifilist. Use safe defaults
+    ssid[0] = '\0';
+    password[0] = '\0';
+    wifi_mode = 3; // keep existing default
+    if (strlen(softAP_password) == 0) {
+      strcpy(softAP_password, "12345678");
+    }
+    // Return true to allow startup to continue; next save will overwrite the file
+    return true;
+  }
+  // Safely extract SSID/password if present
+  if (jsonDocument.containsKey("name") && jsonDocument["name"].is<JsonArray>() && jsonDocument["name"].size() > 0) {
+    const char *nameWifi = jsonDocument["name"][0];
+    if (nameWifi != nullptr) {
+      strncpy(ssid, nameWifi, sizeof(ssid) - 1);
+      ssid[sizeof(ssid) - 1] = '\0';
+    } else {
+      ssid[0] = '\0';
+    }
+  } else {
+    ssid[0] = '\0';
   }
 
-  const char *nameWifi = jsonDocument["name"][0];
-  const char *passWifi = jsonDocument["pass"][0];
+  if (jsonDocument.containsKey("pass") && jsonDocument["pass"].is<JsonArray>() && jsonDocument["pass"].size() > 0) {
+    const char *passWifi = jsonDocument["pass"][0];
+    if (passWifi != nullptr) {
+      strncpy(password, passWifi, sizeof(password) - 1);
+      password[sizeof(password) - 1] = '\0';
+    } else {
+      password[0] = '\0';
+    }
+  } else {
+    password[0] = '\0';
+  }
 
-  strcpy(ssid, jsonDocument["name"][0]);
-  strcpy(password, jsonDocument["pass"][0]);
-  
   wifi_mode = jsonDocument.containsKey("wifi_mode") ? jsonDocument["wifi_mode"] : 3;
-  
-  if (jsonDocument.containsKey("softAP_password")) {
-    strcpy(softAP_password, jsonDocument["softAP_password"]);
+
+  if (jsonDocument.containsKey("softAP_password") && jsonDocument["softAP_password"].is<const char*>()) {
+    strncpy(softAP_password, jsonDocument["softAP_password"], sizeof(softAP_password) - 1);
+    softAP_password[sizeof(softAP_password) - 1] = '\0';
   }
-  
+
   Serial.println(ssid);
   Serial.println(password);
   Serial.print("WiFi mode: ");

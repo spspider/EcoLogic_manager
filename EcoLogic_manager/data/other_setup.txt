@@ -1,17 +1,16 @@
 {
-  "prefix": "/IoTmanager",
-  "smtp_arr": "mail.smtp2go.com",
-  "smtp_port": "2525",
-  "to_email_addr": "spspider95@gmail.com",
-  "from_email_addr": "spspider95@smtp2go.com",
-  "emaillogin": "c3BzcGlkZXI5NUBnbWFpbC5jb20=",
-  "password_email": "NTUwNjQ4Nw==",
+  "server_url": "https://ecologic.go.ro",
+  "sync_interval": "30",
+  "softAP_password": "12345678",
   "ipport": "80",
   "timezone": "2",
+  "use_static_ip": false,
+  "static_ip": "192.168.1.151",
+  "gateway": "192.168.1.1",
+  "subnet": "255.255.255.0",
+  "dns1": "8.8.8.8",
+  "dns2": "8.8.4.4",
   "PWM_frequency": "1000",
-  "BOTtoken":"7256850489:AAHinhWkzRbfSdNcBcjlcH1-cvDFLMEbR38",
-  "server_url":"https://ecologic.pp.ua",
-  "static_ip":"192.168.1.200",
-  "gateway":"192.168.1.1",
-  "subnet":"255.255.255.0"
+  "send_to_nodeRed": false,
+  "nodered_address": ""
 }
