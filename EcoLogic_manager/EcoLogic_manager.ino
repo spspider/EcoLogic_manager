@@ -8,7 +8,7 @@
 // #define USE_DNS_SERVER
 // #define USE_UDP
 // #define USE_PUBSUBCLIENT  //mqtt possibility
-#define USE_IRUTILS // conflict with USE_EMON
+// #define USE_IRUTILS // conflict with USE_EMON
 //  #define USE_PLAY_AUDIO_WAV  // for player.ino
 //  #define USE_PLAY_AUDIO_MP3  // for player.ino
 //  #define USE_TINYMQTT
@@ -17,7 +17,7 @@
 //  #define wakeOnLan
 #define USE_DHT // library version: 1.19 (dht sensor library for ESPx) !!!NOT COMPATIBLE WITH USE_DS18B20!!!
 //  #define ads1115 # CHANGE TO USE_ADS1115
-// #define USE_EMON // electric monitor !! CONFLICT with USE_IRUTILS !!
+#define USE_EMON // electric monitor !! CONFLICT with USE_IRUTILS !!
 //  #define ws433 # CHANGE TO USE_WS433
 
 #if defined(USE_DS18B20)
