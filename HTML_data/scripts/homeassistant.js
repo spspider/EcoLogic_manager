@@ -182,7 +182,7 @@ function generateHomeAssistantConfig() {
         break;
       case 1: // Sensor
       case 16: // Template Data Sensor
-        templates += generateTemplateSensorConfig(clearDescription = clearDescription, index = index, ip = ip, ip_name = ip_name, Other_setup);
+        templates += generateTemplateSensorConfig(clearDescription, index, ip, ip_name);
         break;
       case 20: // Sensor
         sensors += generateSensorConfig(description, clearDescription, index, ip, ip_name);

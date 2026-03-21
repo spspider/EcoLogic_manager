@@ -667,24 +667,17 @@ void server_init() {
   server.on("/other_setup", []() {
     handleFileRead("/other_setup.htm");
   });
-  server.on("/aRest", HTTP_GET, []() { /*192.168.1.108/aRest?Json={pin:1,val:100}*/
-                                       // String json = server.arg("Json");
-                                       Serial.println(server.arg("Json"));
-                                       makeAres_sim(server.arg("Json"));
+  server.on("/aRest", HTTP_GET, []() { 
+                                       
+                                       Serial.println(server.arg("data"));
+                                       makeAres_sim(server.arg("data"));
   });
-  /*
-    server.on("/CommonSave", []() { //получаем методом AJAX включаем
-    saveCommonFiletoJson(server.arg("fileName"), server.arg("json"));
-    });
-  */
-  // server.on("/CommonDelete", HTTP_DELETE, handleFileDelete);
   server.on("/IR_setup", []() {
-    //Serial.println("IR true");
     Page_IR_opened = false;
     handleFileRead("/IR_setup.htm");
   });
 
-  server.on("/WaitIR", []() {  // получаем методом AJAX включаем IR
+  server.on("/WaitIR", []() {
     Page_IR_opened = true;
   });
 

@@ -237,7 +237,7 @@ function loadBody() {
             link.textContent = host + read_request;
             code2.appendChild(link);
         } else {
-            const read_request = `/aRest?data={stat:${i}}`;
+            const read_request = `/aRest?data=${encodeURIComponent(JSON.stringify({ stat: i }))}`;
             const link = document.createElement('a');
             link.href = read_request;
             link.textContent = host + read_request;
