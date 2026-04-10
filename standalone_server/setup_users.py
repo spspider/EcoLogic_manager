@@ -8,17 +8,17 @@ import os
 
 load_dotenv()
 
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = int(os.getenv("DB_PORT", "3306"))
-DB_NAME = os.getenv("DB_NAME", "ecologic")
-DB_USER = os.getenv("DB_USER", "ecouser")
-DB_PASS = os.getenv("DB_PASSWORD", "ecopass")
+DEVICE_MANAGER_DB_HOST = os.getenv("DEVICE_MANAGER_DB_HOST", "localhost")
+DEVICE_MANAGER_DB_PORT = int(os.getenv("DEVICE_MANAGER_DB_PORT", "3306"))
+DEVICE_MANAGER_DB_NAME = os.getenv("DEVICE_MANAGER_DB_NAME", "ecologic")
+DEVICE_MANAGER_DB_USER = os.getenv("DEVICE_MANAGER_DB_USER", "ecouser")
+DB_PASS = os.getenv("DEVICE_MANAGER_DB_PASSWORD", "ecopass")
 
 def setup_database():
     try:
         conn = pymysql.connect(
-            host=DB_HOST, port=DB_PORT, user=DB_USER, 
-            passwd=DB_PASS, db=DB_NAME, charset='utf8mb4'
+            host=DEVICE_MANAGER_DB_HOST, port=DEVICE_MANAGER_DB_PORT, user=DEVICE_MANAGER_DB_USER, 
+            passwd=DB_PASS, db=DEVICE_MANAGER_DB_NAME, charset='utf8mb4'
         )
         
         with conn.cursor() as cur:

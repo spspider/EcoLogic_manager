@@ -9,17 +9,22 @@ from starlette.middleware.cors import CORSMiddleware
 import pymysql
 from dotenv import load_dotenv
 from typing import Optional
-import secrets
 import asyncio
 from datetime import time as dt_time
+import logging
+from influx_logger import log_device_data
 
 load_dotenv()
 
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = int(os.getenv("DB_PORT", "3306"))
-DB_NAME = os.getenv("DB_NAME", "ecologic")
-DB_USER = os.getenv("DB_USER", "ecouser")
-DB_PASS = os.getenv("DB_PASSWORD", "ecopass")
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+DEVICE_MANAGER_DB_HOST = os.getenv("DEVICE_MANAGER_DB_HOST", "localhost")
+DEVICE_MANAGER_DB_PORT = int(os.getenv("DEVICE_MANAGER_DB_PORT", "3306"))
+DEVICE_MANAGER_DB_NAME = os.getenv("DEVICE_MANAGER_DB_NAME", "ecologic")
+DEVICE_MANAGER_DB_USER = os.getenv("DEVICE_MANAGER_DB_USER", "ecouser")
+DB_PASS = os.getenv("DEVICE_MANAGER_DB_PASSWORD", "ecopass")
 
 BASIC_USER = os.getenv("BASIC_USER", "admin")
 BASIC_PASS = os.getenv("BASIC_PASS", "admin123")
@@ -41,8 +46,8 @@ app.mount("/api/static", StaticFiles(directory="../HTML_data/scripts"), name="st
 def get_conn():
     try:
         return pymysql.connect(
-            host=DB_HOST, port=DB_PORT, user=DB_USER, 
-            passwd=DB_PASS, db=DB_NAME, charset='utf8mb4', 
+            host=DEVICE_MANAGER_DB_HOST, port=DEVICE_MANAGER_DB_PORT, user=DEVICE_MANAGER_DB_USER, 
+            passwd=DB_PASS, db=DEVICE_MANAGER_DB_NAME, charset='utf8mb4', 
             cursorclass=pymysql.cursors.DictCursor
         )
     except:
@@ -174,28 +179,7 @@ async def upload_other_setup(request: Request):
     
     return {"ok": 1}
 
-@app.post("/api/update_status")
-async def update_status(payload: dict):
-    """
-    API для Arduino: обновление статуса всех датчиков
-    Ожидает: {"device_id": "...", "token": "...", "status": {"stat": ["1.00", "0.00", "25.5", ...]}}
-    """
-    device_id = payload.get("device_id", "default")
-    token = payload.get("token", "default_token")
-    status = payload.get("status")
-    
-    conn = get_conn()
-    if conn:
-        try:
-            with conn.cursor() as cur:
-                # Обновляем статус и время последнего обращения
-                cur.execute("UPDATE devices SET status=%s, last_seen=%s WHERE device_id=%s AND token=%s",
-                           (json.dumps(status), datetime.utcnow(), device_id, token))
-                conn.commit()
-        finally:
-            conn.close()
-    
-    return {"ok": True}
+# Removed /api/update_status endpoint - not used by Arduino client or web interface
 
 @app.post("/api/sync")
 async def sync_status(request: Request):
@@ -210,7 +194,9 @@ async def sync_status(request: Request):
     body = await request.body()
     try:
         real_status = json.loads(body.decode('utf-8'))
+        # logger.info(f"📡 Device sync: {device_id} sent {len(real_status.get('stat', []))} values: {real_status.get('stat', [])}")
     except:
+        logger.error(f"❌ Invalid JSON from device {device_id}: {body.decode('utf-8', errors='replace')}")
         return JSONResponse({"error": "invalid json"}, status_code=400)
     
     conn = get_conn()
@@ -229,8 +215,8 @@ async def sync_status(request: Request):
                 if real_status.get("synced") == 1:
                     cur.execute("UPDATE devices SET device_synced=TRUE WHERE device_id=%s AND token=%s", (device_id, token))
                 
-                # Получаем желаемый статус и флаг обновления
-                cur.execute("SELECT desired_status, has_updates FROM devices WHERE device_id=%s AND token=%s", (device_id, token))
+                # Получаем desired_status, has_updates и данные для InfluxDB одним запросом
+                cur.execute("SELECT desired_status, has_updates, owner, pin_setup, ip_address FROM devices WHERE device_id=%s AND token=%s", (device_id, token))
                 row = cur.fetchone()
                 if row:
                     if row.get("desired_status"):
@@ -242,6 +228,21 @@ async def sync_status(request: Request):
                     # Если есть обновления, сбрасываем has_updates
                     if row.get("has_updates"):
                         cur.execute("UPDATE devices SET has_updates=FALSE WHERE device_id=%s AND token=%s", (device_id, token))
+                    
+                    # Логируем данные в InfluxDB используя полученные данные
+                    try:
+                        owner = row.get("owner", "unknown")
+                        pin_setup = json.loads(row["pin_setup"]) if row.get("pin_setup") else None
+                        ip_address = row.get("ip_address", "unknown")
+                        
+                        success = log_device_data(device_id, owner, real_status, pin_setup, ip_address)
+                        if success:
+                            # logger.info(f"✅ InfluxDB: Logged data for {device_id} (user: {owner})")
+                            pass
+                        else:
+                            logger.warning(f"⚠️ InfluxDB: Failed to log data for {device_id} (user: {owner})")
+                    except Exception as e:
+                        logger.error(f"❌ InfluxDB logging error for {device_id}: {e}")
                 
                 conn.commit()
         finally:
@@ -674,4 +675,4 @@ async def startup_event():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5001)
+    uvicorn.run(app, host="0.0.0.0", port=5005)
