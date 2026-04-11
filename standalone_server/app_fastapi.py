@@ -1,18 +1,21 @@
 import os
 import json
+import re
+import logging
+import asyncio
+import pymysql
 from datetime import datetime
 from fastapi import FastAPI, Request, Depends, HTTPException, Form, Query
 from fastapi.responses import JSONResponse, HTMLResponse, PlainTextResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
-import pymysql
 from dotenv import load_dotenv
 from typing import Optional
-import asyncio
 from datetime import time as dt_time
-import logging
 from influx_logger import log_device_data
+from grafana_user_manager import create_user_in_grafana
+from user_routes import router as user_management_router
 
 load_dotenv()
 
@@ -30,12 +33,15 @@ BASIC_USER = os.getenv("BASIC_USER", "admin")
 BASIC_PASS = os.getenv("BASIC_PASS", "admin123")
 
 security = HTTPBasic()
-app = FastAPI()
+app = FastAPI(title="EcoLogic Device Manager with User Management")
+
+# Include user management routes
+app.include_router(user_management_router)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "OPTIONS", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -289,13 +295,24 @@ async def register_user(username: str = Form(), password: str = Form()):
                     </body></html>
                     """)
                 
-                # Создаем пользователя
+                # Создаем пользователя в MySQL
                 cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
                 conn.commit()
-                return HTMLResponse("""
+                
+                # Создаем пользователя в Grafana
+                grafana_result = create_user_in_grafana(username, password)
+                grafana_success = grafana_result.get('success', False)
+                
+                success_msg = "User registered successfully. You can now login."
+                if grafana_success:
+                    success_msg += " Grafana account created with personal dashboard."
+                else:
+                    success_msg += f" Note: Grafana account creation failed: {grafana_result.get('error', 'Unknown error')}"
+                
+                return HTMLResponse(f"""
                 <html><body style="font-family: Arial; margin: 50px;">
                 <h2>Registration Successful!</h2>
-                <p>User registered successfully. You can now login.</p>
+                <p>{success_msg}</p>
                 <p><a href="/api/device_selector">Go to login</a></p>
                 </body></html>
                 """)
@@ -488,7 +505,7 @@ async def device_selector(user: str = Depends(verify_basic)):
     # Добавляем подсказку с именем пользователя и убираем ссылку регистрации
     html = html.replace('<h1>Select Device to Control</h1>', 
                        f'<h1>Select Device to Control</h1><div style="background: #e8f4fd; padding: 15px; border-radius: 5px; margin-bottom: 20px;"><strong>Device Registration:</strong> To register new device to your account, change name in \"connection\" settings, power on, and connect device to WiFi network</code></div>')
-    html = html.replace('<p><a href="/api/register">Register new user</a></p>', '')
+    html = html.replace('<p><a href="/api/register">Register new user</a></p>', '<p><a href="/user-management/">🚀 User Management</a></p>')
     
     return HTMLResponse(html)
 
@@ -504,6 +521,7 @@ async def login_page():
         <h2>Login</h2>
         <p>Please use your browser's authentication or <a href="/api/register">register a new account</a></p>
         <p><a href="/api/device_selector">Continue to device selection</a></p>
+        <p><a href="/user-management/">User Management Interface</a></p>
         <hr>
         <h3>Clear Authentication Data:</h3>
         <p>If you need to clear saved login data:</p>
