@@ -11,7 +11,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 import pymysql
 from dotenv import load_dotenv
-from grafana_user_manager import create_user_in_grafana, delete_user_from_grafana, sync_all_users
+from grafana_user_manager import create_user_in_grafana, delete_user_from_grafana
 import requests
 
 load_dotenv()
@@ -37,6 +37,7 @@ BASIC_PASS = os.getenv("BASIC_PASS", "admin123")
 # Grafana configuration
 GRAFANA_URL = os.getenv("GRAFANA_URL", "http://localhost:3000")
 GRAFANA_ROOT_PATH = "/graf"  # Your Grafana sub-path
+GRAFANA_PUBLIC_URL = os.getenv("GRAFANA_PUBLIC_URL", "https://ecologic.go.ro/graf")  # Public URL for production
 
 # User Management Models
 class UserCreate(BaseModel):
@@ -192,8 +193,8 @@ async def user_management_ui(admin_user: str = Depends(verify_admin)):
             </div>
             
             <div class="section">
-                <h2>Existing Users - Direct Grafana Access</h2>
-                <p>Login existing users directly to Grafana via Auth Proxy</p>
+                <h2>Existing Users - Direct Grafana Login</h2>
+                <p>Login existing users directly to Grafana</p>
                 
                 <form id="loginExistingForm">
                     <div class="form-group">
@@ -205,13 +206,6 @@ async def user_management_ui(admin_user: str = Depends(verify_admin)):
                     
                     <button type="submit">Login to Grafana</button>
                 </form>
-            </div>
-            
-            <div class="section">
-                <h2>Sync Existing Users</h2>
-                <p>Create MySQL users in Grafana using Auth Proxy (recommended)</p>
-                
-                <button id="syncUsersBtn" class="success">Sync All Users via Auth Proxy</button>
             </div>
             
             <div id="result"></div>
@@ -294,11 +288,9 @@ async def user_management_ui(admin_user: str = Depends(verify_admin)):
                     const result = await response.json();
                     
                     if (result.success) {
-                        // Auto-login to Grafana
+                        // Auto-login to Grafana - redirect in same window
                         const grafanaUrl = `/user-management/api/grafana-login/${formData.get('username')}`;
-                        window.open(grafanaUrl, '_blank');
-                        showResult('User created and logged into Grafana!');
-                        e.target.reset();
+                        window.location.href = grafanaUrl;
                     } else {
                         showResult(result.message || 'Failed to create user', true);
                     }
@@ -317,10 +309,9 @@ async def user_management_ui(admin_user: str = Depends(verify_admin)):
                     return;
                 }
                 
-                // Direct login to Grafana
+                // Direct login to Grafana - redirect in same window
                 const grafanaUrl = `/user-management/api/grafana-login/${username}`;
-                window.open(grafanaUrl, '_blank');
-                showResult(`Logged in ${username} to Grafana`);
+                window.location.href = grafanaUrl;
             });
             
             // Load existing users
@@ -343,31 +334,6 @@ async def user_management_ui(admin_user: str = Depends(verify_admin)):
                 }
             }
             
-            document.getElementById('syncUsersBtn').addEventListener('click', async () => {
-                if (!confirm('This will sync all MySQL users to Grafana using Auth Proxy. Continue?')) {
-                    return;
-                }
-                
-                try {
-                    const response = await fetch('/user-management/api/sync-auth-proxy', {
-                        method: 'POST'
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        let message = 'Auth Proxy sync completed!<br><br>';
-                        result.results.forEach(user => {
-                            message += `${user.username}: ${user.success ? '✅' : '❌'} ${user.message}<br>`;
-                        });
-                        showResult(message);
-                    } else {
-                        showResult(result.error || 'Sync failed', true);
-                    }
-                } catch (error) {
-                    showResult('Error: ' + error.message, true);
-                }
-            });
             // Load users on page load
             loadExistingUsers();
     </body>
@@ -395,33 +361,36 @@ async def grafana_auto_login(username: str, admin_user: str = Depends(verify_adm
         headers = {
             'X-WEBAUTH-USER': username,
             'X-Real-IP': '127.0.0.1',
-            'X-Forwarded-For': '127.0.0.1',
-            'X-Forwarded-Proto': 'http',
-            'Host': 'localhost:3000'
+            'X-Forwarded-For': '127.0.0.1', 
+            'X-Forwarded-Proto': 'https',
+            'Host': 'ecologic.go.ro'
         }
         
-        # Make request to Grafana to trigger user creation
-        grafana_url = f"{GRAFANA_URL}{GRAFANA_ROOT_PATH}/api/user"
+        # For production: try to make request to trigger user creation
+        grafana_internal_url = f"{GRAFANA_URL}{GRAFANA_ROOT_PATH}/api/user"
         
         try:
-            response = requests.get(grafana_url, headers=headers, timeout=10)
+            response = requests.get(grafana_internal_url, headers=headers, timeout=5)
             if response.status_code in [200, 201]:
-                logger.info(f"✅ User {username} authenticated in Grafana via Auth Proxy")
+                logger.info(f"✅ User {username} pre-authenticated in Grafana via Auth Proxy")
             else:
-                logger.warning(f"⚠️ Grafana response {response.status_code} for user {username}")
+                logger.warning(f"⚠️ Grafana pre-auth response {response.status_code} for user {username}")
         except Exception as e:
-            logger.error(f"❌ Grafana Auth Proxy request failed: {e}")
+            logger.info(f"ℹ️ Grafana pre-auth request failed (expected in development): {e}")
         
-        # Redirect to Grafana with Auth headers
+        # Redirect to public Grafana URL
+        redirect_url = f"{GRAFANA_PUBLIC_URL}/"
+        
         from fastapi.responses import RedirectResponse
         response = RedirectResponse(
-            url=f"{GRAFANA_URL}{GRAFANA_ROOT_PATH}/",
+            url=redirect_url,
             status_code=302
         )
         
-        # Set headers for Auth Proxy
+        # Set headers for Auth Proxy (nginx will handle these)
         response.headers["X-WEBAUTH-USER"] = username
         
+        logger.info(f"🔄 Redirecting user {username} to Grafana: {redirect_url}")
         return response
         
     except HTTPException:
@@ -430,92 +399,7 @@ async def grafana_auto_login(username: str, admin_user: str = Depends(verify_adm
         logger.error(f"❌ Grafana login error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/api/sync-auth-proxy")
-async def sync_users_auth_proxy(admin_user: str = Depends(verify_admin)):
-    """Sync all MySQL users to Grafana using Auth Proxy (better than API)"""
-    try:
-        # Get all MySQL users
-        conn = get_db_connection()
-        if not conn:
-            raise HTTPException(status_code=500, detail="Database connection failed")
-        
-        users = []
-        try:
-            with conn.cursor() as cur:
-                cur.execute("SELECT username FROM users ORDER BY username")
-                users = [row['username'] for row in cur.fetchall()]
-        finally:
-            conn.close()
-        
-        if not users:
-            return {
-                "success": True,
-                "message": "No users found in MySQL",
-                "results": []
-            }
-        
-        results = []
-        
-        for username in users:
-            try:
-                # Create Auth Proxy headers
-                headers = {
-                    'X-WEBAUTH-USER': username,
-                    'X-Real-IP': '127.0.0.1', 
-                    'X-Forwarded-For': '127.0.0.1',
-                    'X-Forwarded-Proto': 'http',
-                    'Host': 'localhost:3000',
-                    'User-Agent': 'EcoLogic-Manager/1.0'
-                }
-                
-                # Make request to trigger user creation in Grafana
-                grafana_url = f"{GRAFANA_URL}{GRAFANA_ROOT_PATH}/api/user"
-                
-                response = requests.get(grafana_url, headers=headers, timeout=15)
-                
-                if response.status_code in [200, 201]:
-                    results.append({
-                        "username": username,
-                        "success": True,
-                        "message": "User created/verified in Grafana via Auth Proxy"
-                    })
-                    logger.info(f"✅ Auth Proxy sync success: {username}")
-                else:
-                    results.append({
-                        "username": username,
-                        "success": False, 
-                        "message": f"Auth Proxy failed: HTTP {response.status_code}"
-                    })
-                    logger.warning(f"⚠️ Auth Proxy sync failed for {username}: {response.status_code}")
-                    
-            except requests.exceptions.RequestException as e:
-                results.append({
-                    "username": username,
-                    "success": False,
-                    "message": f"Connection error: {str(e)}"
-                })
-                logger.error(f"❌ Auth Proxy request failed for {username}: {e}")
-            except Exception as e:
-                results.append({
-                    "username": username,
-                    "success": False,
-                    "message": f"Error: {str(e)}"
-                })
-                logger.error(f"❌ Auth Proxy sync error for {username}: {e}")
-        
-        success_count = sum(1 for r in results if r['success'])
-        
-        logger.info(f"🔄 Auth Proxy sync completed: {success_count}/{len(results)} users synced")
-        
-        return {
-            "success": True,
-            "message": f"Auth Proxy sync completed: {success_count}/{len(results)} users",
-            "results": results
-        }
-        
-    except Exception as e:
-        logger.error(f"❌ Auth Proxy sync error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/api/users")
 async def create_user_api(user: UserCreate, admin_user: str = Depends(verify_admin)):
     """Create user in MySQL only (Grafana via Auth Proxy)"""
@@ -621,10 +505,6 @@ async def list_users_api(admin_user: str = Depends(verify_admin)):
     finally:
         conn.close()
 
-@router.post("/api/sync-users")
-async def sync_users_api(admin_user: str = Depends(verify_admin)):
-    """Sync all MySQL users to Grafana via Auth Proxy (recommended method)"""
-    return await sync_users_auth_proxy(admin_user)
 
 @router.get("/api/test")
 async def test_connections_api(admin_user: str = Depends(verify_admin)):
