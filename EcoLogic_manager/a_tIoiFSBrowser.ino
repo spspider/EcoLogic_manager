@@ -7,7 +7,7 @@ static const char FS_INIT_ERROR[] PROGMEM = "FS INIT ERROR";
 static const char FILE_NOT_FOUND[] PROGMEM = "FileNotFound";
 
 #if defined(timerAlarm)
-extern unsigned int type_value[Condition][Numbers];
+extern unsigned int type_value[MAX_CONDITIONS];
 #endif
 
 ////////////////////////////////
@@ -490,10 +490,11 @@ void FunctionHTTP() {
   }
 
   if (jsonDocument.containsKey("reboot")) {
-    if (captivePortal()) {
-      delay(500);
-    }
+    server.sendHeader("Location", "/home.htm", true);
+    server.send(302, "text/plain", "Rebooting...");
+    delay(500);
     ESP.reset();
+    return;
   }
 
   if (jsonDocument.containsKey("ws2811_setup")) {
@@ -549,12 +550,11 @@ void FunctionHTTP() {
   }
 
   if (jsonDocument.containsKey("NextRepeat")) {
-    uint8_t Condition = jsonDocument["NextRepeatCondition"];
     uint8_t Number = jsonDocument["NextRepeatNumber"];
     JsonObject json = jsonDocument.to<JsonObject>();
     json["actBtn_a_ch"] = 0;
 #if defined(timerAlarm)
-    json["times"] = type_value[Condition][Number];
+    if (Number < MAX_CONDITIONS) json["times"] = type_value[Number];
 #endif
     json["Number"] = Number;
     String buffer;

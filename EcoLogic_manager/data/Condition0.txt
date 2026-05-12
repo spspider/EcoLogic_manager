@@ -1,0 +1,1 @@
+{"En":[1],"tID":[7],"type":[6],"type_value":[1],"act":[4],"actOn":["192.168.1.160:1880/message"],"ID":0,"Numbers":1}

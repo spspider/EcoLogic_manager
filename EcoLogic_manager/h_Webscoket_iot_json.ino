@@ -23,14 +23,14 @@ void write_new_widjet_value(uint8_t i, int payload_is) {
   { // out
     stat[i] = (uint8_t)payload_is;
     digitalWrite(pin[i], payload_is);
-#if defined(timerAlarm)
+#if defined(timeLibraryUsing)
     check_if_there_timer_once(i);
 #endif
   }
   else if (pinmode[i] == 1)
   { // in
     stat[i] = (uint8_t)payload_is;
-#if defined(timerAlarm)
+#if defined(timeLibraryUsing)
     check_if_there_timer_once(i);
 #endif
   }

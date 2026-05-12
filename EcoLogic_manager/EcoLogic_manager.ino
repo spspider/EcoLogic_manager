@@ -1,11 +1,12 @@
 //  #define ws2811_include// активировать для ws2811
 #define will_use_serial
-// #define timerAlarm
+#define timerAlarm
+// #define timeLibraryUsing
 //  #define use_telegram
 // #define USE_SPIFFS
 #define USE_LITTLEFS
 // #define USE_DS18B20 //!!!NOT COMPATIBLE WITH USE_DHT!!!
-// #define USE_DNS_SERVER
+#define USE_DNS_SERVER
 // #define USE_UDP
 // #define USE_PUBSUBCLIENT  //mqtt possibility
 // #define USE_IRUTILS // conflict with USE_EMON
@@ -28,6 +29,7 @@
 #define SEND_PIN 4     // IR send d2
 #endif
 #define N_WIDGETS 12
+#define MAX_CONDITIONS 5
 #define RESET_PIN 5  // D1 pin reset button
 #define DHT_PIN 2    // D4 pin dht
 
@@ -170,8 +172,8 @@ uint8_t w433send = 255;
 //////////////////////////////
 // String jsonConfig = "{}";
 ////////////TimeAlarmString/////////
-const uint8_t Numbers = 1;    // количество условий в каждой кнопке
-const uint8_t Condition = 1;  // количество кнопок
+const uint8_t Numbers = MAX_CONDITIONS;    // количество условий (flat list)
+const uint8_t Condition = 1;  // одно условие (больше не используется, оставлено для совместимости)
 uint8_t save_stat_long = 0;   // only initialized once
 ///////////////////////////////////////
 uint8_t pwm_delay_long = 10;
@@ -349,7 +351,7 @@ void loop() {
       check_for_changes();
 #endif
 
-#if defined(timerAlarm)
+#if defined(timeLibraryUsing)
       check_if_there_next_times();
 #endif
 #if defined(ws2811_include)

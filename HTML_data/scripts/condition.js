@@ -22,7 +22,6 @@ function getDeviceId() {
 }
 
 function init() {
-    id = getParameterByName('id') || 0;
     loadPinSetup();
     loadConditionLimits();
     document.getElementById("btmBtns").appendChild(bottomButtons());
@@ -45,7 +44,6 @@ function loadPinSetup() {
             .then(res => res.json())
             .then(data => {
                 pinSetup = data;
-                makeSelect();
                 loadCondition();
             })
             .catch(err => console.error("Failed to load pin_setup", err));
@@ -54,7 +52,6 @@ function loadPinSetup() {
             if (text) {
                 try {
                     pinSetup = JSON.parse(text);
-                    makeSelect();
                     loadCondition();
                 } catch (e) {
                     console.error("Failed to parse pin_setup", e);
@@ -93,9 +90,6 @@ function loadConditionLimits() {
 }
 
 function loadCondition() {
-    const widgetId = document.getElementById("NumberWidget") ? document.getElementById("NumberWidget").selectedIndex : 0;
-    id = widgetId;
-    
     if (IS_SERVER) {
         const deviceId = getDeviceId();
         fetch(`/api/conditions?device_id=${deviceId}`)
@@ -105,12 +99,12 @@ function loadCondition() {
                 renderTable();
             })
             .catch(() => {
-                const stored = localStorage.getItem('conditionData_' + id);
+                const stored = localStorage.getItem('conditionData');
                 tableData = stored ? JSON.parse(stored) : [];
                 renderTable();
             });
     } else {
-        readTextFile(`Condition${id}.txt`, function (text) {
+        readTextFile(`Condition0.txt`, function (text) {
             if (text) {
                 try {
                     const data = JSON.parse(text);
@@ -142,7 +136,7 @@ function convertFromStorage(data) {
         
         const row = {
             enabled: data.En[i] === 1,
-            sourcePin: "",
+            sourcePin: data.tID[i] !== undefined ? data.tID[i] : "",
             conditionType: condType,
             conditionValue: condValue,
             actionType: ACTION_TYPES[data.act[i]] || ACTION_TYPES[0],
@@ -243,14 +237,14 @@ function renderTable() {
         // Source pin selector
         const tdSource = document.createElement("td");
         const sourceSelect = createSourceSelect(row.sourcePin, 
-            (val) => updateRow(index, 'sourcePin', val));
+            (val) => updateRow(index, 'sourcePin', val), index);
         tdSource.appendChild(sourceSelect);
         tr.appendChild(tdSource);
         
         // Condition type
         const tdCondType = document.createElement("td");
         const selectCond = createSelect(CONDITION_TYPES, row.conditionType, 
-            (val) => updateRow(index, 'conditionType', val));
+            (val) => updateRow(index, 'conditionType', val), index, 'conditionType');
         tdCondType.appendChild(selectCond);
         tr.appendChild(tdCondType);
         
@@ -264,7 +258,7 @@ function renderTable() {
         // Action type
         const tdActType = document.createElement("td");
         const selectAct = createSelect(ACTION_TYPES, row.actionType, 
-            (val) => updateRow(index, 'actionType', val));
+            (val) => updateRow(index, 'actionType', val), index, 'actionType');
         tdActType.appendChild(selectAct);
         tr.appendChild(tdActType);
         
@@ -289,9 +283,11 @@ function renderTable() {
     updateButtons();
 }
 
-function createSourceSelect(selected, onChange) {
+function createSourceSelect(selected, onChange, rowIndex) {
     const select = document.createElement("select");
     select.className = "form-control";
+    select.dataset.row = rowIndex;
+    select.dataset.field = "sourcePin";
     
     const noneOpt = document.createElement("option");
     noneOpt.value = "";
@@ -314,9 +310,11 @@ function createSourceSelect(selected, onChange) {
     return select;
 }
 
-function createSelect(options, selected, onChange) {
+function createSelect(options, selected, onChange, rowIndex, fieldName) {
     const select = document.createElement("select");
     select.className = "form-control";
+    if (rowIndex !== undefined) select.dataset.row = rowIndex;
+    if (fieldName) select.dataset.field = fieldName;
     
     options.forEach(opt => {
         const option = document.createElement("option");
@@ -498,13 +496,12 @@ function saveToDevice() {
             type_value: [],
             act: [],
             actOn: [],
-            ID: id,
             Numbers: tableData.length
         };
         
         tableData.forEach((row, i) => {
             jsonData.En.push(row.enabled ? 1 : 0);
-            jsonData.tID.push(i);
+            jsonData.tID.push(row.sourcePin);
             jsonData.type.push(CONDITION_TYPES.indexOf(row.conditionType));
             
             let typeValue = parseInt(row.conditionValue) || 0;
@@ -530,6 +527,6 @@ function saveToDevice() {
         });
         
         setHTML("output", JSON.stringify(jsonData));
-        saveData(`Condition${id}.txt`, jsonData, false);
+        saveData(`Condition0.txt`, jsonData, false);
     }
 }
