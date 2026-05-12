@@ -340,6 +340,7 @@ void loop() {
   if (loop_alarm_active) {
     loop_alarm();
   }
+  check_pin_changes();  // Check for pin changes frequently (low latency interrupt detection)
 #endif
   if ((unsigned long)(getMillis() - millis_strart_one_sec) > 1000L) {
     {

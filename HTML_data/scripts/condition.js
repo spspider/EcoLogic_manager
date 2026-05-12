@@ -7,12 +7,14 @@ document.addEventListener("DOMContentLoaded", init);
 let tableData = [];
 let pinSetup = {};
 let id = 0;
+let maxConditions = 10;
+let maxWidgets = 12;
 
-const CONDITION_TYPES = ["none", "on time reached", "equal", "greater than", "less than", "timer"];
-const ACTION_TYPES = ["no", "switch pin", "switch button", "switch remote button", "send Email", 
-                      "switch condition", "switch mqtt request", "turn on 8211 strip", "WOL", 
-                      "set timer", "move slider"];
+const CONDITION_TYPES = ["none", "on time reached", "equal", "greater than", "less than", "timer", "on pin change"];
+const ACTION_TYPES = ["no", "switch pin", "switch button", "switch remote button", "HTTP call",
+    "switch condition", "WOL", "set timer"];
 const PIN_VALUES = ["0", "1", "PWM"];
+const EDGE_MODES = ["any change", "rising edge", "falling edge"];  // For pin change detection
 
 function getDeviceId() {
     const params = new URLSearchParams(window.location.search);
@@ -22,6 +24,7 @@ function getDeviceId() {
 function init() {
     id = getParameterByName('id') || 0;
     loadPinSetup();
+    loadConditionLimits();
     document.getElementById("btmBtns").appendChild(bottomButtons());
 }
 
@@ -72,6 +75,23 @@ function makeSelect() {
     }
 }
 
+function loadConditionLimits() {
+    fetch(`/function?data=${encodeURIComponent(JSON.stringify({ cond_setup: 1 }))}`)
+        .then(res => res.json())
+        .then(data => {
+            if (typeof data.NumCon === 'number') {
+                maxConditions = data.NumCon;
+            }
+            if (typeof data.ConNum === 'number') {
+                maxWidgets = data.ConNum;
+            }
+            updateButtons();
+        })
+        .catch(() => {
+            // keep defaults if the endpoint is unavailable
+        });
+}
+
 function loadCondition() {
     const widgetId = document.getElementById("NumberWidget") ? document.getElementById("NumberWidget").selectedIndex : 0;
     id = widgetId;
@@ -120,7 +140,7 @@ function convertFromStorage(data) {
             condValue = minutesToTime(condValue);
         }
         
-        tableData.push({
+        const row = {
             enabled: data.En[i] === 1,
             sourcePin: "",
             conditionType: condType,
@@ -128,10 +148,12 @@ function convertFromStorage(data) {
             actionType: ACTION_TYPES[data.act[i]] || ACTION_TYPES[0],
             actionValue: "",
             actionPin: "",
+            actionUrl: "",
             pwmValue: "",
             actOnRaw: data.actOn[i]
-        });
+        };
         
+        tableData.push(row);
         parseActOn(i, data.act[i], data.actOn[i]);
     }
 }
@@ -155,6 +177,8 @@ function parseActOn(index, actType, actOn) {
         } else {
             tableData[index].actionValue = parts[1] === "1" ? "1" : "0";
         }
+    } else if (actType === 4) { // HTTP call
+        tableData[index].actionUrl = actOn || "";
     }
 }
 
@@ -174,6 +198,10 @@ function saveDataToLocalStorage() {
 }
 
 function addCondition() {
+    if (tableData.length >= maxConditions) {
+        alert(`Maximum conditions reached: ${maxConditions}`);
+        return;
+    }
     tableData.push({
         enabled: true,
         sourcePin: "",
@@ -182,6 +210,7 @@ function addCondition() {
         actionType: ACTION_TYPES[0],
         actionValue: "",
         actionPin: "",
+        actionUrl: "",
         pwmValue: ""
     });
     saveDataToLocalStorage();
@@ -319,6 +348,18 @@ function createConditionInput(type, value, onChange) {
         input.placeholder = "seconds";
         input.onchange = () => onChange(input.value);
         container.appendChild(input);
+    } else if (type === "on pin change") {
+        const select = document.createElement("select");
+        select.className = "form-control";
+        EDGE_MODES.forEach((mode, idx) => {
+            const option = document.createElement("option");
+            option.value = idx;
+            option.textContent = mode;
+            if (idx == value) option.selected = true;
+            select.appendChild(option);
+        });
+        select.onchange = () => onChange(select.value);
+        container.appendChild(select);
     } else if (type !== "none") {
         const input = document.createElement("input");
         input.type = "text";
@@ -391,6 +432,14 @@ function createActionDetails(row, index) {
             pwmInput.onchange = () => updateRow(index, 'pwmValue', pwmInput.value);
             container.appendChild(pwmInput);
         }
+    } else if (row.actionType === "HTTP call") {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "form-control";
+        input.placeholder = "http://example.com/path?foo=bar";
+        input.value = row.actionUrl || "";
+        input.onchange = () => updateRow(index, 'actionUrl', input.value);
+        container.appendChild(input);
     } else {
         container.textContent = "wait";
     }
@@ -411,8 +460,9 @@ function updateButtons() {
     const addBtn = document.createElement("input");
     addBtn.type = "submit";
     addBtn.className = "btn btn-lg btn-primary btn-block";
-    addBtn.value = `Add condition: ${tableData.length}`;
+    addBtn.value = `Add condition: ${tableData.length}/${maxConditions}`;
     addBtn.onclick = addCondition;
+    addBtn.disabled = tableData.length >= maxConditions;
     btnContainer.appendChild(addBtn);
     
     const saveBtn = document.createElement("input");
@@ -473,6 +523,8 @@ function saveToDevice() {
                 } else {
                     actOn = `${row.actionPin} ${row.actionValue}`;
                 }
+            } else if (actType === 4) {
+                actOn = row.actionUrl || "";
             }
             jsonData.actOn.push(actOn);
         });

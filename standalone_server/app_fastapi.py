@@ -241,12 +241,12 @@ async def sync_status(request: Request):
                         pin_setup = json.loads(row["pin_setup"]) if row.get("pin_setup") else None
                         ip_address = row.get("ip_address", "unknown")
                         
-                        success = log_device_data(device_id, owner, real_status, pin_setup, ip_address)
-                        if success:
-                            # logger.info(f"✅ InfluxDB: Logged data for {device_id} (user: {owner})")
-                            pass
-                        else:
-                            logger.warning(f"⚠️ InfluxDB: Failed to log data for {device_id} (user: {owner})")
+                        # success = log_device_data(device_id, owner, real_status, pin_setup, ip_address)
+                        # if success:
+                        #     # logger.info(f"✅ InfluxDB: Logged data for {device_id} (user: {owner})")
+                        #     pass
+                        # else:
+                        #     logger.warning(f"⚠️ InfluxDB: Failed to log data for {device_id} (user: {owner})")
                     except Exception as e:
                         logger.error(f"❌ InfluxDB logging error for {device_id}: {e}")
                 

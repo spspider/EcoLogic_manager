@@ -270,6 +270,8 @@ void captive_loop() {
       Serial.println("[DEBUG] Starting alarm...");
       setup_alarm();
       Serial.println("[DEBUG] Alarm done");
+      setup_pin_changes();  // Initialize pin change interrupt detection
+      Serial.println("[DEBUG] Pin changes detector initialized");
       yield();
 #endif
 #ifdef use_telegram
@@ -289,6 +291,7 @@ void captive_loop() {
     }
 #if defined(timerAlarm)
     setup_alarm();
+    setup_pin_changes();  // Initialize pin change interrupt detection
 #endif
   }
   if (s == WL_CONNECTED) {

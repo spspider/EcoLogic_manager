@@ -7,6 +7,11 @@ uint8_t type_a[Condition][Numbers];
 uint8_t act_a[Condition][Numbers];
 unsigned int type_value[Condition][Numbers];
 
+uint8_t prev_pin_state[Condition][Numbers] = {0};
+bool interrupt_detected[Condition][Numbers] = {false};
+uint32_t last_interrupt_time[Condition][Numbers] = {0};
+const uint32_t DEBOUNCE_MS = 20;  // Debounce time in milliseconds
+
 uint8_t NumberIDs[Condition];
 bool alarm_is_active[Condition][Numbers];
 
@@ -159,7 +164,7 @@ void CheckInternet(String request) {
 
 void check_for_changes() {
   if (timer_alarm_action_switch == 0) {
-    for (uint8_t i1 = 0; i1 < Condition; i1++) {  // пробегаемся по всем кнопкам
+    for (uint8_t i1 = 0; i1 < Condition; i1++) {  // пробегаемся по всем кнопками
       uint8_t idWidget = i1;
       for (uint8_t i = 0; i < Numbers; i++) {  // от всего колимчества таймеров
         stat[idWidget] = (int)get_new_widjet_value(idWidget);
@@ -184,6 +189,75 @@ void check_for_changes() {
             MakeIfFalse(idWidget, i);
           }
         }
+      }
+    }
+  }
+}
+
+void setup_pin_changes() {
+  Serial.println("PIN CHANGE INTERRUPT SYSTEM initialized");
+
+  for (uint8_t idWidget = 0; idWidget < Condition; idWidget++) {
+    for (uint8_t i = 0; i < Numbers; i++) {
+      prev_pin_state[idWidget][i] = 0;
+      interrupt_detected[idWidget][i] = false;
+      last_interrupt_time[idWidget][i] = 0;
+    }
+  }
+}
+
+void check_pin_changes() {
+  uint32_t now = millis();
+
+  for (uint8_t idWidget = 0; idWidget < Condition; idWidget++) {
+    for (uint8_t i = 0; i < NumberIDs[idWidget]; i++) {
+      if (type_a[idWidget][i] != 6 || !En_a[idWidget][i]) {
+        continue;
+      }
+      if (pin[idWidget] == 255) {
+        continue;
+      }
+
+      uint8_t current_state = digitalRead(pin[idWidget]) ^ defaultVal[idWidget];
+      uint8_t previous_state = prev_pin_state[idWidget][i];
+      bool edge_detected = false;
+      uint8_t edge_mode = type_value[idWidget][i];
+
+      if (current_state != previous_state) {
+        if ((now - last_interrupt_time[idWidget][i]) >= DEBOUNCE_MS) {
+          if (edge_mode == 0) {
+            edge_detected = true;
+          } else if (edge_mode == 1 && current_state == 1) {
+            edge_detected = true;
+          } else if (edge_mode == 2 && current_state == 0) {
+            edge_detected = true;
+          }
+
+          if (edge_detected) {
+            last_interrupt_time[idWidget][i] = now;
+          }
+        }
+      }
+
+      prev_pin_state[idWidget][i] = current_state;
+      if (edge_detected && !interrupt_detected[idWidget][i]) {
+        Serial.print("PIN CHANGE DETECTED - idWidget: ");
+        Serial.print(idWidget);
+        Serial.print(", condition: ");
+        Serial.print(i);
+        Serial.print(", pin: ");
+        Serial.print(pin[idWidget]);
+        Serial.print(", edge: ");
+        if (type_value[idWidget][i] == 0) Serial.print("ANY");
+        else if (type_value[idWidget][i] == 1) Serial.print("RISING");
+        else if (type_value[idWidget][i] == 2) Serial.print("FALLING");
+        Serial.print(", new_state: ");
+        Serial.println(current_state);
+
+        make_action(idWidget, i, false);
+        interrupt_detected[idWidget][i] = true;
+      } else if (!edge_detected) {
+        interrupt_detected[idWidget][i] = false;
       }
     }
   }
@@ -266,19 +340,15 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
       parseStringToArray(actBtn_a_ch_string(that_condtion_widget, that_number_cond), values_back, max_values);
       write_new_widjet_value(values_back[0], values_back[1]);
       // values_back[0] - первое второе и т.д.
-    } else if ((act_a[that_condtion_widget][that_number_cond] == 4) && (!opposite)) {  //"отправить Email"//////////////////////////////////////////////////////////
-      String buffer;
-      buffer += actBtn_a_ch_string(that_condtion_widget, that_number_cond);  // сообщение в условии
-      //      buffer = "сработала тревога на датчике:" + String(descr[that_condtion_widget]) + " топик:" + String(sTopic_ch[that_condtion_widget]) + " на пине:" + String(digitalRead(pin[that_condtion_widget]));
-      buffer = "сработала тревога на датчике:" + String(descr[that_condtion_widget]) + " на пине:" + String(digitalRead(pin[that_condtion_widget]));
-
-      buffer += "\n";
-      buffer += "время на устройстве:" + String(hour()) + ":" + String(minute());
-      buffer += "последнее местоположение:";
-      buffer += readCommonFiletoJson("ip_gps");
-      buffer += "\n";
-      Serial.print("Sending Email:");
-      Serial.println(sendEmail(buffer));
+    } else if (act_a[that_condtion_widget][that_number_cond] == 4) {  // HTTP call
+      String host = actBtn_a_ch_string(that_condtion_widget, that_number_cond);
+      if (host.length() > 0) {
+        Serial.println("HTTP call: " + host);
+        String respond = getHttp(host);
+        Serial.println("HTTP response: " + respond);
+      } else {
+        Serial.println("HTTP call skipped: empty URL");
+      }
     } else if (act_a[that_condtion_widget][that_number_cond] == 1) {  /////////////////////////////установить пин///////////////////////////////////////////
       uint8_t max_values = 3;
       uint8_t values_back[max_values];
@@ -288,21 +358,23 @@ void make_action(uint8_t that_condtion_widget, uint8_t that_number_cond, bool op
 
     else if (act_a[that_condtion_widget][that_number_cond] == 3) {  ///////////////////////////удаленная кнопка///////////////////////////////////////////////////
 
-      String host = "";  // String(actBtn_a_ch[that_condtion_widget][that_number_cond]);//узнаем хост и кнопку
-      int val_first = host.indexOf("val:");
-      int val_last = host.indexOf("}");
-      int value = host.substring(val_first + 4, val_last).toInt();
+      String host = actBtn_a_ch_string(that_condtion_widget, that_number_cond);
+      if (host.length() > 0) {
+        int val_first = host.indexOf("val:");
+        int val_last = host.indexOf("}");
+        int value = host.substring(val_first + 4, val_last).toInt();
 
-      if ((value > 1) && (opposite)) {
-        value = 0;
-      } else if (value < 2) {
-        value ^= opposite;
+        if ((value > 1) && (opposite)) {
+          value = 0;
+        } else if (value < 2) {
+          value ^= opposite;
+        }
+        host = host.substring(0, val_first + 4) + String(value, DEC) + "}";
+        Serial.println("удаленная кнопка:" + host);
+        String respond = getHttp(host);
+      } else {
+        Serial.println("Remote button skipped: empty host");
       }
-      host = host.substring(0, val_first + 4) + String(value, DEC) + "}";
-      Serial.println("удаленная кнопка:" + host);
-      // Serial.println("value:" + String(value^opposite));
-      String respond = getHttp(host);
-      // Serial.println(respond);
     }
 
     else if (act_a[that_condtion_widget][that_number_cond] == 7) {  ///////////////////////////8211/////////////////////////////////////////////////

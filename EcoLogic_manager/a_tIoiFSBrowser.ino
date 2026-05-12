@@ -6,6 +6,10 @@ static const char TEXT_PLAIN[] PROGMEM = "text/plain";
 static const char FS_INIT_ERROR[] PROGMEM = "FS INIT ERROR";
 static const char FILE_NOT_FOUND[] PROGMEM = "FileNotFound";
 
+#if defined(timerAlarm)
+extern unsigned int type_value[Condition][Numbers];
+#endif
+
 ////////////////////////////////
 // Utils to return HTTP codes, and determine content-type
 

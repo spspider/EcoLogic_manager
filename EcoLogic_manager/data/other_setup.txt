@@ -10,7 +10,7 @@
   "subnet": "255.255.255.0",
   "dns1": "8.8.8.8",
   "dns2": "8.8.4.4",
-  "PWM_frequency": "1000",
+  "PWM_frequency": "40000",
   "send_to_nodeRed": false,
   "nodered_address": ""
 }
