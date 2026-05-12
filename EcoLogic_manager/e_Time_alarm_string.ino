@@ -313,26 +313,13 @@ void parseStringToArray(String inputString, uint8_t values[], uint8_t &numValues
   }
 }
 
-// Global JSON document for condition data (to avoid reloading)
-DynamicJsonDocument g_conditionDoc(2048);
-bool g_conditionLoaded = false;
-
-void _loadConditionData() {
-  if (!g_conditionLoaded) {
-    String jsonCondition = readCommonFiletoJson("Condition0");
-    if (jsonCondition != "") {
-      deserializeJson(g_conditionDoc, jsonCondition);
-      g_conditionLoaded = true;
-    }
-  }
-}
-
+// Reads actOn[idx] from Condition0.txt on demand — no persistent cache
 String actBtn_a_ch_string(uint8_t idx) {
-  _loadConditionData();
-  if (g_conditionLoaded && g_conditionDoc["actOn"][idx].is<const char*>()) {
-    return g_conditionDoc["actOn"][idx].as<String>();
-  }
-  return "";
+  String jsonCondition = readCommonFiletoJson("Condition0");
+  if (jsonCondition == "") return "";
+  DynamicJsonDocument doc(2048);
+  if (deserializeJson(doc, jsonCondition) != DeserializationError::Ok) return "";
+  return doc["actOn"][idx].as<String>();
 }
 
 void make_action(uint8_t i, bool opposite) {

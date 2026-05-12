@@ -16,7 +16,8 @@ String getHttp(String request) {
   
 
   Serial.print("[HTTP] begin...\n");
-  http.begin(wclient, "http://" + request);
+  String _url = (request.startsWith("http://") || request.startsWith("https://")) ? request : "http://" + request;
+  http.begin(wclient, _url);
   http.setTimeout(5000);
   Serial.println(request);
   Serial.print("[HTTP] GET...\n");
