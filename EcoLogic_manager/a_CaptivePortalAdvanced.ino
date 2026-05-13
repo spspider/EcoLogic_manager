@@ -318,7 +318,6 @@ void captive_loop() {
 
 // Non-blocking geolocation with rate limiting
 void sendLocationData() {
-  if (!enable_geo_location) return;
   
   static unsigned long lastGeoCheck = 0;
   static bool firstRun = true;

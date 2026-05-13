@@ -151,8 +151,7 @@ byte sendEmail(String message) {
 }
 
 byte eRcv() {
-  if (!enable_email_sending) return 0;
-  
+ 
   byte respCode;
   byte thisByte;
   int loopCount = 0;

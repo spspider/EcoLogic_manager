@@ -128,11 +128,6 @@ bool try_MQTT_access = false;
 bool IOT_Manager_loop = false;
 char no_internet_timer = 0;
 bool internet = false;
-// Флаги для отключения блокирующих операций
-bool enable_http_requests = false;
-bool enable_email_sending = false;
-bool enable_geo_location = false;
-bool enable_mqtt_reconnect = true;
 //////////////////CaptivePortalAdvanced
 char softAP_ssid[32] = "dev_001";
 char softAP_password[32] = "12345678";

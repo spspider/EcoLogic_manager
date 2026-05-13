@@ -87,7 +87,7 @@ void sendPinStatus_toNodeRed(int pin, int value) {
   }
 }
 void check_new_status_and_send_nodeRed() {
-  if (!send_to_nodeRed || !enable_http_requests) return;
+  if (!send_to_nodeRed) return;
   if (!nodered_address || nodered_address[0] == '\0' || strcmp(nodered_address, "0.0.0.0") == 0) return;
   
   static unsigned long lastNodeRedSend = 0;

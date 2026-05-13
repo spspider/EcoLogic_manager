@@ -10,14 +10,15 @@
 #include <ESP8266HTTPClient.h>
 
 String getHttp(String request) {
-  if (!enable_http_requests || (WiFi.status() != WL_CONNECTED)) {
+  if (WiFi.status() != WL_CONNECTED) {
     return "fail";
   }
   
 
   Serial.print("[HTTP] begin...\n");
   String _url = (request.startsWith("http://") || request.startsWith("https://")) ? request : "http://" + request;
-  http.begin(wclient, _url);
+  WiFiClient plainClient;
+  http.begin(plainClient, _url);
   http.setTimeout(5000);
   Serial.println(request);
   Serial.print("[HTTP] GET...\n");

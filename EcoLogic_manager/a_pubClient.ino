@@ -96,7 +96,6 @@ void reconnect() {
   static unsigned long lastAttempt = 0;
   static char attemptCount = 0;
   
-  if (!enable_mqtt_reconnect) return;
   
   unsigned long now = millis();
   if (now - lastAttempt > 30000) { // Попытка каждые 30 сек
