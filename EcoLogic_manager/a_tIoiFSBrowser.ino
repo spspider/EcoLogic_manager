@@ -371,24 +371,56 @@ void handleFileList() {
   if (searchPath != "/" && !searchPath.endsWith("/")) {
     searchPath += "/";
   }
-  
+  DBG_OUTPUT_PORT.println(String("[LIST] path=") + path + " searchPath=" + searchPath);
+
+  // LittleFS iterates ALL files recursively with full paths.
+  // Build a set of unique direct children (files or virtual dirs).
+  // A "virtual dir" is detected when a file's path has a sub-segment under searchPath.
   while (dir.next()) {
-    String fileName = dir.fileName();
-    
-    // For LittleFS, filter to show only direct children
+    String rawName = dir.fileName(); // e.g. "/scripts/ace.js" or "scripts/ace.js"
+    DBG_OUTPUT_PORT.println(String("[LIST] raw='") + rawName + "' isDir=" + dir.isDirectory());
+
+    // Normalise: ensure no leading slash for comparison
+    if (rawName.startsWith("/")) rawName = rawName.substring(1);
+    String normSearch = searchPath.startsWith("/") ? searchPath.substring(1) : searchPath;
+
+    String entryName;
+    bool isDir = false;
+
     if (path == "/") {
-      // Root level - show files/folders that don't have additional slashes
-      if (fileName.startsWith("/")) fileName = fileName.substring(1);
-      if (fileName.indexOf('/') != -1) continue; // Skip nested items
+      // Check if item is directly under root
+      int slashIdx = rawName.indexOf('/');
+      if (slashIdx == -1) {
+        // plain file at root
+        entryName = rawName;
+      } else {
+        // file inside a subfolder - record the folder name
+        entryName = rawName.substring(0, slashIdx);
+        isDir = true;
+      }
     } else {
-      // Subfolder - show only items directly in this folder
-      if (!fileName.startsWith(searchPath)) continue;
-      fileName = fileName.substring(searchPath.length());
-      if (fileName.indexOf('/') != -1) continue; // Skip nested items
+      // Must start with searchPath (without leading /)
+      if (!rawName.startsWith(normSearch)) continue;
+      String relative = rawName.substring(normSearch.length());
+      if (relative.length() == 0) continue;
+      int slashIdx = relative.indexOf('/');
+      if (slashIdx == -1) {
+        entryName = relative;
+      } else {
+        entryName = relative.substring(0, slashIdx);
+        isDir = true;
+      }
     }
-    
-    if (fileName.length() == 0) continue;
-    
+
+    if (entryName.length() == 0) continue;
+
+    // Deduplicate: if this exact entry was already sent, skip it
+    // (multiple files inside same folder would emit the folder name multiple times)
+    String marker = (isDir ? "D:" : "F:") + entryName;
+    if (output.indexOf('"' + entryName + '"') != -1) continue;
+
+    DBG_OUTPUT_PORT.println(String("[LIST] emit isDir=") + isDir + " name=" + entryName);
+
     if (output.length()) {
       server.sendContent(output);
       output = ',';
@@ -397,15 +429,14 @@ void handleFileList() {
     }
 
     output += "{\"type\":\"";
-    if (dir.isDirectory()) {
+    if (isDir) {
       output += "dir";
     } else {
       output += F("file\",\"size\":\"");
       output += dir.fileSize();
     }
-
     output += F("\",\"name\":\"");
-    output += fileName;
+    output += entryName;
     output += "\"}";
   }
 #else

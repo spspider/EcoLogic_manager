@@ -361,10 +361,12 @@
                 var d=document.createElement("ul");
                 a.appendChild(d);
                 var e=c.length;
+                console.log('[LIST] addList path=' + b + ' count=' + e, c);
                 for(var i=0;
                     i<e;
                     i++)
                 {
+                    console.log('[LIST] item', c[i]);
                     if (c[i].type === "dir") d.appendChild(createTreeFolder(b, c[i].name));
                     else if (c[i].type === "file") d.appendChild(createTreeLeaf(b, c[i].name, c[i].size))
                 }
@@ -432,8 +434,15 @@
                 {
                     if (req.readyState == 4)
                     {
+                        console.log('[LIST] dir=' + b + ' status=' + req.status + ' raw=' + req.responseText);
                         if (req.status == 200) {
-                            try { addList(a, b, JSON.parse(req.responseText)) } catch (e) { }
+                            try {
+                                var items = JSON.parse(req.responseText);
+                                console.log('[LIST] parsed', items);
+                                addList(a, b, items);
+                            } catch (e) {
+                                console.error('[LIST] JSON parse error', e, req.responseText);
+                            }
                         }
                     }
                 };
