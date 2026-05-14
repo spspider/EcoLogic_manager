@@ -334,9 +334,7 @@ void sendLocationData() {
     if (pos != "fail") {
       internet = true;
       saveCommonFiletoJson("ip_gps", pos, 1);
-      if (enable_email_sending) {
-        sendEmail(pos);
-      }
+      sendEmail(pos);
     } else {
       internet = false;
       Serial.println("Internet connection failed");

@@ -297,6 +297,39 @@
                     }
                 }
             }
+            function createTreeFolder(a, b) {
+                var fullPath = (((a == "/") ? "" : a) + "/" + b);
+                var d = document.createElement("li");
+                d.id = fullPath;
+                var f = document.createElement("span");
+                f.innerText = "[+] " + b;
+                d.appendChild(f);
+                var subUl = document.createElement("ul");
+                subUl.style.display = "none";
+                d.appendChild(subUl);
+                var loaded = false;
+                d.onclick = function (e) {
+                    e.stopPropagation();
+                    if (subUl.style.display === "none") {
+                        subUl.style.display = "block";
+                        f.innerText = "[-] " + b;
+                        if (!loaded) {
+                            loaded = true;
+                            httpGet(subUl, fullPath)
+                        }
+                    }
+                    else {
+                        subUl.style.display = "none";
+                        f.innerText = "[+] " + b
+                    }
+                };
+                d.oncontextmenu = function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showContextMenu(e, fullPath, true)
+                };
+                return d
+            }
             function createTreeLeaf(a,b,c)
             {
                 var d=document.createElement("li");
@@ -332,7 +365,8 @@
                     i<e;
                     i++)
                 {
-                    if(c[i].type==="file")d.appendChild(createTreeLeaf(b,c[i].name,c[i].size))
+                    if (c[i].type === "dir") d.appendChild(createTreeFolder(b, c[i].name));
+                    else if (c[i].type === "file") d.appendChild(createTreeLeaf(b, c[i].name, c[i].size))
                 }
             }
             function isTextFile(a)
@@ -391,22 +425,20 @@
                 xmlHttp.open("DELETE","/edit");
                 xmlHttp.send(b)
             }
-            function getCb(a,b)
+            function httpGet(a, b)
             {
-                return function()
+                var req = new XMLHttpRequest();
+                req.onreadystatechange = function ()
                 {
-                    if(xmlHttp.readyState==4)
+                    if (req.readyState == 4)
                     {
-                        if(xmlHttp.status==200)addList(a,b,JSON.parse(xmlHttp.responseText))
+                        if (req.status == 200) {
+                            try { addList(a, b, JSON.parse(req.responseText)) } catch (e) { }
+                        }
                     }
-                }
-            }
-            function httpGet(a,b)
-            {
-                xmlHttp=new XMLHttpRequest(a,b);
-                xmlHttp.onreadystatechange=getCb(a,b);
-                xmlHttp.open("GET","/list?dir="+b,true);
-                xmlHttp.send(null)
+                };
+                req.open("GET", "/list?dir=" + b, true);
+                req.send(null)
             }
             httpGet(n,"/");
             return this

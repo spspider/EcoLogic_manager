@@ -444,6 +444,7 @@ void handleFileList() {
 #endif
 
   // send last string
+  if (output.length() == 0) output = "[";
   output += "]";
   server.sendContent(output);
   server.chunkedResponseFinalize();
