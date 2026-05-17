@@ -21,14 +21,16 @@ void uploadConfig_ecologicclient() {
     return;
   }
 
-  // Отправляем other_setup.txt
+  char uploadUrl[128];
+
+  // Відправляємо other_setup.txt
   File otherFile = LittleFS.open("/other_setup.txt", "r");
   if (otherFile) {
     String otherConfig = otherFile.readString();
     otherFile.close();
-    
-    String otherUrl = String(server_url) + "/api/other?id=" + device_id + "&tk=" + device_token;
-    if (http.begin(wclient, otherUrl)) {
+
+    snprintf(uploadUrl, sizeof(uploadUrl), "%s/api/other?id=%s&tk=%s", server_url, device_id, device_token);
+    if (http.begin(wclient, uploadUrl)) {
       http.addHeader("Content-Type", "application/json");
       http.setTimeout(5000);
       int otherCode = http.POST(otherConfig);
@@ -39,7 +41,7 @@ void uploadConfig_ecologicclient() {
     }
   }
 
-  // Отправляем pin_setup.txt
+  // Відправляємо pin_setup.txt
   File file = LittleFS.open("/pin_setup.txt", "r");
   if (!file) {
     Serial.println("pin_setup.txt not found");
@@ -48,16 +50,17 @@ void uploadConfig_ecologicclient() {
 
   String config = file.readString();
   file.close();
-  
+
   if (config.length() > 800) {
     Serial.println("Config too large");
     return;
   }
 
-  String ip_address = WiFi.localIP().toString();
-  String url = String(server_url) + "/api/cfg?id=" + device_id + "&tk=" + device_token + "&ip=" + ip_address;
-  
-  if (!http.begin(wclient, url)) {
+  IPAddress localIp = WiFi.localIP();
+  snprintf(uploadUrl, sizeof(uploadUrl), "%s/api/cfg?id=%s&tk=%s&ip=%d.%d.%d.%d",
+           server_url, device_id, device_token, localIp[0], localIp[1], localIp[2], localIp[3]);
+
+  if (!http.begin(wclient, uploadUrl)) {
     Serial.println("HTTP begin fail");
     return;
   }
@@ -77,58 +80,57 @@ void uploadConfig_ecologicclient() {
 }
 
 void syncWithServer() {
-  DynamicJsonDocument doc(512);
+  StaticJsonDocument<512> doc;
   JsonArray statArray = doc.createNestedArray("stat");
+  char valueBuf[12];
   for (int i = 0; i < nWidgets; i++) {
     float value = get_new_widjet_value(i);
-    statArray.add(String(value, 2));
+    dtostrf(value, 1, 2, valueBuf);
+    statArray.add((const char*)valueBuf);
   }
-  
-  // Добавляем флаг синхронизации если были применены обновления
+
   if (updates_applied) {
     doc["synced"] = 1;
     updates_applied = false;
   }
-  
-  String jsonString;
-  serializeJson(doc, jsonString);
-  
-  String url = String(server_url) + "/api/sync?id=" + device_id + "&tk=" + device_token;
-  
+
+  char jsonBuf[200];
+  serializeJson(doc, jsonBuf, sizeof(jsonBuf));
+
+  char url[128];
+  snprintf(url, sizeof(url), "%s/api/sync?id=%s&tk=%s", server_url, device_id, device_token);
+
   if (!http.begin(wclient, url)) {
     Serial.println("HTTP begin fail");
     return;
   }
-  
+
   http.addHeader("Content-Type", "application/json");
   http.setTimeout(5000);
-  
-  int httpCode = http.POST(jsonString);
-  
+
+  int httpCode = http.POST(jsonBuf);
+
   if (httpCode == 200) {
-    String payload = http.getString();
-    DynamicJsonDocument responseDoc(512);
-    deserializeJson(responseDoc, payload);
-    
+    StaticJsonDocument<256> responseDoc;
+    deserializeJson(responseDoc, http.getStream());
+
     if (responseDoc.containsKey("stat") && responseDoc.containsKey("upd")) {
       unsigned char has_updates = responseDoc["upd"].as<int>();
-      
-      // Применяем изменения только если есть обновления
+
       if (has_updates == 1) {
         JsonArray states = responseDoc["stat"];
         for (int i = 0; i < states.size() && i < nWidgets; i++) {
           int pinState = states[i].as<int>();
           write_new_widjet_value(i, pinState);
         }
-        updates_applied = true;  // Устанавливаем флаг что обновления применены
+        updates_applied = true;
         Serial.println("Updates applied");
-        syncWithServer();  // Немедленно синхронизируем снова для отправки подтверждения и нового статуса
+        lastCheck = 0;  // Schedule immediate resync on next loop — recursive call removed (was causing stack overflow)
       }
     }
-    // Serial.println("Sync OK");
   } else {
     Serial.printf("Sync failed: %d\n", httpCode);
   }
-  
+
   http.end();
 }
