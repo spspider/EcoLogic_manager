@@ -55,12 +55,13 @@ void handleRoot() {
     "<p><br><a href='/condition'><button>condition</button></a></p>"
     "<p><br><a href='/function?data={reboot:1}'><button>reboot</button></a></p>"));
 
-  server.send(200, "text / html", Page);
+  server.send(200, "text/html", Page);
 }
 boolean captivePortal() {
-  if (!isIp(server.hostHeader()) && server.hostHeader() != (String(myHostname) + ".local")) {
+  const String& host = server.hostHeader();
+  if (!isIp(host) && host != (String(myHostname) + F(".local"))) {
     Serial.println("Request redirected to captive portal");
-    server.sendHeader("Location", String("/home.htm"), true);
+    server.sendHeader(F("Location"), F("/"), true);  // Redirect to root (single-request page, loads fast in captive portal mini-browser)
     server.send(302, "text/plain", "");
     server.client().stop();
     return true;
@@ -335,25 +336,24 @@ bool load_ssid_pass() {
 }
 
 void handleNotFound() {
-  if (captivePortal()) {  // If caprive portal redirect instead of displaying the error page.
+  // Fast-reject background app traffic (WeChat MMTLS, chat, etc.) before any String allocation.
+  // These arrive because DNS resolves all domains to the AP IP.
+  // Returning 204 immediately frees the TCP connection so the browser can load page resources.
+  const String& reqPath = server.uri();
+  if (reqPath.startsWith(F("/mmtls")) || reqPath == F("/chat") ||
+      reqPath.startsWith(F("/wechat")) || reqPath.startsWith(F("/tencent"))) {
+    server.send(204, "text/plain", "");
+    server.client().stop();
     return;
   }
-  String message = F("File Not Found\n\n");
-  message += F("URI : ");
-  message += server.uri();
-  message += F("\nMethod : ");
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
-  message += F("\nArguments : ");
-  message += server.args();
-  message += F("\n");
 
-  for (uint8_t i = 0; i < server.args(); i++) {
-    message += String(F(" ")) + server.argName(i) + F(" : ") + server.arg(i) + F("\n");
+  if (captivePortal()) {  // If captive portal redirect instead of displaying the error page.
+    return;
   }
-  server.sendHeader("Cache - Control", "no - cache, no - store, must - revalidate");
-  server.sendHeader("Pragma", "no - cache");
-  server.sendHeader("Expires", " - 1");
-  server.send(404, "text / plain", message);
+  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server.sendHeader("Pragma", "no-cache");
+  server.sendHeader("Expires", "-1");
+  server.send(404, "text/plain", "File Not Found: " + server.uri());
 }
 
 /** Is this an IP? */

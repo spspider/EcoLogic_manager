@@ -34,6 +34,8 @@ bool freeWIFIConnected = false;
 static unsigned long connectStart = 0;
 static bool connecting = false;
 static char wifiAttempt = 0;
+static uint8_t wifi_fail_count = 0;  // Consecutive failures; after threshold stay in AP-only mode
+#define WIFI_FAIL_THRESHOLD 3
 
 void connect_as_AccessPoint() {
   yield();
@@ -161,6 +163,8 @@ void connectWifi(char ssid_that[32], char password_that[32]) {
       Serial.print(".");
       if (wifiAttempt >= 50) {
         connecting = false;
+        wifi_fail_count++;
+        Serial.println("WiFi timeout, fail count: " + String(wifi_fail_count));
         connect_as_AccessPoint();
       }
     }
@@ -203,6 +207,11 @@ void captive_loop() {
   uint8_t s = (uint8_t)WiFi.status();
   if (onesec >= lastConnectTry + 30) {
     if ((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() == 0)) {
+      if (wifi_fail_count >= WIFI_FAIL_THRESHOLD) {
+        Serial.println("WiFi unstable (" + String(wifi_fail_count) + " fails), staying in AP-only mode. Reboot to retry.");
+        lastConnectTry = onesec = 0;
+        return;
+      }
       WiFi.disconnect();
       Serial.println("Connecting as Wifi client due AP not connected");
       connect = true; //calling connection as WIFI client
@@ -218,6 +227,7 @@ void captive_loop() {
       WiFi.disconnect();
       Serial.println("Connecting as AP, due WL_DISCONNECTED");
       lastConnectTry = onesec = 0;
+      wifi_fail_count++;
       connect_as_AccessPoint();
       relayRouter();
       internet = false;
@@ -236,6 +246,7 @@ void captive_loop() {
     Serial.println(s);
     status = s;
     if (s == WL_CONNECTED) {
+      wifi_fail_count = 0;  // Reset on successful connection
       try_MQTT_access = true;
       /* Just connected to WLAN */
       Serial.println("Connected to ");
@@ -286,6 +297,7 @@ void captive_loop() {
       try_MQTT_access = false;
       WiFi.disconnect();
       Serial.println("Connecting as AP, due WL_NO_SSID_AVAIL");
+      wifi_fail_count++;
       connect_as_AccessPoint();
       relayRouter();
     }
