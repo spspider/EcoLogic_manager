@@ -195,6 +195,7 @@ function renderTable() {
         const descrCell = document.createElement('td');
         const descrInput = document.createElement('input');
         descrInput.type = 'text';
+        descrInput.maxLength = 9;  // firmware char descr[][10] → 9 usable chars
         descrInput.className = 'form-control';
         descrInput.value = tableData.descr[index];
         descrInput.oninput = () => {

@@ -112,6 +112,7 @@ void handleFileUpload() {
         return replyServerError(F("WRITE FAILED"));
       }
     }
+    yield();  // Feed watchdog — LittleFS flash writes can block long enough to trigger WDT
     DBG_OUTPUT_PORT.println(String("Upload: WRITE, Bytes: ") + upload.currentSize);
   } else if (upload.status == UPLOAD_FILE_END) {
     if (uploadFile) {

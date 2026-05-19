@@ -41,12 +41,9 @@ function saveData(filename, data, returnCallback) {
         }
     }
     xmlHttp.onreadystatechange = handleResponse;
-    xmlHttp.onloadend = function () {
-        if (xmlHttp.status == 200) { // handle other statuses
-            returnCallback(xmlHttp.responseText);
-            hasCalledBack = true;
-        }
-    };
+    // Note: onloadend intentionally omitted — onreadystatechange already handles
+    // both success and error cases. A second onloadend handler would fire AFTER
+    // onreadystatechange (readyState 4) and call returnCallback a second time.
 
     xmlHttp.open("POST", "/edit", true);
     xmlHttp.timeout = 4000;

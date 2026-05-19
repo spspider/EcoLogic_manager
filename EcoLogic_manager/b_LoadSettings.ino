@@ -1,100 +1,107 @@
 bool loadConfig(File jsonConfig) {
-  DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
-  DeserializationError error = deserializeJson(jsonDocument, jsonConfig);
+  // Use a scope block so jsonDocument(1024) is freed from heap BEFORE
+  // updatepinsetup allocates its own DynamicJsonDocument(2048).
+  // Without this, both live simultaneously → 3 KB of fragmented heap
+  // that later prevents the HTTP upload buffer (~1500 B) from being allocated.
+  {
+    DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
+    DeserializationError error = deserializeJson(jsonDocument, jsonConfig);
 
-  if (error) {
-    Serial.println("Failed to parse JSON! loadConfig");
-    return false;
-  }
+    if (error) {
+      Serial.println("Failed to parse JSON! loadConfig");
+      return false;
+    }
 
-  if (jsonDocument.containsKey("softAP_ssid")) {
-    // Do something with softAP_ssid if needed
-  }
+    if (jsonDocument.containsKey("softAP_ssid")) {
+      // Do something with softAP_ssid if needed
+    }
 
-  if (jsonDocument.containsKey("ssid")) {
-    strcpy(ssid, jsonDocument["ssid"]);
-    strcpy(password, jsonDocument["password"]);
-  }
+    if (jsonDocument.containsKey("ssid")) {
+      strcpy(ssid, jsonDocument["ssid"]);
+      strcpy(password, jsonDocument["password"]);
+    }
 
-  // device_id теперь генерируется автоматически и не читается из конфигурации
-  String defName = "ecologic_" + String(ESP.getChipId());
-  strncpy(softAP_ssid, defName.c_str(), sizeof(softAP_ssid) - 1);
-  softAP_ssid[sizeof(softAP_ssid) - 1] = '\0';
+    // device_id теперь генерируется автоматически и не читается из конфигурации
+    String defName = "ecologic_" + String(ESP.getChipId());
+    strncpy(softAP_ssid, defName.c_str(), sizeof(softAP_ssid) - 1);
+    softAP_ssid[sizeof(softAP_ssid) - 1] = '\0';
 
 #if defined(USE_PUBSUBCLIENT)
-  IOT_Manager_loop = jsonDocument["iot_enable"];
-  if (IOT_Manager_loop) {
-    client.disconnect();
-  }
+    IOT_Manager_loop = jsonDocument["iot_enable"];
+    if (IOT_Manager_loop) {
+      client.disconnect();
+    }
 
-  strcpy(mqttServerName, jsonDocument["mqttServerName"]);
-  jsonDocument.containsKey("mqttport") ? mqttport = jsonDocument["mqttport"] : mqttport = 1883;
+    strcpy(mqttServerName, jsonDocument["mqttServerName"]);
+    jsonDocument.containsKey("mqttport") ? mqttport = jsonDocument["mqttport"] : mqttport = 1883;
 
-  strcpy(mqttuser, jsonDocument["mqttuser"]);
-  strcpy(mqttpass, jsonDocument["mqttpass"]);
-  jsonDocument.containsKey("mqttspacing") ? mqttspacing = jsonDocument["mqttspacing"] : mqttspacing = 60;
+    strcpy(mqttuser, jsonDocument["mqttuser"]);
+    strcpy(mqttpass, jsonDocument["mqttpass"]);
+    jsonDocument.containsKey("mqttspacing") ? mqttspacing = jsonDocument["mqttspacing"] : mqttspacing = 60;
 #endif
 
-  jsonDocument.containsKey("geo_enable") ? geo_enable = jsonDocument["geo_enable"] : geo_enable = 0;
-  jsonDocument.containsKey("wifi_scan") ? wifi_scan = jsonDocument["wifi_scan"] : wifi_scan = 1;
+    jsonDocument.containsKey("geo_enable") ? geo_enable = jsonDocument["geo_enable"] : geo_enable = 0;
+    jsonDocument.containsKey("wifi_scan") ? wifi_scan = jsonDocument["wifi_scan"] : wifi_scan = 1;
 
 #if defined(ws433)
-  jsonDocument.containsKey("loop_433") ? loop_433 = jsonDocument["loop_433"] : loop_433 = 0;
+    jsonDocument.containsKey("loop_433") ? loop_433 = jsonDocument["loop_433"] : loop_433 = 0;
 #endif
 
-  jsonDocument.containsKey("ws8211_loop") ? ws8211_loop = jsonDocument["ws8211_loop"] : ws8211_loop = 0;
-  jsonDocument.containsKey("save_stat") ? save_stat = jsonDocument["save_stat"] : save_stat = 0;
-  unsigned int freq = 1000;
-  jsonDocument.containsKey("PWM_frequency") ? freq = jsonDocument["PWM_frequency"] : freq = 1000;
-  analogWriteFreq(freq);  // frequency for PWM
-  // analogWriteRange(1023);
-  jsonDocument.containsKey("send_to_nodeRed") ? send_to_nodeRed = jsonDocument["send_to_nodeRed"] : send_to_nodeRed = 0;
-  // telegram
+    jsonDocument.containsKey("ws8211_loop") ? ws8211_loop = jsonDocument["ws8211_loop"] : ws8211_loop = 0;
+    jsonDocument.containsKey("save_stat") ? save_stat = jsonDocument["save_stat"] : save_stat = 0;
+    unsigned int freq = 1000;
+    jsonDocument.containsKey("PWM_frequency") ? freq = jsonDocument["PWM_frequency"] : freq = 1000;
+    analogWriteFreq(freq);  // frequency for PWM
+    // analogWriteRange(1023);
+    jsonDocument.containsKey("send_to_nodeRed") ? send_to_nodeRed = jsonDocument["send_to_nodeRed"] : send_to_nodeRed = 0;
+    // telegram
 #ifdef use_telegram
-  if (jsonDocument.containsKey("BOTtoken")) {
-    BOTtoken = jsonDocument["BOTtoken"].as<String>();
-  }
+    if (jsonDocument.containsKey("BOTtoken")) {
+      BOTtoken = jsonDocument["BOTtoken"].as<String>();
+    }
 
 #endif
-  if (jsonDocument.containsKey("nodered_address")) {
-    strncpy(nodered_address, jsonDocument["nodered_address"], sizeof(nodered_address) - 1);
-    nodered_address[sizeof(nodered_address) - 1] = '\0';
-  }
-  if (jsonDocument.containsKey("server_url")) {
-    strncpy(server_url, jsonDocument["server_url"], sizeof(server_url) - 1);
-    server_url[sizeof(server_url) - 1] = '\0';
-  }
-  
-  use_static_ip = jsonDocument.containsKey("use_static_ip") ? jsonDocument["use_static_ip"] : false;
-  if (jsonDocument.containsKey("static_ip")) {
-    strncpy(static_ip, jsonDocument["static_ip"], sizeof(static_ip) - 1);
-    static_ip[sizeof(static_ip) - 1] = '\0';
-  }
-  if (jsonDocument.containsKey("gateway")) {
-    strncpy(gateway, jsonDocument["gateway"], sizeof(gateway) - 1);
-    gateway[sizeof(gateway) - 1] = '\0';
-  }
-  if (jsonDocument.containsKey("subnet")) {
-    strncpy(subnet, jsonDocument["subnet"], sizeof(subnet) - 1);
-    subnet[sizeof(subnet) - 1] = '\0';
-  }
-  if (jsonDocument.containsKey("dns1")) {
-    strncpy(dns1, jsonDocument["dns1"], sizeof(dns1) - 1);
-    dns1[sizeof(dns1) - 1] = '\0';
-  }
-  if (jsonDocument.containsKey("dns2")) {
-    strncpy(dns2, jsonDocument["dns2"], sizeof(dns2) - 1);
-    dns2[sizeof(dns2) - 1] = '\0';
-  }
-  sync_interval = jsonDocument.containsKey("sync_interval") ? jsonDocument["sync_interval"] : 5;
-  if (jsonDocument.containsKey("device_name")) {
-    strncpy(device_name, jsonDocument["device_name"], sizeof(device_name) - 1);
-    device_name[sizeof(device_name) - 1] = '\0';
-  }
-  if (jsonDocument.containsKey("softAP_password")) {
-    strncpy(softAP_password, jsonDocument["softAP_password"], sizeof(softAP_password) - 1);
-    softAP_password[sizeof(softAP_password) - 1] = '\0';
-  }
+    if (jsonDocument.containsKey("nodered_address")) {
+      strncpy(nodered_address, jsonDocument["nodered_address"], sizeof(nodered_address) - 1);
+      nodered_address[sizeof(nodered_address) - 1] = '\0';
+    }
+    if (jsonDocument.containsKey("server_url")) {
+      strncpy(server_url, jsonDocument["server_url"], sizeof(server_url) - 1);
+      server_url[sizeof(server_url) - 1] = '\0';
+    }
+
+    use_static_ip = jsonDocument.containsKey("use_static_ip") ? jsonDocument["use_static_ip"] : false;
+    if (jsonDocument.containsKey("static_ip")) {
+      strncpy(static_ip, jsonDocument["static_ip"], sizeof(static_ip) - 1);
+      static_ip[sizeof(static_ip) - 1] = '\0';
+    }
+    if (jsonDocument.containsKey("gateway")) {
+      strncpy(gateway, jsonDocument["gateway"], sizeof(gateway) - 1);
+      gateway[sizeof(gateway) - 1] = '\0';
+    }
+    if (jsonDocument.containsKey("subnet")) {
+      strncpy(subnet, jsonDocument["subnet"], sizeof(subnet) - 1);
+      subnet[sizeof(subnet) - 1] = '\0';
+    }
+    if (jsonDocument.containsKey("dns1")) {
+      strncpy(dns1, jsonDocument["dns1"], sizeof(dns1) - 1);
+      dns1[sizeof(dns1) - 1] = '\0';
+    }
+    if (jsonDocument.containsKey("dns2")) {
+      strncpy(dns2, jsonDocument["dns2"], sizeof(dns2) - 1);
+      dns2[sizeof(dns2) - 1] = '\0';
+    }
+    sync_interval = jsonDocument.containsKey("sync_interval") ? jsonDocument["sync_interval"] : 5;
+    if (jsonDocument.containsKey("device_name")) {
+      strncpy(device_name, jsonDocument["device_name"], sizeof(device_name) - 1);
+      device_name[sizeof(device_name) - 1] = '\0';
+    }
+    if (jsonDocument.containsKey("softAP_password")) {
+      strncpy(softAP_password, jsonDocument["softAP_password"], sizeof(softAP_password) - 1);
+      softAP_password[sizeof(softAP_password) - 1] = '\0';
+    }
+  }  // jsonDocument freed here — heap reclaimed before the next large allocation
+
   //  String jsonConfig_string = readCommonFiletoJson("pin_setup");
   if (updatepinsetup(fileSystem->open("/pin_setup.txt", "r"))) {
     Serial.println("Widgets Loaded");
