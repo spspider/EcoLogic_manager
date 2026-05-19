@@ -20,7 +20,11 @@
 //включить для кондиционеров
 IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);  //ON!!!
 //IRrecv irrecv(RECV_PIN);
-IRsend irsend(SEND_PIN);  //ON!!!
+#if defined(IR_SEND_INVERTED)
+IRsend irsend(SEND_PIN, true);   // inverted: LED to +VCC, GPIO controls GND
+#else
+IRsend irsend(SEND_PIN, false);  // normal:   LED to GND, GPIO controls +
+#endif
 
 
 uint64_t buff1 = 0;

@@ -27,6 +27,9 @@
 #if defined(USE_IRUTILS)
 #define RECV_PIN 5      // IR recieve d1
 #define SEND_PIN 4     // IR send d2
+// Define IR_SEND_INVERTED to use active-low output (LED connected to +VCC, GPIO controls GND)
+// Comment out for active-high (classic scheme: LED connected to GND, GPIO controls +)
+// #define IR_SEND_INVERTED
 #endif
 #define N_WIDGETS 12
 #define MAX_CONDITIONS 5
