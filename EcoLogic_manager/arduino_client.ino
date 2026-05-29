@@ -26,18 +26,21 @@ void uploadConfig_ecologicclient() {
   // Відправляємо other_setup.txt
   File otherFile = LittleFS.open("/other_setup.txt", "r");
   if (otherFile) {
-    String otherConfig = otherFile.readString();
+    char otherConfig[512];  // Use char buffer instead of String (saves ~500 bytes)
+    size_t otherSize = otherFile.readBytes(otherConfig, sizeof(otherConfig) - 1);
+    otherConfig[otherSize] = '\0';
     otherFile.close();
 
     snprintf(uploadUrl, sizeof(uploadUrl), "%s/api/other?id=%s&tk=%s", server_url, device_id, device_token);
     if (http.begin(wclient, uploadUrl)) {
       http.addHeader("Content-Type", "application/json");
       http.setTimeout(5000);
+      http.setReuse(false);  // Don't keep connection alive (reduces memory)
       int otherCode = http.POST(otherConfig);
       if (otherCode == 200) {
         Serial.println("Other setup uploaded OK");
       }
-      http.end();
+      http.end();  // Always free buffers
     }
   }
 
@@ -48,10 +51,12 @@ void uploadConfig_ecologicclient() {
     return;
   }
 
-  String config = file.readString();
+  char config[768];  // Use char buffer instead of String (saves ~500 bytes)
+  size_t configSize = file.readBytes(config, sizeof(config) - 1);
+  config[configSize] = '\0';
   file.close();
 
-  if (config.length() > 800) {
+  if (configSize > 800) {
     Serial.println("Config too large");
     return;
   }
@@ -67,6 +72,7 @@ void uploadConfig_ecologicclient() {
 
   http.addHeader("Content-Type", "application/json");
   http.setTimeout(5000);
+  http.setReuse(false);  // Don't keep connection alive (reduces memory)
 
   int httpCode = http.POST(config);
   
@@ -76,7 +82,7 @@ void uploadConfig_ecologicclient() {
     Serial.printf("Upload failed: %d\n", httpCode);
   }
 
-  http.end();
+  http.end();  // Always free buffers
 }
 
 void syncWithServer() {
@@ -107,6 +113,7 @@ void syncWithServer() {
 
   http.addHeader("Content-Type", "application/json");
   http.setTimeout(5000);
+  http.setReuse(false);  // Don't keep connection alive (reduces memory)
 
   int httpCode = http.POST(jsonBuf);
 

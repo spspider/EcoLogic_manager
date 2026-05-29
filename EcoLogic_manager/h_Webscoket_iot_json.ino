@@ -39,17 +39,22 @@ void write_new_widjet_value(uint8_t i, int payload_is) {
 }
 
 void pubStatusFULLAJAX_String(bool save_eeprom) {  // отправка на сервер _nobuffer
-  String stat1 = "{\"stat\":[";
+  char buffer[256];  // Stack allocation instead of String (saves ~400 bytes heap)
+  char* ptr = buffer;
+  
+  ptr += sprintf(ptr, "{\"stat\":[");
+  
   for (uint8_t i = 0; i < nWidgets; i++) {
     float that_stat = get_new_widjet_value(i);
-    stat1 += "\"";
-    stat1 += String(that_stat, 2);
-    stat1 += "\"";
-    stat1 += (i < nWidgets - 1) ? "," : "]";
+    ptr += sprintf(ptr, "\"%.2f\"", that_stat);
+    if (i < nWidgets - 1) {
+      *ptr++ = ',';
+    }
   }
-  stat1 += "}";
-  String buffer = stat1;
-  server.send(200, "text / json", buffer);
+  
+  sprintf(ptr, "]}");
+  
+  server.send(200, "text/json", buffer);
 }
 void pubStatusShortAJAX_String(uint8_t i) {
   server.send(200, "text / plain", String(get_new_widjet_value(i)));

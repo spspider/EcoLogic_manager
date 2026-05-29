@@ -1,10 +1,10 @@
 bool loadConfig(File jsonConfig) {
-  // Use a scope block so jsonDocument(1024) is freed from heap BEFORE
-  // updatepinsetup allocates its own DynamicJsonDocument(2048).
-  // Without this, both live simultaneously → 3 KB of fragmented heap
+  // Use a scope block so jsonDocument(512) is freed from heap BEFORE
+  // updatepinsetup allocates its own DynamicJsonDocument(768).
+  // Without this, both live simultaneously → fragmented heap
   // that later prevents the HTTP upload buffer (~1500 B) from being allocated.
   {
-    DynamicJsonDocument jsonDocument(1024);  // Adjust the capacity as needed
+    DynamicJsonDocument jsonDocument(512);  // Reduced from 1024 (actual usage ~400 bytes)
     DeserializationError error = deserializeJson(jsonDocument, jsonConfig);
 
     if (error) {
@@ -268,7 +268,11 @@ bool SaveCondition(String json) {
 //////////////////////////////////////////////////////////////////////////////
 
 bool updatepinsetup(File jsonrecieve) {
-  DynamicJsonDocument jsonDocument(2048); // Adjust the capacity as needed
+  // Force heap cleanup before large allocation to reduce fragmentation
+  yield();
+  delay(10);
+  
+  DynamicJsonDocument jsonDocument(768); // Reduced from 2048 (actual usage ~450 bytes max)
   DeserializationError error = deserializeJson(jsonDocument, jsonrecieve);
 
   if (error) {
@@ -303,6 +307,7 @@ bool updatepinsetup(File jsonrecieve) {
     id[i] = i;
 
     strncpy(descr[i], jsonDocument["descr"][i], sizeof(descr[i]) - 1);
+    descr[i][sizeof(descr[i]) - 1] = '\0';  // Ensure null termination (descr is char[10])
   }
 
   analogDivider = jsonDocument.containsKey("aDiv") ? jsonDocument["aDiv"] : 1.0F;
@@ -325,7 +330,7 @@ bool load_stat() {
     return false;
   }
 
-  DynamicJsonDocument jsonDocument_stat(2048);  // Adjust the capacity as needed
+  DynamicJsonDocument jsonDocument_stat(256);  // Reduced from 2048 (actual usage ~150 bytes for 12 floats)
   File stat1 = fileSystem->open("/stat.txt", "r");
 
   DeserializationError error = deserializeJson(jsonDocument_stat, stat1);
