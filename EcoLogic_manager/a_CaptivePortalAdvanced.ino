@@ -208,7 +208,17 @@ void captive_loop() {
   if (onesec >= lastConnectTry + 30) {
     if ((WiFi.getMode() == WIFI_AP) && (wifi_softap_get_station_num() == 0)) {
       if (wifi_fail_count >= WIFI_FAIL_THRESHOLD) {
-        Serial.println("WiFi unstable (" + String(wifi_fail_count) + " fails), staying in AP-only mode. Reboot to retry.");
+        static uint8_t ap_wait_cycles = 0;
+        if (++ap_wait_cycles >= 10) {  // 10 x 30s = ~5 min before retry
+          ap_wait_cycles = 0;
+          wifi_fail_count = 0;
+          Serial.println("Periodic WiFi retry after AP-only period");
+          connect = true;
+        } else {
+          Serial.print("WiFi unstable, AP-only, retry in ");
+          Serial.print(10 - ap_wait_cycles);
+          Serial.println(" cycles");
+        }
         lastConnectTry = onesec = 0;
         return;
       }
@@ -222,6 +232,13 @@ void captive_loop() {
         CONSOLE_PRINTF("  Forward other lookups to DNS: %s\r\n", dnsServer.getDNS().toString().c_str());
       }
 #endif
+      return;
+    } else if (wifi_mode == 1 && WiFi.getMode() == WIFI_STA &&
+               (WiFi.status() == WL_DISCONNECTED || WiFi.status() == WL_IDLE_STATUS)) {
+      // STA-only mode: lightweight reconnect, no heap allocation, no AP fallback
+      Serial.println("STA disconnected, lightweight reconnect");
+      WiFi.reconnect();
+      lastConnectTry = onesec = 0;
       return;
     } else if ((wifi_softap_get_station_num() == 0) && ((WiFi.status() == WL_DISCONNECTED) || (WiFi.status() == WL_IDLE_STATUS) || (WiFi.status() == WL_NO_SSID_AVAIL))) {
       WiFi.disconnect();

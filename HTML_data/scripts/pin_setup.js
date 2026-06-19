@@ -274,6 +274,8 @@ function renderTable() {
         const currentMode = inputPinmode[currentModeIndex];
         defaultInput.className = 'form-control';
         defaultInput.type = 'number';
+        defaultInput.min = -32768;  // firmware int16_t lower bound
+        defaultInput.max = 32767;   // firmware int16_t upper bound
         let minValue = -1;
         let maxValue = 1024;
         if (modeValues.hasOwnProperty(currentMode)) {

@@ -18,8 +18,12 @@
 //  #define wakeOnLan
 #define USE_DHT // library version: 1.19 (dht sensor library for ESPx) !!!NOT COMPATIBLE WITH USE_DS18B20!!!
 //  #define ads1115 # CHANGE TO USE_ADS1115
-#define USE_EMON // electric monitor !! CONFLICT with USE_IRUTILS !!
+// #define USE_EMON // electric monitor !! CONFLICT with USE_IRUTILS !!
 //  #define ws433 # CHANGE TO USE_WS433
+
+// Computer Power Control for specific device (192.168.1.160)
+// Uncomment the line below ONLY for the device controlling the computer at 192.168.1.160
+//  #define USE_COMPUTER_POWER_CONTROL
 
 #if defined(USE_DS18B20)
 #define ONE_WIRE_BUS 2  // D4 pin ds18b20
@@ -314,6 +318,9 @@ pinMode(0, OUTPUT); //hardcode pin D3 (GPIO 0) as output
 digitalWrite(0, HIGH);
 delay(100); // Время для стабилизации
 
+#if defined(USE_COMPUTER_POWER_CONTROL)
+  setupComputerPowerControl();
+#endif
 
 }
 void resetMillis() {
@@ -380,6 +387,10 @@ void loop() {
     yield();
   }
  
+ 
+#if defined(USE_COMPUTER_POWER_CONTROL)
+  loopComputerPowerControl();
+#endif
  
   yield(); // Позволяем ESP8266 обрабатывать WiFi и другие задачи
 

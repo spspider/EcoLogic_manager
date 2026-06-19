@@ -97,9 +97,9 @@
                         <div class="col-sm-6">
                             Device port:
                             <input type='text' class="form-control" placeholder='ipport' value='{{ipport}}'
-                                name='ipport' />
+                                name='ipport' maxlength="5" />
                             GMT+ (timezone):
-                            <input type='text' id="timezone" class="form-control" placeholder='0' value='{{timezone}}' name='timezone' />
+                            <input type='text' id="timezone" class="form-control" placeholder='0' value='{{timezone}}' name='timezone' maxlength="3" />
                             <br>
                             Use Static IP:
                             <input type='checkbox' class="form-control" name='use_static_ip' id="use_static_ip" onchange="toggleStaticIP()" />

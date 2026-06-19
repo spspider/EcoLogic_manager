@@ -1,10 +1,10 @@
 bool loadConfig(File jsonConfig) {
-  // Use a scope block so jsonDocument(512) is freed from heap BEFORE
-  // updatepinsetup allocates its own DynamicJsonDocument(768).
+  // Use a scope block so jsonDocument(768) is freed from heap BEFORE
+  // updatepinsetup allocates its own DynamicJsonDocument(1024).
   // Without this, both live simultaneously → fragmented heap
   // that later prevents the HTTP upload buffer (~1500 B) from being allocated.
   {
-    DynamicJsonDocument jsonDocument(512);  // Reduced from 1024 (actual usage ~400 bytes)
+    DynamicJsonDocument jsonDocument(768);  // Increased from 512: static-IP fields pushed usage above 512
     DeserializationError error = deserializeJson(jsonDocument, jsonConfig);
 
     if (error) {
@@ -272,7 +272,7 @@ bool updatepinsetup(File jsonrecieve) {
   yield();
   delay(10);
   
-  DynamicJsonDocument jsonDocument(768); // Reduced from 2048 (actual usage ~450 bytes max)
+  DynamicJsonDocument jsonDocument(1024); // Increased from 768: long descr strings (>9 chars) caused overflow
   DeserializationError error = deserializeJson(jsonDocument, jsonrecieve);
 
   if (error) {
@@ -285,6 +285,8 @@ bool updatepinsetup(File jsonrecieve) {
   uint8_t numberChosed = jsonDocument["numberChosed"];
   if (numberChosed == 0) {
     Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FAIL!! numberChosed = 0");
+    loadDefaultPinSetup();  // Safety fallback: avoid leaving all pinmodes at 0 → -123.12
+    Setup_pinmode(false);
     return false;
   }
 
