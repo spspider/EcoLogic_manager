@@ -653,6 +653,20 @@ void FunctionHTTP() {
 
     server.send(200, "text/plain", device_id);
   }
+
+  // Diagnostic: returns runtime pinmode[] array to verify JSON was parsed correctly
+  // Usage: /function?data={"get_pinmode":1}
+  if (jsonDocument.containsKey("get_pinmode")) {
+    char buf[80];
+    char *p = buf;
+    p += sprintf(p, "{\"nW\":%d,\"pm\":[", nWidgets);
+    for (uint8_t i = 0; i < nWidgets; i++) {
+      p += sprintf(p, "%d", pinmode[i]);
+      if (i < nWidgets - 1) *p++ = ',';
+    }
+    sprintf(p, "]}");
+    server.send(200, "text/json", buf);
+  }
 }
 
 void handlews2811() {
