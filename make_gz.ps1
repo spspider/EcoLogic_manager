@@ -39,7 +39,8 @@ $fileList = @(
     "ws2811.js",
     "ws2812_set.js",
     "homeassistant.htm",
-    "homeassistant.js"
+    "homeassistant.js",
+    "computer_power_logs.htm"
 )
 
 # Variable to determine whether to use the list or not

@@ -21,15 +21,91 @@
  * - No dynamic memory allocation
  */
 
+// Generic device log, kept outside USE_COMPUTER_POWER_CONTROL so any module can use it
+// and the log page/API works even when no feature define is active.
+// Stored on flash (not RAM) as plain-text lines: "<seconds>|<type>|<message>".
+// Plain text is used instead of JSON-per-line because it has no repeated key/quote
+// overhead, keeping the capped file noticeably smaller on the flash-limited ESP8266.
+// The UI (computer_power_logs.htm) fetches the raw file and parses it client-side;
+// the device never needs to hold the whole log in memory.
+#define LOG_FILE_PATH "/computer_power_log.txt"
+#define LOG_FILE_TMP_PATH "/computer_power_log.tmp"
+#define MAX_LOG_LINES 40
+
+/**
+ * Create the log file on first boot so the UI never sees a 404 before any
+ * log line has been written.
+ */
+void initLogs() {
+  if (!fileSystem->exists(LOG_FILE_PATH)) {
+    File logFile = fileSystem->open(LOG_FILE_PATH, "w");
+    if (logFile) logFile.close();
+  }
+}
+
+/**
+ * Append a log entry to the log file, evicting the oldest line(s) once the
+ * line cap is reached so the file never grows unbounded.
+ */
+void addLogEntry(const char* message, const char* logType) {
+  Serial.print(F("[LOG] "));
+  Serial.print(logType);
+  Serial.print(F(": "));
+  Serial.println(message);
+
+  // Count existing lines to know whether the oldest one(s) must be dropped
+  uint16_t existingLines = 0;
+  File countFile = fileSystem->open(LOG_FILE_PATH, "r");
+  if (countFile) {
+    while (countFile.available()) {
+      countFile.readStringUntil('\n');
+      existingLines++;
+    }
+    countFile.close();
+  }
+
+  if (existingLines >= MAX_LOG_LINES) { // Rewrite file without the oldest line(s)
+    File src = fileSystem->open(LOG_FILE_PATH, "r");
+    File dst = fileSystem->open(LOG_FILE_TMP_PATH, "w");
+    if (src && dst) {
+      uint16_t toSkip = existingLines - MAX_LOG_LINES + 1;
+      uint16_t idx = 0;
+      while (src.available()) {
+        String line = src.readStringUntil('\n');
+        line.trim();
+        idx++;
+        if (idx <= toSkip || line.length() == 0) continue;
+        dst.print(line);
+        dst.print('\n');
+      }
+    }
+    if (src) src.close();
+    if (dst) dst.close();
+    fileSystem->remove(LOG_FILE_PATH);
+    fileSystem->rename(LOG_FILE_TMP_PATH, LOG_FILE_PATH);
+  }
+
+  File logFile = fileSystem->open(LOG_FILE_PATH, "a");
+  if (logFile) {
+    logFile.print(millis() / 1000);
+    logFile.print('|');
+    logFile.print(logType);
+    logFile.print('|');
+    logFile.print(message);
+    logFile.print('\n');
+    logFile.close();
+  }
+}
+
 #ifdef USE_COMPUTER_POWER_CONTROL
 
 // Pin definitions - configure in EcoLogic_manager.ino
 #ifndef COMPUTER_STATUS_PIN
-  #define COMPUTER_STATUS_PIN D1  // Input: reads computer power state (informative, optional connection)
+  #define COMPUTER_STATUS_PIN 5  // Input: reads computer power state (informative, optional connection)
 #endif
 
 #ifndef COMPUTER_POWER_BUTTON_PIN
-  #define COMPUTER_POWER_BUTTON_PIN D5  // Output: controls power button
+  #define COMPUTER_POWER_BUTTON_PIN 14  // Output: controls power button
 #endif
 
 // Target computer to monitor
@@ -123,18 +199,26 @@ bool pingComputer(const char* ip) { // Attempt TCP connection on port 80 to test
   Serial.print(ip);
   Serial.print(F("..."));
   
-  // Try to connect to port 80 (HTTP) as a simple reachability test
-  bool result = client.connect(ip, 80, PING_TIMEOUT_MS);
+  // ESP8266 WiFiClient::connect() has no timeout overload; cap read timeout only
+  client.setTimeout(PING_TIMEOUT_MS);
+  bool result = client.connect(ip, 80);
   
   if (result) { // Connection successful
     Serial.println(F(" OK"));
+    char msg[100];
+    snprintf(msg, sizeof(msg), "Ping %s - SUCCESS", ip);
+    addLogEntry(msg, "success");
     client.stop();
   } else { // Connection failed
     Serial.println(F(" FAILED"));
+    char msg[100];
+    snprintf(msg, sizeof(msg), "Ping %s - FAILED", ip);
+    addLogEntry(msg, "failure");
   }
   
   return result;
 }
+
 
 /**
  * Simulate pressing computer power button
@@ -202,9 +286,13 @@ void handleComputerControlStateMachine() { // Main logic controller, processes c
         consecutivePingFailures++;
         Serial.print(F("Consecutive ping failures: "));
         Serial.println(consecutivePingFailures);
+        char msg[100];
+        snprintf(msg, sizeof(msg), "Consecutive failures: %d/%d", consecutivePingFailures, PING_FAIL_THRESHOLD);
+        addLogEntry(msg, "wait");
         
         if (consecutivePingFailures >= PING_FAIL_THRESHOLD) { // 3 failures, initiate reboot
           Serial.println(F("Computer not responding - initiating hard reboot"));
+          addLogEntry("Threshold reached - initiating hard reboot", "action");
           consecutivePingFailures = 0;
           currentState = STATE_SHUTTING_DOWN;
           stateStartTime = currentMillis;
@@ -218,6 +306,7 @@ void handleComputerControlStateMachine() { // Main logic controller, processes c
     case STATE_SHUTTING_DOWN: { // Force shutdown by holding power button for 10 seconds
       pressComputerPowerButton(FORCE_SHUTDOWN_MS);
       Serial.println(F("Force shutdown initiated"));
+      addLogEntry("Force shutdown - holding power button 10s", "action");
       currentState = STATE_WAITING_SHUTDOWN;
       stateStartTime = currentMillis;
       break;
@@ -226,6 +315,7 @@ void handleComputerControlStateMachine() { // Main logic controller, processes c
     case STATE_WAITING_SHUTDOWN: { // Wait 10 seconds after shutdown
       if (currentMillis - stateStartTime >= WAIT_AFTER_SHUTDOWN_MS) { // Shutdown wait complete
         Serial.println(F("Shutdown wait complete - powering on"));
+        addLogEntry("Shutdown complete - initiating power on", "action");
         currentState = STATE_POWERING_ON;
       }
       break;
@@ -234,6 +324,7 @@ void handleComputerControlStateMachine() { // Main logic controller, processes c
     case STATE_POWERING_ON: { // Quick 100ms pulse to power on
       pressComputerPowerButton(POWER_ON_PULSE_MS);
       Serial.println(F("Power on pulse sent"));
+      addLogEntry("Power ON pulse sent (100ms)", "action");
       currentState = STATE_WAITING_BOOT;
       stateStartTime = currentMillis;
       break;
@@ -242,6 +333,7 @@ void handleComputerControlStateMachine() { // Main logic controller, processes c
     case STATE_WAITING_BOOT: { // Wait 30 minutes for system boot and HDD check
       if (currentMillis - stateStartTime >= WAIT_AFTER_BOOT_MS) { // Boot wait complete
         Serial.println(F("Boot wait complete - resuming normal operation"));
+        addLogEntry("Boot wait complete - resuming monitoring", "action");
         currentState = STATE_IDLE;
         lastPingCheck = currentMillis;
       } else { // Still waiting for boot

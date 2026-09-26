@@ -1,0 +1,4 @@
+<!-- Computer Power Logs Link Button -->
+<a href="computer_power_logs.htm" class="btn btn-primary btn-block btn-lg" style="margin-bottom:5px;">
+    <i class="fa fa-desktop"></i> Computer Power Logs
+</a>

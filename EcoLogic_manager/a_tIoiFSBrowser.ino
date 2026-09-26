@@ -743,6 +743,15 @@ void server_init() {
     handleFileRead("/help.htm");
   });
 
+  // Generic device log page/API - always available, not tied to any feature define
+  server.on("/computer_power_logs.htm", []() {
+    handleFileRead("/computer_power_logs.htm");
+  });
+  server.on("/api/computer_power_logs", HTTP_GET, []() {
+    sendMyheader();
+    server.send(200, "text/plain", readCommonFiletoJson("computer_power_log"));
+  });
+
   server.on("/edit", HTTP_GET, []() {
     if (!handleFileRead("/edit.htm")) server.send(404, "text/plain", "FileNotFound");
   });

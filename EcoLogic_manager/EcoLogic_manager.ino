@@ -5,7 +5,7 @@
 //  #define use_telegram
 // #define USE_SPIFFS
 #define USE_LITTLEFS
-// #define USE_DS18B20 //!!!NOT COMPATIBLE WITH USE_DHT!!!
+//#define USE_DS18B20 //!!!NOT COMPATIBLE WITH USE_DHT!!!
 #define USE_DNS_SERVER
 // #define USE_UDP
 // #define USE_PUBSUBCLIENT  //mqtt possibility
@@ -17,13 +17,13 @@
 //  #define USE_AS5600
 //  #define wakeOnLan
 #define USE_DHT // library version: 1.19 (dht sensor library for ESPx) !!!NOT COMPATIBLE WITH USE_DS18B20!!!
-//  #define ads1115 # CHANGE TO USE_ADS1115
+// #define ads1115 # CHANGE TO USE_ADS1115
 // #define USE_EMON // electric monitor !! CONFLICT with USE_IRUTILS !!
 //  #define ws433 # CHANGE TO USE_WS433
 
 // Computer Power Control for specific device (192.168.1.160)
 // Uncomment the line below ONLY for the device controlling the computer at 192.168.1.160
-//  #define USE_COMPUTER_POWER_CONTROL
+#define USE_COMPUTER_POWER_CONTROL //to control the computer at 192.168.1.160
 
 #if defined(USE_DS18B20)
 #define ONE_WIRE_BUS 2  // D4 pin ds18b20
@@ -218,6 +218,16 @@ char dns1[16] = { 0 };
 char dns2[16] = { 0 };
 unsigned char sync_interval = 5;
 
+#if defined(USE_COMPUTER_POWER_CONTROL)
+// Explicit prototypes needed: z_computer_power_control.ino is last alphabetically,
+// so its own prototypes come after this file's call site in the concatenated sketch.
+void setupComputerPowerControl();
+void loopComputerPowerControl();
+#endif
+// Same ordering reason as above; initLogs() lives in z_computer_power_control.ino
+// but is generic (not gated behind a feature define).
+void initLogs();
+
 void setup() {
 pinMode(0, OUTPUT); //hardcode pin D3 (GPIO 0) as output
 digitalWrite(0, HIGH);
@@ -257,6 +267,7 @@ checkAndRestoreDefaults();
   Serial.println();
   Serial.println();
   setup_FS();
+  initLogs();
 #if defined(USE_UDP)
   Udp.begin(UDP_PORT);
   Serial.println("UDP listening on port " + String(UDP_PORT));

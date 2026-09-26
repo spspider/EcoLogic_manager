@@ -145,7 +145,8 @@ function createAdditionalLinks() {
         { href: '/edit', text: 'edit' },
         { href: '/IR_setup', text: 'IR setup' },
         { href: '/graphs.htm', text: 'Graphs' },
-        { href: '/homeassistant.htm', text: 'homeassistant api' }
+            { href: '/homeassistant.htm', text: 'homeassistant api' },
+            { href: '/computer_power_logs.htm', text: 'logs' }
     ];
 
     links.forEach(link => {

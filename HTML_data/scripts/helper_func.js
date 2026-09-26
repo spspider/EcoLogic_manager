@@ -321,7 +321,8 @@ function bottomButtons() {
         { href: '/api/device_selector' + deviceParam, text: 'devices' },
         { href: '/api/home' + deviceParam, text: 'home' },
         { href: '/api/condition' + deviceParam, text: 'condition' },
-        { href: '/api/help' + deviceParam, text: 'API' }
+        { href: '/api/help' + deviceParam, text: 'API' },
+        { href: '/api/computer_power_logs' + deviceParam, text: 'logs' }
     ] : [
         { href: '/', text: 'cont' },
         { href: '/wifi', text: 'Wifi' },

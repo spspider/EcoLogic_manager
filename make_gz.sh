@@ -17,6 +17,7 @@ file_list=(
   "pin_setup.htm"
   "wifi_setup.htm"
   "ws2811.html"
+  "computer_power_logs.htm"
   "scripts/ace.min.js"
   "scripts/chart.min.js"
   "scripts/condition.js"

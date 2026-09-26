@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; margin-bottom: 10px; font-size: 24px; }
+        .log-entry { padding: 10px; margin: 5px 0; border-left: 4px solid; border-radius: 3px; font-family: monospace; font-size: 13px; white-space: pre-wrap; }
+        .log-timestamp { color: #6c757d; margin-right: 8px; }
+        .log-success { background-color: #d4edda; border-color: #28a745; color: #155724; }
+        .log-failure { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+        .log-action { background-color: #cce5ff; border-color: #007bff; color: #004085; }
+        .log-wait { background-color: #e2e3e5; border-color: #6c757d; color: #383d41; }
+        a.nav-link { display: inline-block; padding: 10px 20px; margin: 10px 5px; background-color: #008CBA; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        .refresh-btn { padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        a.nav-link:hover { background-color: #007bb5; }
+    </style>
+</head>
+<body onload="loadLogs()">
+
+<div class="container">
+    <h1>Logs</h1>
+    <a href="/help.htm" style="display: inline-block; padding: 10px 20px; margin: 10px 5px 10px 0; background-color: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">← Back to Help</a>
+
+    <div style="text-align: right;"><button onclick="loadLogs()" class="refresh-btn">Refresh</button></div>
+
+    <div id="logContainer"></div>
+</div>
+
+<script>
+// The device serves the raw log file as plain text; all parsing/rendering happens here.
+function loadLogs() {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                renderLogs(parseLogText(xhr.responseText));
+            }
+        }
+    };
+    xhr.open('GET', '/api/computer_power_logs', true);
+    xhr.send();
+}
+
+function parseLogText(text) {
+    var entries = [];
+    text.split('\n').forEach(function(line) {
+        line = line.trim();
+        if (!line) return;
+        var firstSep = line.indexOf('|');
+        var secondSep = line.indexOf('|', firstSep + 1);
+        if (firstSep < 0 || secondSep < 0) return; // skip malformed line
+        entries.push({
+            timestamp: parseInt(line.substring(0, firstSep), 10) || 0,
+            type: line.substring(firstSep + 1, secondSep),
+            message: line.substring(secondSep + 1)
+        });
+    });
+    return entries;
+}
+
+function renderLogs(entries) {
+    var logContainer = document.getElementById('logContainer');
+    logContainer.innerHTML = '';
+
+    if (entries.length === 0) {
+        logContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">No log entries yet.</div>';
+        return;
+    }
+
+    entries.reverse().forEach(function(log) {
+        var logDiv = document.createElement('div');
+        logDiv.className = 'log-entry';
+
+        if (log.type === 'success') { logDiv.className += ' log-success'; }
+        else if (log.type === 'failure') { logDiv.className += ' log-failure'; }
+        else if (log.type === 'action') { logDiv.className += ' log-action'; }
+        else if (log.type === 'wait') { logDiv.className += ' log-wait'; }
+
+        var timeSpan = document.createElement('span');
+        timeSpan.className = 'log-timestamp';
+        timeSpan.textContent = formatUptime(log.timestamp);
+        logDiv.appendChild(timeSpan);
+        logDiv.appendChild(document.createTextNode(log.message));
+        logContainer.appendChild(logDiv);
+    });
+}
+
+function formatUptime(timestamp) {
+    // Device has no RTC/NTP: timestamp is seconds since device boot, not epoch time
+    if (!timestamp) return '--';
+    var s = timestamp % 60;
+    var m = Math.floor(timestamp / 60) % 60;
+    var h = Math.floor(timestamp / 3600);
+    return '[' + h + 'h ' + m + 'm ' + s + 's]';
+}
+
+setInterval(loadLogs, 5000);
+</script>
+
+</body>
+</html>
